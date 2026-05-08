@@ -52,3 +52,5 @@ venv/
 
 # drizzle
 lib/db/migrations/meta/_journal.json.bak
+*.local
+.migration-token*
