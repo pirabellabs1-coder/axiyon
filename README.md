@@ -1,7 +1,31 @@
 # Axion (Axiyon) — L'OS de l'entreprise autonome
 
+> 🟢 **LIVE** : https://axiyon-nine.vercel.app
+>
 > Application Next.js 15 production-ready. Postgres + Auth + Agents IA réels.
-> Conçue pour Vercel : `git push` → déployée + base + auth + agents fonctionnels.
+> `git push` → déploiement automatique sur Vercel.
+
+## Activer les agents IA
+
+L'app fonctionne déjà (signup, login, dashboard, admin, recrutement d'agents, audit chaîné).
+Pour faire **tourner** les agents (run, chat streaming), ajoute une clé LLM :
+
+1. Va sur https://vercel.com → projet **axiyon** → **Settings → Environment Variables**
+2. Ajoute :
+   - `ANTHROPIC_API_KEY` = ta clé Anthropic, **ou**
+   - `OPENAI_API_KEY` = ta clé OpenAI
+3. **Redeploy** (ou attends le prochain push).
+
+Sans clé, l'API `/api/agents/[id]/run` retourne `error: "No LLM provider configured"` proprement.
+
+## Compte super-admin créé
+
+- **Email** : `sylvainlissanon64@gmail.com`
+- **Org** : Pirabel Labs (slug `pirabel-labs`)
+- **Rôle** : `owner` + super-admin (accès `/admin`)
+- **Mot de passe** : défini lors du premier signup. Si oublié : reset via `DELETE` du user en DB Neon + nouveau signup.
+
+
 
 ---
 
