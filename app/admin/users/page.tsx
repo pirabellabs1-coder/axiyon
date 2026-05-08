@@ -1,4 +1,6 @@
 import { sql } from "drizzle-orm";
+import { Check, Crown, Minus } from "lucide-react";
+
 import { db, users } from "@/lib/db";
 import { Card } from "@/components/ui/card";
 import { relativeTime } from "@/lib/utils";
@@ -18,7 +20,12 @@ export default async function AdminUsersPage() {
           <thead className="border-b border-line">
             <tr>
               {["Email", "Nom", "Actif", "Super-admin", "Inscrit"].map((h) => (
-                <th key={h} className="text-left text-[11px] uppercase tracking-wider font-mono text-ink-2 px-4 py-3">{h}</th>
+                <th
+                  key={h}
+                  className="text-left text-[11px] uppercase tracking-wider font-mono text-ink-2 px-4 py-3"
+                >
+                  {h}
+                </th>
               ))}
             </tr>
           </thead>
@@ -27,9 +34,19 @@ export default async function AdminUsersPage() {
               <tr key={u.id} className="border-b border-line last:border-0 hover:bg-bg-3">
                 <td className="px-4 py-3 font-mono text-xs">{u.email}</td>
                 <td className="px-4 py-3">{u.name}</td>
-                <td className="px-4 py-3">{u.isActive ? "✓" : "—"}</td>
                 <td className="px-4 py-3">
-                  {u.isSuperuser ? <span className="text-brand-magenta">★</span> : "—"}
+                  {u.isActive ? (
+                    <Check className="size-4 text-brand-green" strokeWidth={2} />
+                  ) : (
+                    <Minus className="size-4 text-ink-3" strokeWidth={2} />
+                  )}
+                </td>
+                <td className="px-4 py-3">
+                  {u.isSuperuser ? (
+                    <Crown className="size-4 text-brand-magenta" strokeWidth={2} />
+                  ) : (
+                    <Minus className="size-4 text-ink-3" strokeWidth={2} />
+                  )}
                 </td>
                 <td className="px-4 py-3 text-right text-xs text-ink-3">
                   {relativeTime(u.createdAt)}
