@@ -1,0 +1,488 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tarifs — Axion</title>
+<meta name="description" content="Forfait fixe + outcomes. Pas de surprise au token. Solo 99€, Growth 299€, Enterprise sur devis.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root{--bg:#050507;--bg-2:#0B0B11;--bg-3:#13131C;--line:#1F1F2E;--line-2:#2A2A3A;--ink:#F5F5FA;--ink-2:#9A9AAE;--ink-3:#5A5A6E;--blue:#5B6CFF;--blue-2:#7C8AFF;--cyan:#22D3EE;--magenta:#FF3D8E;--gold:#E8B86D;--green:#34D399;--grad:linear-gradient(135deg,#5B6CFF 0%,#22D3EE 100%);--ease:cubic-bezier(.2,.8,.2,1)}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.55;-webkit-font-smoothing:antialiased;letter-spacing:-0.005em}
+::selection{background:var(--blue);color:#fff}
+a{color:inherit;text-decoration:none}
+.serif{font-family:'Instrument Serif',serif;font-style:italic}
+.mono{font-family:'JetBrains Mono',monospace}
+.gradient-text{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.container{max-width:1280px;margin:0 auto;padding:0 32px}
+@media(max-width:720px){.container{padding:0 20px}}
+
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:18px 0;backdrop-filter:blur(14px);background:rgba(5,5,7,.6);border-bottom:1px solid transparent;transition:.3s var(--ease)}
+.nav.scrolled{border-bottom-color:var(--line);background:rgba(5,5,7,.85)}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;gap:32px}
+.logo{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:600;letter-spacing:-.02em}
+.logo-mark{width:28px;height:28px;border-radius:7px;background:var(--grad);position:relative;box-shadow:0 0 28px rgba(91,108,255,.4)}
+.logo-mark::after{content:"";position:absolute;inset:5px;border-radius:3px;background:var(--bg)}
+.logo-mark::before{content:"";position:absolute;inset:9px;border-radius:1px;background:var(--grad)}
+.nav-links{display:flex;gap:32px;font-size:14px;color:var(--ink-2)}
+.nav-links a{transition:color .2s}.nav-links a:hover,.nav-links a.active{color:var(--ink)}
+@media(max-width:900px){.nav-links{display:none}}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 18px;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;border:none;transition:.2s var(--ease);white-space:nowrap}
+.btn-ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn-ghost:hover{border-color:var(--line-2);background:var(--bg-2)}
+.btn-primary{background:var(--ink);color:var(--bg)}
+.btn-glow{background:var(--grad);color:#fff;box-shadow:0 8px 28px rgba(91,108,255,.4)}
+.btn-arrow{transition:transform .2s var(--ease)}.btn:hover .btn-arrow{transform:translateX(3px)}
+
+.page-hero{padding:160px 0 60px;text-align:center;position:relative;overflow:hidden}
+.page-hero::before{content:"";position:absolute;inset:0;background:radial-gradient(800px 400px at 50% 0%,rgba(91,108,255,.18),transparent 60%)}
+.page-eyebrow{display:inline-block;font-size:13px;color:var(--blue-2);letter-spacing:.08em;text-transform:uppercase;margin-bottom:18px;font-weight:500}
+.page-title{font-size:clamp(40px,7vw,84px);line-height:1;letter-spacing:-0.04em;font-weight:500;margin-bottom:24px;max-width:960px;margin-left:auto;margin-right:auto}
+.page-sub{font-size:20px;color:var(--ink-2);max-width:680px;margin:0 auto;line-height:1.5}
+
+/* toggle */
+.toggle-row{display:flex;justify-content:center;margin:48px 0 60px}
+.toggle{
+  display:inline-flex;background:var(--bg-2);border:1px solid var(--line);
+  border-radius:12px;padding:6px;gap:4px;
+}
+.toggle button{
+  padding:9px 22px;border-radius:8px;font-size:14px;color:var(--ink-2);
+  background:transparent;border:none;cursor:pointer;font-family:inherit;
+  transition:.2s;
+}
+.toggle button.active{background:var(--bg-3);color:var(--ink)}
+.toggle .save{
+  background:var(--bg-3);border:1px solid var(--green);
+  color:var(--green);font-size:11px;padding:2px 6px;border-radius:4px;
+  margin-left:8px;
+}
+
+/* tiers */
+.tiers{padding-bottom:120px}
+.tiers-grid{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  gap:24px;
+}
+@media(max-width:900px){.tiers-grid{grid-template-columns:1fr}}
+.tier{
+  position:relative;background:var(--bg-2);
+  border:1px solid var(--line);border-radius:22px;
+  padding:40px 32px;display:flex;flex-direction:column;
+}
+.tier.featured{
+  border-color:var(--blue);
+  background:linear-gradient(180deg,rgba(91,108,255,.08) 0%,var(--bg-2) 60%);
+  box-shadow:0 30px 80px -20px rgba(91,108,255,.25);
+}
+.tier-badge{
+  position:absolute;top:-1px;right:24px;transform:translateY(-50%);
+  padding:5px 14px;font-size:11px;background:var(--blue);
+  border-radius:100px;color:#fff;font-weight:500;letter-spacing:.04em;
+}
+.tier-name{font-size:14px;color:var(--ink-2);text-transform:uppercase;letter-spacing:.08em;font-weight:500;margin-bottom:8px}
+.tier-pitch{font-size:18px;font-weight:500;margin-bottom:24px;letter-spacing:-0.01em;line-height:1.35}
+.tier-price{
+  display:flex;align-items:baseline;gap:6px;
+  padding-bottom:24px;margin-bottom:24px;
+  border-bottom:1px solid var(--line);
+}
+.tier-price .num{font-size:56px;font-weight:500;letter-spacing:-0.04em;line-height:1}
+.tier-price .num.serif-num{font-family:'Instrument Serif',serif;font-style:normal;font-weight:400;font-size:48px}
+.tier-price .unit{color:var(--ink-2);font-size:14px}
+.tier-price .crossed{color:var(--ink-3);text-decoration:line-through;font-size:24px}
+.tier-includes{
+  font-size:12px;color:var(--ink-3);margin-bottom:20px;
+  font-family:'JetBrains Mono',monospace;letter-spacing:.04em;
+}
+.tier-features{list-style:none;margin-bottom:32px;flex:1}
+.tier-features li{
+  padding:10px 0;font-size:14px;color:var(--ink-2);
+  display:flex;gap:10px;align-items:flex-start;
+}
+.tier-features svg{color:var(--blue);flex-shrink:0;margin-top:3px}
+.tier-features li.dim{color:var(--ink-3)}
+.tier-features li.dim svg{color:var(--ink-3)}
+.tier-cta{display:flex;justify-content:center}
+
+/* enterprise add-on row */
+.addons{padding:120px 0;background:var(--bg-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.addons-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:22px;overflow:hidden}
+@media(max-width:900px){.addons-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:540px){.addons-grid{grid-template-columns:1fr}}
+.addon{background:var(--bg);padding:32px 28px}
+.addon h4{font-size:16px;font-weight:500;margin-bottom:8px}
+.addon .price{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--blue-2);margin-bottom:14px}
+.addon p{color:var(--ink-2);font-size:13px;line-height:1.5}
+
+/* compare full */
+.compare{padding:120px 0}
+.compare-table{
+  background:var(--bg-2);border:1px solid var(--line);
+  border-radius:22px;overflow:hidden;
+}
+.compare-row{
+  display:grid;grid-template-columns:2fr 1fr 1fr 1fr;
+  border-bottom:1px solid var(--line);
+}
+.compare-row:last-child{border-bottom:none}
+.compare-row > div{padding:18px 24px;font-size:14px}
+.compare-row.head > div{
+  background:var(--bg-3);font-size:13px;text-transform:uppercase;
+  letter-spacing:.06em;color:var(--ink-2);font-weight:500;
+}
+.compare-row.section > div{
+  background:var(--bg-3);font-weight:500;color:var(--blue-2);
+  font-size:12px;letter-spacing:.08em;text-transform:uppercase;padding:14px 24px;
+}
+.compare-row .feat{color:var(--ink)}
+.compare-row.dim{color:var(--ink-3)}
+@media(max-width:720px){.compare-row{grid-template-columns:1.5fr 1fr 1fr 1fr;font-size:12px}.compare-row > div{padding:12px 10px}}
+
+/* roi calc */
+.roi{padding:120px 0;background:var(--bg-2);border-top:1px solid var(--line)}
+.roi-card{
+  background:var(--bg);border:1px solid var(--line);
+  border-radius:22px;padding:48px;
+  display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;
+}
+@media(max-width:900px){.roi-card{grid-template-columns:1fr;gap:30px}}
+.roi-card h3{font-size:32px;line-height:1.1;letter-spacing:-0.02em;font-weight:500;margin-bottom:14px}
+.roi-card p{color:var(--ink-2);margin-bottom:28px;font-size:15px}
+.roi-input{display:flex;flex-direction:column;gap:18px;margin-bottom:24px}
+.roi-input label{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--ink-2)}
+.roi-input input[type=range]{
+  accent-color:var(--blue);width:100%;
+}
+.roi-input .val{
+  font-family:'JetBrains Mono',monospace;color:var(--ink);font-size:15px;
+  font-weight:500;
+}
+.roi-result{
+  background:linear-gradient(135deg,rgba(91,108,255,.12),rgba(34,211,238,.08));
+  border:1px solid var(--blue);border-radius:18px;
+  padding:36px;text-align:center;
+}
+.roi-result .label{color:var(--ink-2);font-size:13px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px}
+.roi-result .num{font-size:64px;font-weight:500;letter-spacing:-0.03em;line-height:1;margin-bottom:8px}
+.roi-result .savings{color:var(--green);font-family:'JetBrains Mono',monospace;font-size:14px;margin-top:8px}
+
+/* faq */
+.faq-section{padding:120px 0}
+.faq-grid{display:grid;grid-template-columns:1fr 1.5fr;gap:80px}
+@media(max-width:900px){.faq-grid{grid-template-columns:1fr;gap:40px}}
+.faq-item{border-bottom:1px solid var(--line);padding:24px 0}
+.faq-item:first-child{padding-top:0}
+.faq-q{display:flex;justify-content:space-between;align-items:center;gap:20px;cursor:pointer;font-size:16px;font-weight:500;background:transparent;border:none;color:var(--ink);width:100%;text-align:left;font-family:inherit;padding:0}
+.faq-toggle{width:28px;height:28px;border-radius:50%;background:var(--bg-3);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;transition:transform .3s}
+.faq-item.open .faq-toggle{transform:rotate(45deg)}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .4s var(--ease),padding .3s;color:var(--ink-2);font-size:15px;line-height:1.6}
+.faq-item.open .faq-a{max-height:300px;padding-top:14px}
+
+footer{background:var(--bg);border-top:1px solid var(--line);padding:40px 0;text-align:center;color:var(--ink-3);font-size:13px}
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .8s var(--ease),transform .8s var(--ease)}
+.reveal.in{opacity:1;transform:translateY(0)}
+</style>
+</head>
+<body>
+
+<nav class="nav" id="nav">
+  <div class="container nav-inner">
+    <a href="index.html" class="logo"><span class="logo-mark"></span> Axion</a>
+    <div class="nav-links">
+      <a href="product.html">Produit</a>
+      <a href="agents.html">Catalogue</a>
+      <a href="pricing.html" class="active">Tarifs</a>
+      <a href="customers.html">Clients</a>
+      <a href="manifesto.html">Manifesto</a>
+      <a href="company.html">Entreprise</a>
+    </div>
+    <div style="display:flex;gap:12px">
+      <a href="dashboard.html" class="btn btn-ghost">Console</a>
+      <a href="#tiers" class="btn btn-primary">Démarrer</a>
+    </div>
+  </div>
+</nav>
+
+<section class="page-hero">
+  <div class="container">
+    <span class="page-eyebrow">Tarifs · Mai 2026</span>
+    <h1 class="page-title">Vous payez le résultat. <span class="serif">Pas le token.</span></h1>
+    <p class="page-sub">Forfait par agent + variable sur les outcomes. Aucune surfacturation. Annulation en un clic.</p>
+  </div>
+</section>
+
+<div class="toggle-row">
+  <div class="toggle">
+    <button class="active" data-bill="month">Mensuel</button>
+    <button data-bill="year">Annuel <span class="save">−18%</span></button>
+  </div>
+</div>
+
+<section class="tiers" id="tiers">
+  <div class="container">
+    <div class="tiers-grid">
+
+      <div class="tier reveal">
+        <div class="tier-name">Solo</div>
+        <div class="tier-pitch">Pour les fondateurs et indépendants qui veulent vivre leur rêve à deux : eux et leur agent.</div>
+        <div class="tier-price">
+          <span class="num" data-month="99" data-year="81">99 €</span>
+          <span class="unit">/ agent / mois</span>
+        </div>
+        <div class="tier-includes">3 AGENTS · 1 000 TÂCHES/MO · 50+ INTÉGRATIONS</div>
+        <ul class="tier-features">
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Jusqu'à 3 agents simultanés</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> 1 000 tâches/mois incluses</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> 50+ intégrations</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Console web + mobile</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Discord communauté</li>
+          <li class="dim"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M4 12l8-8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> Workflows multi-agents</li>
+          <li class="dim"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M4 4l8 8M4 12l8-8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg> SSO / SAML</li>
+        </ul>
+        <div class="tier-cta">
+          <a href="dashboard.html" class="btn btn-ghost">Démarrer gratuitement →</a>
+        </div>
+      </div>
+
+      <div class="tier featured reveal">
+        <div class="tier-badge">Le plus choisi</div>
+        <div class="tier-name">Growth</div>
+        <div class="tier-pitch">Pour les startups et PMEs qui veulent doubler la production sans doubler l'équipe.</div>
+        <div class="tier-price">
+          <span class="num" data-month="299" data-year="245">299 €</span>
+          <span class="unit">/ agent / mois</span>
+        </div>
+        <div class="tier-includes">AGENTS ILLIMITÉS · 25 000 TÂCHES/MO · 1 200+ INTÉGRATIONS</div>
+        <ul class="tier-features">
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Agents illimités</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> 25 000 tâches/mois</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Toutes les intégrations</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Workflows multi-agents</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> SSO Google + Microsoft</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Voice cloning inclus</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Support 24/7 + onboarding</li>
+        </ul>
+        <div class="tier-cta">
+          <a href="dashboard.html" class="btn btn-glow">Essai 14 jours <span class="btn-arrow">→</span></a>
+        </div>
+      </div>
+
+      <div class="tier reveal" id="enterprise">
+        <div class="tier-name">Enterprise</div>
+        <div class="tier-pitch">Pour les groupes qui veulent leur propre OS d'agents — déployé chez eux, à leur image.</div>
+        <div class="tier-price">
+          <span class="num serif-num">Sur devis</span>
+        </div>
+        <div class="tier-includes">DÉPLOIEMENT VPC OU ON-PREM · CSM DÉDIÉ · DPA</div>
+        <ul class="tier-features">
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Tout Growth +</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> VPC dédié ou on-premise</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Agents sur mesure</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Modèles fine-tunés sur vos données</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> SLA 99,99% avec pénalités</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> DPA, audit security, pen-test</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> CSM dédié + équipe ingé solutions</li>
+        </ul>
+        <div class="tier-cta">
+          <a href="company.html#contact" class="btn btn-ghost">Parler à un humain →</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ADDONS -->
+<section class="addons">
+  <div class="container">
+    <div style="margin-bottom:60px" class="reveal">
+      <span class="page-eyebrow">Add-ons</span>
+      <h2 style="font-size:42px;line-height:1.05;letter-spacing:-0.03em;font-weight:500;max-width:680px">Ce qui scale <span class="serif">avec vous.</span></h2>
+    </div>
+    <div class="addons-grid reveal">
+      <div class="addon">
+        <h4>Tâches additionnelles</h4>
+        <div class="price">0,02 € / tâche au-delà</div>
+        <p>Une "tâche" = une action mesurable (un mail envoyé, un appel passé, un ticket résolu). Pas de surprise au token.</p>
+      </div>
+      <div class="addon">
+        <h4>Voice minutes</h4>
+        <div class="price">0,12 € / min · 1 000 min incluses/mo</div>
+        <p>Voice clone illimité. Téléphonie sortante et entrante. Numéros 47 pays.</p>
+      </div>
+      <div class="addon">
+        <h4>Agents personnalisés</h4>
+        <div class="price">À partir de 4 900 € · one-shot</div>
+        <p>Notre équipe construit votre agent sur mesure : data, prompts, outils, fine-tuning. Livré sous 14 jours.</p>
+      </div>
+      <div class="addon">
+        <h4>Result-based pricing</h4>
+        <div class="price">−40% forfait + % outcome</div>
+        <p>Vous ne payez qu'en cas de résultat (lead qualifié, ticket résolu, contrat signé). Sur sélection d'agents.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ROI CALCULATOR -->
+<section class="roi">
+  <div class="container">
+    <div class="roi-card reveal">
+      <div>
+        <span class="page-eyebrow" style="margin-bottom:14px">Calculateur ROI</span>
+        <h3>Combien Axion <span class="serif">vous coûte vraiment ?</span></h3>
+        <p>Comparé à un employé humain à plein temps. Glissez les curseurs.</p>
+        <div class="roi-input">
+          <label>
+            Nombre d'agents <span class="val" id="vAgents">3</span>
+            <input type="range" id="rAgents" min="1" max="20" value="3">
+          </label>
+          <label>
+            Salaire chargé / employé remplacé <span class="val" id="vSalary">4 500 €</span>
+            <input type="range" id="rSalary" min="2000" max="10000" step="500" value="4500">
+          </label>
+          <label>
+            Productivité d'un agent vs. humain <span class="val" id="vProd">3×</span>
+            <input type="range" id="rProd" min="1" max="6" step="0.5" value="3">
+          </label>
+        </div>
+      </div>
+      <div class="roi-result">
+        <div class="label">Économies / an</div>
+        <div class="num gradient-text" id="roiSavings">157 320 €</div>
+        <div style="color:var(--ink-2);font-size:14px;margin-top:8px" id="roiDetails">3 agents Axion (Growth) · 9 ETP-équivalents remplacés</div>
+        <div class="savings" id="roiPct">→ ROI <strong>14×</strong> · payback 9 jours</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COMPARE FULL -->
+<section class="compare">
+  <div class="container">
+    <div style="margin-bottom:60px" class="reveal">
+      <span class="page-eyebrow">Tableau comparatif</span>
+      <h2 style="font-size:42px;line-height:1.05;letter-spacing:-0.03em;font-weight:500;max-width:680px">Tous les détails. <span class="serif">Sans bullshit.</span></h2>
+    </div>
+    <div class="compare-table reveal">
+      <div class="compare-row head"><div></div><div>Solo</div><div>Growth</div><div>Enterprise</div></div>
+
+      <div class="compare-row section"><div>Agents</div><div></div><div></div><div></div></div>
+      <div class="compare-row"><div class="feat">Agents simultanés</div><div>3</div><div>Illimité</div><div>Illimité</div></div>
+      <div class="compare-row"><div class="feat">Catalogue d'agents</div><div>200+</div><div>200+</div><div>200+ + sur mesure</div></div>
+      <div class="compare-row"><div class="feat">Workflows multi-agents</div><div>—</div><div>✓</div><div>✓</div></div>
+      <div class="compare-row"><div class="feat">Voice cloning</div><div>—</div><div>✓</div><div>✓</div></div>
+
+      <div class="compare-row section"><div>Plateforme</div><div></div><div></div><div></div></div>
+      <div class="compare-row"><div class="feat">Tâches/mois incluses</div><div>1 000</div><div>25 000</div><div>Custom</div></div>
+      <div class="compare-row"><div class="feat">Voice minutes/mois</div><div>200</div><div>1 000</div><div>Custom</div></div>
+      <div class="compare-row"><div class="feat">Intégrations</div><div>50+</div><div>1 200+</div><div>1 200+ + custom</div></div>
+      <div class="compare-row"><div class="feat">SDK & API</div><div>✓</div><div>✓</div><div>✓ + dédié</div></div>
+
+      <div class="compare-row section"><div>Sécurité & gouvernance</div><div></div><div></div><div></div></div>
+      <div class="compare-row"><div class="feat">SSO Google/Microsoft</div><div>—</div><div>✓</div><div>✓</div></div>
+      <div class="compare-row"><div class="feat">SAML / SCIM</div><div>—</div><div>—</div><div>✓</div></div>
+      <div class="compare-row"><div class="feat">Audit log immuable</div><div>30 jours</div><div>1 an</div><div>10 ans</div></div>
+      <div class="compare-row"><div class="feat">VPC dédié / on-prem</div><div>—</div><div>—</div><div>✓</div></div>
+      <div class="compare-row"><div class="feat">Région data residency</div><div>EU</div><div>EU + US</div><div>Custom (12 régions)</div></div>
+      <div class="compare-row"><div class="feat">DPA + sub-processors list</div><div>✓</div><div>✓</div><div>✓ + revue</div></div>
+
+      <div class="compare-row section"><div>Support</div><div></div><div></div><div></div></div>
+      <div class="compare-row"><div class="feat">Communauté Discord</div><div>✓</div><div>✓</div><div>✓</div></div>
+      <div class="compare-row"><div class="feat">Email / chat support</div><div>48h</div><div>24/7 · 4h SLA</div><div>24/7 · 1h SLA</div></div>
+      <div class="compare-row"><div class="feat">Onboarding live</div><div>—</div><div>2h incluses</div><div>Illimité + workshops</div></div>
+      <div class="compare-row"><div class="feat">CSM dédié</div><div>—</div><div>—</div><div>✓</div></div>
+      <div class="compare-row"><div class="feat">Équipe ingé solutions</div><div>—</div><div>—</div><div>✓</div></div>
+
+      <div class="compare-row section"><div>Prix</div><div></div><div></div><div></div></div>
+      <div class="compare-row"><div class="feat">Mensuel</div><div>99 €/agent</div><div>299 €/agent</div><div>Sur devis</div></div>
+      <div class="compare-row"><div class="feat">Annuel (−18%)</div><div>81 €/agent</div><div>245 €/agent</div><div>Sur devis</div></div>
+      <div class="compare-row"><div class="feat">Engagement minimum</div><div>—</div><div>—</div><div>12 mois</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq-section">
+  <div class="container">
+    <div class="faq-grid">
+      <div class="reveal">
+        <span class="page-eyebrow">FAQ tarifs</span>
+        <h2 style="font-size:42px;line-height:1.05;letter-spacing:-0.03em;font-weight:500">Honnête, <span class="serif">jusqu'au bout.</span></h2>
+        <p style="color:var(--ink-2);margin-top:20px">Pour le reste : <a href="mailto:contact@axion.ai" style="color:var(--blue-2);text-decoration:underline">contact@axion.ai</a></p>
+      </div>
+      <div class="reveal">
+        <div class="faq-item"><button class="faq-q">Y a-t-il un essai gratuit ? <span class="faq-toggle">+</span></button><div class="faq-a">Oui — 14 jours sur Growth, sans CB. Vous gardez vos workflows et données si vous repartez sur Solo gratuit (avec 3 agents max).</div></div>
+        <div class="faq-item"><button class="faq-q">Pourquoi pas de pricing au token comme les autres ? <span class="faq-toggle">+</span></button><div class="faq-a">Parce qu'on ne facture pas un employé à la lettre. On vous facture par agent (le rôle) + par tâche (le résultat). Si on rendait le modèle 10× plus efficace, vous paieriez 10× moins ailleurs — chez nous, vous bénéficiez de l'amélioration.</div></div>
+        <div class="faq-item"><button class="faq-q">Que se passe-t-il si je dépasse mes tâches ? <span class="faq-toggle">+</span></button><div class="faq-a">Surfacturation à 0,02 €/tâche au-delà. Pas de coupure de service. Vous recevez une alerte à 80% et 100% du forfait.</div></div>
+        <div class="faq-item"><button class="faq-q">Est-ce que je peux annuler ? <span class="faq-toggle">+</span></button><div class="faq-a">Oui, à tout moment depuis la console. Pas de pénalité sur les forfaits mensuels. Sur l'annuel, prorata des mois restants. Sur Enterprise, conditions spécifiques au contrat.</div></div>
+        <div class="faq-item"><button class="faq-q">Acceptez-vous les bons de commande / facturation entreprise ? <span class="faq-toggle">+</span></button><div class="faq-a">Oui sur Growth annuel et Enterprise. Virement SEPA, ACH, factures NET 30. CB et Stripe sur tous les plans.</div></div>
+        <div class="faq-item"><button class="faq-q">Programme startup / non-profit ? <span class="faq-toggle">+</span></button><div class="faq-a">Oui : Growth gratuit pendant 12 mois pour les startups < 18 mois et < 1M€ ARR. Tarif réduit −40% pour ONG. Écrivez à <a href="mailto:startups@axion.ai" style="color:var(--blue-2)">startups@axion.ai</a>.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="padding:160px 0;text-align:center;background:var(--bg);position:relative;overflow:hidden">
+  <div style="position:absolute;inset:0;background:radial-gradient(900px 500px at 50% 50%,rgba(91,108,255,.15),transparent 60%)"></div>
+  <div class="container" style="position:relative;z-index:1">
+    <h2 style="font-size:clamp(40px,6vw,72px);line-height:1;letter-spacing:-0.03em;font-weight:500;margin-bottom:24px">Démarrez en 60 secondes.</h2>
+    <p style="color:var(--ink-2);font-size:18px;margin-bottom:40px">Sans CB. Sans démo. Sans appel commercial.</p>
+    <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
+      <a href="dashboard.html" class="btn btn-glow">Ouvrir la console <span class="btn-arrow">→</span></a>
+      <a href="company.html#contact" class="btn btn-ghost">Parler à un humain</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">© 2026 Axion Labs SAS · Paris · contact@axion.ai</div>
+</footer>
+
+<script>
+const nav=document.getElementById('nav');addEventListener('scroll',()=>nav.classList.toggle('scrolled',scrollY>50));
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.12});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+// billing toggle
+document.querySelectorAll('.toggle button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.toggle button').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  const period=b.dataset.bill;
+  document.querySelectorAll('.tier-price .num').forEach(n=>{
+    if(n.classList.contains('serif-num'))return;
+    const v=n.dataset[period];if(v)n.textContent=v+' €';
+  });
+}));
+
+// faq
+document.querySelectorAll('.faq-item').forEach(i=>i.querySelector('.faq-q').addEventListener('click',()=>i.classList.toggle('open')));
+
+// roi calc
+const rA=document.getElementById('rAgents'),rS=document.getElementById('rSalary'),rP=document.getElementById('rProd');
+const vA=document.getElementById('vAgents'),vS=document.getElementById('vSalary'),vP=document.getElementById('vProd');
+const out=document.getElementById('roiSavings'),det=document.getElementById('roiDetails'),pct=document.getElementById('roiPct');
+function calc(){
+  const agents=+rA.value, salary=+rS.value, prod=+rP.value;
+  const cost=agents*299*12; // axion growth annual
+  const replaced=agents*prod;
+  const humanCost=replaced*salary*12;
+  const savings=Math.round(humanCost-cost);
+  const roi=(humanCost/cost).toFixed(1);
+  vA.textContent=agents;
+  vS.textContent=salary.toLocaleString('fr-FR')+' €';
+  vP.textContent=prod+'×';
+  out.textContent=savings.toLocaleString('fr-FR')+' €';
+  det.textContent=`${agents} agent${agents>1?'s':''} Axion (Growth) · ${replaced.toFixed(0)} ETP-équivalents remplacés`;
+  pct.innerHTML=`→ ROI <strong>${roi}×</strong> · payback ${Math.round(365/roi/agents*0.3)} jours`;
+}
+[rA,rS,rP].forEach(r=>r.addEventListener('input',calc));
+calc();
+</script>
+</body>
+</html>

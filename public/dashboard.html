@@ -1,0 +1,918 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Console — Axion</title>
+<meta name="description" content="Console Axion. Pilotez vos agents IA en direct.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root{--bg:#050507;--bg-2:#0B0B11;--bg-3:#13131C;--bg-4:#1A1A24;--line:#1F1F2E;--line-2:#2A2A3A;--ink:#F5F5FA;--ink-2:#9A9AAE;--ink-3:#5A5A6E;--blue:#5B6CFF;--blue-2:#7C8AFF;--cyan:#22D3EE;--magenta:#FF3D8E;--gold:#E8B86D;--green:#34D399;--red:#F87171;--yellow:#FCD34D;--grad:linear-gradient(135deg,#5B6CFF 0%,#22D3EE 100%);--ease:cubic-bezier(.2,.8,.2,1)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;letter-spacing:-0.005em;overflow:hidden;height:100vh}
+::selection{background:var(--blue);color:#fff}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+.mono{font-family:'JetBrains Mono',monospace}
+.serif{font-family:'Instrument Serif',serif;font-style:italic}
+
+/* layout */
+.app{
+  display:grid;
+  grid-template-columns:240px 1fr;
+  grid-template-rows:48px 1fr;
+  height:100vh;
+}
+.topbar{
+  grid-column:1 / -1;
+  background:var(--bg-2);border-bottom:1px solid var(--line);
+  display:flex;align-items:center;padding:0 16px;gap:16px;
+}
+.topbar-logo{display:flex;align-items:center;gap:10px;font-weight:600}
+.logo-mark{width:22px;height:22px;border-radius:6px;background:var(--grad);position:relative;box-shadow:0 0 16px rgba(91,108,255,.4)}
+.logo-mark::after{content:"";position:absolute;inset:4px;border-radius:2px;background:var(--bg)}
+.logo-mark::before{content:"";position:absolute;inset:7px;border-radius:1px;background:var(--grad)}
+.topbar-divider{width:1px;height:20px;background:var(--line)}
+.topbar-org{
+  display:flex;align-items:center;gap:8px;
+  background:var(--bg-3);border:1px solid var(--line);
+  padding:5px 10px;border-radius:7px;font-size:13px;
+}
+.topbar-org-mark{width:14px;height:14px;border-radius:4px;background:linear-gradient(135deg,#FF3D8E,#5B6CFF)}
+.topbar-search{
+  flex:1;max-width:480px;
+  background:var(--bg-3);border:1px solid var(--line);
+  padding:6px 12px;border-radius:7px;font-size:13px;color:var(--ink-2);
+  display:flex;align-items:center;gap:8px;
+}
+.topbar-search:hover{border-color:var(--line-2)}
+.topbar-actions{display:flex;gap:8px;margin-left:auto}
+.topbar-btn{
+  width:32px;height:32px;border-radius:7px;
+  background:transparent;color:var(--ink-2);
+  display:flex;align-items:center;justify-content:center;
+  transition:.2s;
+}
+.topbar-btn:hover{background:var(--bg-3);color:var(--ink)}
+.topbar-user{
+  width:28px;height:28px;border-radius:50%;
+  background:var(--grad);color:#fff;font-weight:600;font-size:12px;
+  display:flex;align-items:center;justify-content:center;
+}
+
+/* sidebar */
+.sidebar{
+  background:var(--bg-2);border-right:1px solid var(--line);
+  padding:14px 8px;display:flex;flex-direction:column;gap:2px;
+  overflow-y:auto;
+}
+.sidebar-section{
+  font-size:11px;font-family:'JetBrains Mono',monospace;
+  text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);
+  padding:14px 12px 6px;
+}
+.sidebar-link{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 12px;border-radius:7px;
+  font-size:13px;color:var(--ink-2);
+  transition:.15s;cursor:pointer;
+  width:100%;text-align:left;
+}
+.sidebar-link:hover{background:var(--bg-3);color:var(--ink)}
+.sidebar-link.active{background:var(--bg-3);color:var(--ink)}
+.sidebar-link .icon{width:16px;flex-shrink:0;text-align:center}
+.sidebar-link .badge{
+  margin-left:auto;font-size:10px;padding:1px 6px;
+  border-radius:10px;background:var(--blue);color:#fff;
+  font-family:'JetBrains Mono',monospace;
+}
+.sidebar-link .dot{
+  width:6px;height:6px;border-radius:50%;background:var(--green);
+  margin-left:auto;
+}
+
+/* main */
+.main{
+  overflow-y:auto;
+  background:var(--bg);
+}
+
+.view{display:none;padding:24px 32px}
+.view.active{display:block}
+
+.view-header{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:24px;gap:16px;flex-wrap:wrap;
+}
+.view-title{font-size:24px;font-weight:500;letter-spacing:-0.02em}
+.view-subtitle{font-size:13px;color:var(--ink-2);margin-top:4px}
+.btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:8px 14px;border-radius:7px;
+  font-size:13px;font-weight:500;
+  background:var(--bg-3);border:1px solid var(--line);
+  color:var(--ink);transition:.2s;
+}
+.btn:hover{background:var(--bg-4);border-color:var(--line-2)}
+.btn-primary{background:var(--ink);color:var(--bg);border:none}
+.btn-glow{background:var(--grad);color:#fff;border:none;box-shadow:0 4px 16px rgba(91,108,255,.3)}
+
+/* OVERVIEW */
+.kpi-grid{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;
+}
+@media(max-width:1100px){.kpi-grid{grid-template-columns:repeat(2,1fr)}}
+.kpi{
+  background:var(--bg-2);border:1px solid var(--line);
+  border-radius:10px;padding:18px 20px;
+}
+.kpi-label{font-size:12px;color:var(--ink-2);margin-bottom:6px}
+.kpi-value{font-size:26px;font-weight:500;letter-spacing:-0.02em;line-height:1.1}
+.kpi-trend{font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--green);margin-top:6px}
+.kpi-trend.down{color:var(--red)}
+
+.dash-grid{
+  display:grid;grid-template-columns:1.4fr 1fr;gap:16px;
+}
+@media(max-width:1100px){.dash-grid{grid-template-columns:1fr}}
+
+.panel{
+  background:var(--bg-2);border:1px solid var(--line);
+  border-radius:10px;padding:20px;margin-bottom:16px;
+}
+.panel-head{
+  display:flex;justify-content:space-between;align-items:center;
+  margin-bottom:16px;
+}
+.panel-title{font-size:14px;font-weight:500}
+.panel-meta{font-size:11px;color:var(--ink-3);font-family:'JetBrains Mono',monospace}
+
+/* chart */
+.chart{
+  height:180px;position:relative;display:flex;align-items:flex-end;gap:3px;
+  padding:0 4px;
+}
+.chart-bar{
+  flex:1;background:linear-gradient(180deg,var(--blue) 0%,rgba(91,108,255,.3) 100%);
+  border-radius:3px 3px 0 0;min-height:4px;
+  transition:.6s var(--ease);
+  position:relative;
+}
+.chart-bar::before{
+  content:"";position:absolute;inset:0;
+  background:var(--cyan);opacity:0;
+  border-radius:3px 3px 0 0;transition:opacity .2s;
+}
+.chart-bar:hover::before{opacity:.4}
+.chart-axis{
+  display:flex;justify-content:space-between;
+  margin-top:8px;font-size:10px;color:var(--ink-3);font-family:'JetBrains Mono',monospace;
+}
+
+/* live feed */
+.feed{display:flex;flex-direction:column;gap:0;max-height:400px;overflow-y:auto}
+.feed-item{
+  display:flex;gap:12px;padding:10px 0;
+  border-bottom:1px solid var(--line);
+}
+.feed-item:last-child{border-bottom:none}
+.feed-icon{
+  width:28px;height:28px;border-radius:7px;flex-shrink:0;
+  background:var(--bg-3);
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;
+}
+.feed-content{flex:1;min-width:0}
+.feed-line{font-size:13px;line-height:1.45}
+.feed-line .agent{color:var(--blue-2);font-weight:500}
+.feed-line .action{color:var(--ink-2)}
+.feed-time{font-size:11px;color:var(--ink-3);font-family:'JetBrains Mono',monospace;margin-top:2px}
+
+/* agents view */
+.agents-list{display:flex;flex-direction:column;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.agent-row{
+  background:var(--bg-2);padding:14px 18px;
+  display:grid;grid-template-columns:auto 1.5fr 1fr 1fr 1fr 80px;
+  gap:16px;align-items:center;font-size:13px;
+}
+.agent-row.head{
+  background:var(--bg-3);
+  font-size:11px;color:var(--ink-2);
+  font-family:'JetBrains Mono',monospace;
+  text-transform:uppercase;letter-spacing:.06em;
+}
+.agent-row:hover:not(.head){background:var(--bg-3)}
+.agent-status{
+  width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green);
+}
+.agent-status.idle{background:var(--ink-3);box-shadow:none}
+.agent-status.error{background:var(--red);box-shadow:0 0 8px var(--red)}
+.agent-row .agent-name{font-weight:500;display:flex;align-items:center;gap:8px}
+.agent-icon{width:28px;height:28px;border-radius:7px;background:var(--bg-3);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:13px}
+.agent-row .meta{color:var(--ink-2);font-family:'JetBrains Mono',monospace;font-size:12px}
+.agent-row .health{font-family:'JetBrains Mono',monospace;font-size:12px}
+.health.good{color:var(--green)}.health.warn{color:var(--yellow)}.health.bad{color:var(--red)}
+.agent-actions{display:flex;gap:6px}
+.act-btn{
+  width:24px;height:24px;border-radius:5px;
+  background:var(--bg-3);border:1px solid var(--line);
+  color:var(--ink-2);font-size:11px;
+  display:flex;align-items:center;justify-content:center;
+}
+.act-btn:hover{background:var(--bg-4);color:var(--ink)}
+
+/* CHAT view (the magic) */
+.chat-shell{
+  display:grid;grid-template-columns:1fr 320px;gap:16px;
+  height:calc(100vh - 96px);
+}
+@media(max-width:1100px){.chat-shell{grid-template-columns:1fr}}
+.chat-main{
+  background:var(--bg-2);border:1px solid var(--line);
+  border-radius:12px;display:flex;flex-direction:column;overflow:hidden;
+}
+.chat-header{
+  padding:14px 18px;border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:12px;
+}
+.chat-agent-icon{
+  width:32px;height:32px;border-radius:8px;background:var(--grad);
+  display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;
+}
+.chat-agent-name{font-weight:500;font-size:14px}
+.chat-agent-meta{font-size:11px;color:var(--ink-3);font-family:'JetBrains Mono',monospace}
+.chat-status{
+  margin-left:auto;display:flex;align-items:center;gap:6px;
+  font-size:11px;color:var(--green);font-family:'JetBrains Mono',monospace;
+}
+.chat-messages{
+  flex:1;overflow-y:auto;padding:20px;
+  display:flex;flex-direction:column;gap:14px;
+}
+.msg{display:flex;gap:12px;align-items:flex-start;animation:msgIn .3s var(--ease)}
+@keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.msg-avatar{
+  width:30px;height:30px;border-radius:7px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:600;
+}
+.msg-avatar.user{background:var(--bg-3);border:1px solid var(--line);color:var(--ink-2)}
+.msg-avatar.iris{background:linear-gradient(135deg,#5B6CFF,#22D3EE);color:#fff}
+.msg-avatar.atlas{background:linear-gradient(135deg,#FF3D8E,#5B6CFF);color:#fff}
+.msg-avatar.codex{background:linear-gradient(135deg,#E8B86D,#FF3D8E);color:#fff}
+.msg-body{flex:1;min-width:0}
+.msg-name{font-size:12px;font-weight:500;display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.msg-name .role{
+  font-size:10px;padding:1px 5px;border-radius:3px;
+  background:var(--bg-3);border:1px solid var(--line);
+  color:var(--ink-2);font-weight:400;font-family:'JetBrains Mono',monospace;
+}
+.msg-time{margin-left:auto;font-size:10px;color:var(--ink-3);font-family:'JetBrains Mono',monospace}
+.msg-text{font-size:13px;color:var(--ink);line-height:1.55}
+.msg-text.muted{color:var(--ink-2)}
+.msg-tool{
+  margin-top:8px;padding:10px 12px;
+  background:var(--bg);border:1px solid var(--line);
+  border-radius:7px;font-family:'JetBrains Mono',monospace;
+  font-size:11px;color:var(--ink-2);
+}
+.msg-tool .tool-name{color:var(--cyan)}
+.msg-tool .tool-result{color:var(--green);display:block;margin-top:4px}
+.msg-tool .tool-arg{color:var(--ink-3)}
+
+.chat-input{
+  padding:14px 18px;border-top:1px solid var(--line);
+  display:flex;gap:10px;align-items:flex-end;
+}
+.chat-input textarea{
+  flex:1;background:var(--bg-3);border:1px solid var(--line);
+  border-radius:8px;padding:10px 14px;color:var(--ink);
+  font-family:inherit;font-size:13px;resize:none;
+  min-height:40px;max-height:150px;
+}
+.chat-input textarea:focus{outline:none;border-color:var(--blue)}
+.chat-send{
+  width:40px;height:40px;border-radius:8px;
+  background:var(--grad);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;flex-shrink:0;
+  box-shadow:0 4px 12px rgba(91,108,255,.3);
+}
+
+/* chat sidebar */
+.chat-side{
+  background:var(--bg-2);border:1px solid var(--line);
+  border-radius:12px;padding:16px;overflow-y:auto;
+}
+.chat-side-section{margin-bottom:24px}
+.chat-side-section h5{
+  font-size:11px;font-family:'JetBrains Mono',monospace;
+  text-transform:uppercase;letter-spacing:.06em;
+  color:var(--ink-3);margin-bottom:10px;
+}
+.chat-side-block{
+  background:var(--bg);border:1px solid var(--line);
+  border-radius:8px;padding:10px 12px;font-size:12px;
+}
+.chat-side-block + .chat-side-block{margin-top:6px}
+.kv{display:flex;justify-content:space-between;padding:4px 0;font-size:12px}
+.kv .k{color:var(--ink-3);font-family:'JetBrains Mono',monospace;font-size:11px}
+.kv .v{color:var(--ink);font-weight:500}
+
+/* WORKFLOW VIEW */
+.wf-canvas{
+  background:var(--bg-2);border:1px solid var(--line);
+  border-radius:12px;padding:32px;min-height:520px;
+  position:relative;overflow:hidden;
+}
+.wf-canvas::before{
+  content:"";position:absolute;inset:0;
+  background-image:radial-gradient(circle,rgba(255,255,255,.04) 1px,transparent 1px);
+  background-size:18px 18px;
+}
+.wf-flow{position:relative;z-index:1;display:grid;grid-template-columns:repeat(4,1fr);gap:20px;align-items:center}
+@media(max-width:900px){.wf-flow{grid-template-columns:1fr}}
+.wf-node{
+  background:var(--bg);border:1px solid var(--line);
+  border-radius:10px;padding:16px;
+  position:relative;
+}
+.wf-node.active{border-color:var(--blue);box-shadow:0 0 0 3px rgba(91,108,255,.15)}
+.wf-node.done{border-color:var(--green)}
+.wf-node-head{display:flex;gap:10px;align-items:center;margin-bottom:10px}
+.wf-node-icon{width:32px;height:32px;border-radius:7px;background:var(--grad);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:600;font-size:13px}
+.wf-node-title{font-size:13px;font-weight:500}
+.wf-node-meta{font-size:11px;color:var(--ink-3);font-family:'JetBrains Mono',monospace;margin-top:2px}
+.wf-node-body{font-size:12px;color:var(--ink-2);line-height:1.45}
+.wf-node-status{
+  position:absolute;top:12px;right:12px;
+  font-size:10px;padding:2px 6px;border-radius:4px;
+  font-family:'JetBrains Mono',monospace;
+}
+.wf-node.done .wf-node-status{background:rgba(52,211,153,.1);color:var(--green);border:1px solid rgba(52,211,153,.3)}
+.wf-node.active .wf-node-status{background:rgba(91,108,255,.1);color:var(--blue-2);border:1px solid rgba(91,108,255,.3)}
+.wf-node.pending .wf-node-status{background:var(--bg-3);color:var(--ink-3);border:1px solid var(--line)}
+.wf-arrow{font-size:20px;color:var(--ink-3);text-align:center}
+@media(max-width:900px){.wf-arrow{transform:rotate(90deg)}}
+
+/* TOAST */
+.demo-banner{
+  position:fixed;top:60px;right:16px;z-index:200;
+  background:var(--bg-2);border:1px solid var(--blue);
+  border-radius:8px;padding:10px 14px;
+  display:flex;gap:10px;align-items:center;
+  font-size:12px;
+  box-shadow:0 8px 24px rgba(91,108,255,.2);
+  max-width:340px;
+}
+.demo-banner .pulse{
+  width:8px;height:8px;border-radius:50%;background:var(--green);
+  animation:pulse 2s infinite;
+}
+@keyframes pulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(52,211,153,.6)}
+  50%{box-shadow:0 0 0 8px rgba(52,211,153,0)}
+}
+.demo-banner a{color:var(--blue-2);text-decoration:underline;font-weight:500}
+.demo-banner button{margin-left:auto;color:var(--ink-3)}
+.demo-banner button:hover{color:var(--ink)}
+</style>
+</head>
+<body>
+
+<div class="demo-banner" id="banner">
+  <div class="pulse"></div>
+  <div>Mode démo — données simulées · <a href="pricing.html">Démarrer un vrai compte →</a></div>
+  <button onclick="this.parentElement.remove()">×</button>
+</div>
+
+<div class="app">
+
+  <div class="topbar">
+    <div class="topbar-logo"><span class="logo-mark"></span> Axion</div>
+    <div class="topbar-divider"></div>
+    <div class="topbar-org">
+      <div class="topbar-org-mark"></div>
+      <span>Helia</span>
+      <span style="color:var(--ink-3)">›</span>
+      <span style="color:var(--ink-2)">Production</span>
+    </div>
+    <div class="topbar-search">
+      <span style="opacity:.5">⌕</span>
+      <span>Rechercher agent, workflow, log... <span style="margin-left:auto;color:var(--ink-3)">⌘K</span></span>
+    </div>
+    <div class="topbar-actions">
+      <button class="topbar-btn" title="Notifications">🔔</button>
+      <button class="topbar-btn" title="Aide">?</button>
+      <div class="topbar-user">CL</div>
+    </div>
+  </div>
+
+  <div class="sidebar">
+    <button class="sidebar-link active" data-view="overview"><span class="icon">◇</span> Overview</button>
+    <button class="sidebar-link" data-view="chat"><span class="icon">◊</span> Chat avec un agent <span class="badge">NEW</span></button>
+    <button class="sidebar-link" data-view="agents"><span class="icon">○</span> Agents <span class="dot"></span></button>
+    <button class="sidebar-link" data-view="workflows"><span class="icon">⌘</span> Workflows</button>
+
+    <div class="sidebar-section">Données</div>
+    <button class="sidebar-link"><span class="icon">▤</span> Mémoire</button>
+    <button class="sidebar-link"><span class="icon">⌬</span> Intégrations</button>
+    <button class="sidebar-link"><span class="icon">⊞</span> Knowledge graph</button>
+
+    <div class="sidebar-section">Opérations</div>
+    <button class="sidebar-link"><span class="icon">≡</span> Logs & traces</button>
+    <button class="sidebar-link"><span class="icon">⌥</span> Approbations <span class="badge">3</span></button>
+    <button class="sidebar-link"><span class="icon">⏷</span> Replay</button>
+
+    <div class="sidebar-section">Gouvernance</div>
+    <button class="sidebar-link"><span class="icon">▣</span> Permissions</button>
+    <button class="sidebar-link"><span class="icon">€</span> Budgets</button>
+    <button class="sidebar-link"><span class="icon">⛬</span> Audit</button>
+
+    <div class="sidebar-section">Compte</div>
+    <button class="sidebar-link"><span class="icon">▦</span> Équipe</button>
+    <button class="sidebar-link"><span class="icon">▢</span> Facturation</button>
+    <button class="sidebar-link"><span class="icon">⊠</span> Paramètres</button>
+  </div>
+
+  <div class="main">
+
+    <!-- ============ OVERVIEW ============ -->
+    <div class="view active" id="v-overview">
+      <div class="view-header">
+        <div>
+          <div class="view-title">Bonjour Claire 👋</div>
+          <div class="view-subtitle">Voici ce que vos 9 agents ont fait pendant que vous dormiez.</div>
+        </div>
+        <div style="display:flex;gap:10px">
+          <button class="btn">Exporter rapport</button>
+          <button class="btn btn-glow">Recruter un agent +</button>
+        </div>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi">
+          <div class="kpi-label">Tâches accomplies (24h)</div>
+          <div class="kpi-value">2 847</div>
+          <div class="kpi-trend">▲ +18% vs. hier</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Revenu généré</div>
+          <div class="kpi-value">128 400 €</div>
+          <div class="kpi-trend">▲ +24% vs. hier</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Coût Axion</div>
+          <div class="kpi-value">2 691 €</div>
+          <div class="kpi-trend">ROI ×47</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Approbations en attente</div>
+          <div class="kpi-value">3</div>
+          <div class="kpi-trend down">→ 1 dépasse seuil</div>
+        </div>
+      </div>
+
+      <div class="dash-grid">
+
+        <div>
+          <div class="panel">
+            <div class="panel-head">
+              <div>
+                <div class="panel-title">Activité agents · 24h</div>
+                <div class="panel-meta">Tâches/heure · UTC+1</div>
+              </div>
+              <div style="display:flex;gap:6px">
+                <button class="btn" style="font-size:11px;padding:5px 10px">24h</button>
+                <button class="btn" style="font-size:11px;padding:5px 10px;opacity:.6">7j</button>
+                <button class="btn" style="font-size:11px;padding:5px 10px;opacity:.6">30j</button>
+              </div>
+            </div>
+            <div class="chart" id="chart"></div>
+            <div class="chart-axis">
+              <span>00h</span><span>06h</span><span>12h</span><span>18h</span><span>maintenant</span>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <div class="panel-title">Top agents par valeur générée (30j)</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)">
+                <div style="display:flex;align-items:center;gap:10px"><div class="agent-icon">📞</div><div><div style="font-weight:500">Iris · SDR</div><div style="font-size:11px;color:var(--ink-3);font-family:'JetBrains Mono',monospace">340 leads / sem</div></div></div>
+                <div style="text-align:right"><div style="font-weight:500;font-family:'JetBrains Mono',monospace">+ 1 247 800 €</div><div style="font-size:11px;color:var(--green)">▲ pipeline</div></div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)">
+                <div style="display:flex;align-items:center;gap:10px"><div class="agent-icon">💼</div><div><div style="font-weight:500">Atlas · CFO</div><div style="font-size:11px;color:var(--ink-3);font-family:'JetBrains Mono',monospace">clôture mensuelle 11h</div></div></div>
+                <div style="text-align:right"><div style="font-weight:500;font-family:'JetBrains Mono',monospace">+ 384 200 €</div><div style="font-size:11px;color:var(--green)">▲ économies</div></div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)">
+                <div style="display:flex;align-items:center;gap:10px"><div class="agent-icon">🎧</div><div><div style="font-weight:500">Sage · Support</div><div style="font-size:11px;color:var(--ink-3);font-family:'JetBrains Mono',monospace">1 247 tickets / 24h</div></div></div>
+                <div style="text-align:right"><div style="font-weight:500;font-family:'JetBrains Mono',monospace">+ 187 600 €</div><div style="font-size:11px;color:var(--green)">▲ rétention</div></div>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0">
+                <div style="display:flex;align-items:center;gap:10px"><div class="agent-icon">⚖️</div><div><div style="font-weight:500">Codex · Juriste</div><div style="font-size:11px;color:var(--ink-3);font-family:'JetBrains Mono',monospace">312 contrats relus</div></div></div>
+                <div style="text-align:right"><div style="font-weight:500;font-family:'JetBrains Mono',monospace">+ 142 800 €</div><div style="font-size:11px;color:var(--green)">▲ économies</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="panel">
+            <div class="panel-head">
+              <div class="panel-title">Activité en direct</div>
+              <div class="panel-meta" style="display:flex;align-items:center;gap:6px"><div style="width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green)"></div> LIVE</div>
+            </div>
+            <div class="feed" id="feed">
+              <div class="feed-item"><div class="feed-icon">📞</div><div class="feed-content"><div class="feed-line"><span class="agent">Iris</span> <span class="action">a booké une démo avec</span> <strong>Stripe</strong> <span class="action">pour mardi 10h</span></div><div class="feed-time">il y a 12s</div></div></div>
+              <div class="feed-item"><div class="feed-icon">💼</div><div class="feed-content"><div class="feed-line"><span class="agent">Atlas</span> <span class="action">a clôturé le mois</span> <strong>avril 2026</strong> <span class="action">· revue prête</span></div><div class="feed-time">il y a 4 min</div></div></div>
+              <div class="feed-item"><div class="feed-icon">🎧</div><div class="feed-content"><div class="feed-line"><span class="agent">Sage</span> <span class="action">a résolu un ticket P1 chez</span> <strong>Veepee</strong></div><div class="feed-time">il y a 6 min</div></div></div>
+              <div class="feed-item"><div class="feed-icon">⚖️</div><div class="feed-content"><div class="feed-line"><span class="agent">Codex</span> <span class="action">demande une approbation</span> · <strong>contrat 240 k€</strong></div><div class="feed-time">il y a 18 min</div></div></div>
+              <div class="feed-item"><div class="feed-icon">🧬</div><div class="feed-content"><div class="feed-line"><span class="agent">Nova</span> <span class="action">a sourcé</span> <strong>14 candidats</strong> <span class="action">VP Engineering</span></div><div class="feed-time">il y a 23 min</div></div></div>
+              <div class="feed-item"><div class="feed-icon">⚙️</div><div class="feed-content"><div class="feed-line"><span class="agent">Forge</span> <span class="action">a déployé</span> <strong>v2.84.1</strong> <span class="action">en production</span></div><div class="feed-time">il y a 31 min</div></div></div>
+              <div class="feed-item"><div class="feed-icon">📈</div><div class="feed-content"><div class="feed-line"><span class="agent">Lumen</span> <span class="action">a lancé l'A/B test</span> <strong>landing-v3</strong></div><div class="feed-time">il y a 47 min</div></div></div>
+              <div class="feed-item"><div class="feed-icon">📞</div><div class="feed-content"><div class="feed-line"><span class="agent">Iris</span> <span class="action">a qualifié</span> <strong>84 prospects</strong></div><div class="feed-time">il y a 1h</div></div></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ============ CHAT VIEW ============ -->
+    <div class="view" id="v-chat">
+      <div class="view-header">
+        <div>
+          <div class="view-title">Conversation avec vos agents</div>
+          <div class="view-subtitle">Donnez un objectif. Vos agents s'organisent.</div>
+        </div>
+      </div>
+
+      <div class="chat-shell">
+        <div class="chat-main">
+          <div class="chat-header">
+            <div class="chat-agent-icon">A</div>
+            <div>
+              <div class="chat-agent-name">Workflow · Deal Flow Hebdo</div>
+              <div class="chat-agent-meta">3 agents · démarré il y a 4 min</div>
+            </div>
+            <div class="chat-status"><div style="width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green)"></div> LIVE</div>
+          </div>
+          <div class="chat-messages" id="chat-messages"></div>
+          <div class="chat-input">
+            <textarea id="chat-input" placeholder="Donnez un nouvel objectif à vos agents..." rows="1"></textarea>
+            <button class="chat-send" id="chat-send">→</button>
+          </div>
+        </div>
+
+        <div class="chat-side">
+          <div class="chat-side-section">
+            <h5>Agents en jeu</h5>
+            <div class="chat-side-block">
+              <div style="display:flex;gap:10px;align-items:center;margin-bottom:6px"><div class="msg-avatar iris" style="width:24px;height:24px;font-size:10px">I</div><strong>Iris</strong><span style="margin-left:auto;font-size:10px;color:var(--green)">●</span></div>
+              <div style="font-size:11px;color:var(--ink-2)">SDR · sourcing en cours</div>
+            </div>
+            <div class="chat-side-block">
+              <div style="display:flex;gap:10px;align-items:center;margin-bottom:6px"><div class="msg-avatar atlas" style="width:24px;height:24px;font-size:10px">A</div><strong>Atlas</strong><span style="margin-left:auto;font-size:10px;color:var(--green)">●</span></div>
+              <div style="font-size:11px;color:var(--ink-2)">CFO · qualification marges</div>
+            </div>
+            <div class="chat-side-block">
+              <div style="display:flex;gap:10px;align-items:center;margin-bottom:6px"><div class="msg-avatar codex" style="width:24px;height:24px;font-size:10px">C</div><strong>Codex</strong><span style="margin-left:auto;font-size:10px;color:var(--ink-3)">○</span></div>
+              <div style="font-size:11px;color:var(--ink-2)">Juriste · prêt si contrat</div>
+            </div>
+          </div>
+
+          <div class="chat-side-section">
+            <h5>Outils utilisés</h5>
+            <div class="chat-side-block">
+              <div class="kv"><span class="k">linkedin.search</span><span class="v">184</span></div>
+              <div class="kv"><span class="k">apollo.enrich</span><span class="v">184</span></div>
+              <div class="kv"><span class="k">crm.create_lead</span><span class="v">51</span></div>
+              <div class="kv"><span class="k">calendar.book</span><span class="v">6</span></div>
+              <div class="kv"><span class="k">salesforce.update</span><span class="v">51</span></div>
+            </div>
+          </div>
+
+          <div class="chat-side-section">
+            <h5>Budget consommé</h5>
+            <div class="chat-side-block">
+              <div class="kv"><span class="k">Tâches</span><span class="v">428 / 1 000</span></div>
+              <div class="kv"><span class="k">Coût</span><span class="v">8,56 € / 20 €</span></div>
+              <div class="kv"><span class="k">Voice min</span><span class="v">12 / 60</span></div>
+              <div style="height:4px;background:var(--bg-3);border-radius:2px;margin-top:8px;overflow:hidden">
+                <div style="width:43%;height:100%;background:var(--grad)"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="chat-side-section">
+            <h5>Approbations</h5>
+            <div class="chat-side-block" style="border-color:var(--yellow);background:rgba(252,211,77,.05)">
+              <div style="font-size:12px;font-weight:500;color:var(--yellow);margin-bottom:6px">⚠ 1 en attente</div>
+              <div style="font-size:11px;color:var(--ink-2);margin-bottom:8px">Codex demande de signer le contrat <strong>Stripe</strong> · 240 k€</div>
+              <div style="display:flex;gap:6px">
+                <button class="btn" style="flex:1;font-size:11px;padding:5px 8px">Refuser</button>
+                <button class="btn btn-glow" style="flex:1;font-size:11px;padding:5px 8px">Approuver</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ AGENTS VIEW ============ -->
+    <div class="view" id="v-agents">
+      <div class="view-header">
+        <div>
+          <div class="view-title">9 agents en production</div>
+          <div class="view-subtitle">Tous opérationnels · uptime moyen 99,98%</div>
+        </div>
+        <div style="display:flex;gap:10px">
+          <button class="btn">Filtrer</button>
+          <button class="btn btn-glow">Recruter +</button>
+        </div>
+      </div>
+
+      <div class="agents-list">
+        <div class="agent-row head">
+          <div></div><div>Agent</div><div>Tâches (24h)</div><div>Santé</div><div>Coût (mois)</div><div>Actions</div>
+        </div>
+        <div class="agent-row">
+          <div class="agent-status"></div>
+          <div class="agent-name"><div class="agent-icon">📞</div>Iris · SDR Outbound</div>
+          <div class="meta">340 / 500</div>
+          <div class="health good">98% ● excellente</div>
+          <div class="meta">299 €</div>
+          <div class="agent-actions"><button class="act-btn">⏸</button><button class="act-btn">⚙</button></div>
+        </div>
+        <div class="agent-row">
+          <div class="agent-status"></div>
+          <div class="agent-name"><div class="agent-icon">💼</div>Atlas · CFO Adjoint</div>
+          <div class="meta">42 / 50</div>
+          <div class="health good">100% ● parfaite</div>
+          <div class="meta">899 €</div>
+          <div class="agent-actions"><button class="act-btn">⏸</button><button class="act-btn">⚙</button></div>
+        </div>
+        <div class="agent-row">
+          <div class="agent-status"></div>
+          <div class="agent-name"><div class="agent-icon">🎧</div>Sage · Support N2</div>
+          <div class="meta">1 247 / 1 500</div>
+          <div class="health good">96% ● excellente</div>
+          <div class="meta">399 €</div>
+          <div class="agent-actions"><button class="act-btn">⏸</button><button class="act-btn">⚙</button></div>
+        </div>
+        <div class="agent-row">
+          <div class="agent-status"></div>
+          <div class="agent-name"><div class="agent-icon">⚖️</div>Codex · Juriste</div>
+          <div class="meta">23 / 40</div>
+          <div class="health warn">87% ⚠ une approbation due</div>
+          <div class="meta">599 €</div>
+          <div class="agent-actions"><button class="act-btn">⏸</button><button class="act-btn">⚙</button></div>
+        </div>
+        <div class="agent-row">
+          <div class="agent-status"></div>
+          <div class="agent-name"><div class="agent-icon">🧬</div>Nova · Recruteuse</div>
+          <div class="meta">38 / 60</div>
+          <div class="health good">94% ● bonne</div>
+          <div class="meta">399 €</div>
+          <div class="agent-actions"><button class="act-btn">⏸</button><button class="act-btn">⚙</button></div>
+        </div>
+        <div class="agent-row">
+          <div class="agent-status"></div>
+          <div class="agent-name"><div class="agent-icon">⚙️</div>Forge · DevOps</div>
+          <div class="meta">187 / 200</div>
+          <div class="health good">100% ● parfaite</div>
+          <div class="meta">599 €</div>
+          <div class="agent-actions"><button class="act-btn">⏸</button><button class="act-btn">⚙</button></div>
+        </div>
+        <div class="agent-row">
+          <div class="agent-status"></div>
+          <div class="agent-name"><div class="agent-icon">📈</div>Lumen · Growth</div>
+          <div class="meta">62 / 80</div>
+          <div class="health good">95% ● bonne</div>
+          <div class="meta">599 €</div>
+          <div class="agent-actions"><button class="act-btn">⏸</button><button class="act-btn">⚙</button></div>
+        </div>
+        <div class="agent-row">
+          <div class="agent-status idle"></div>
+          <div class="agent-name"><div class="agent-icon">✏️</div>Quill · Content</div>
+          <div class="meta">14 / 30</div>
+          <div class="health good">99% ● excellente</div>
+          <div class="meta">299 €</div>
+          <div class="agent-actions"><button class="act-btn">▶</button><button class="act-btn">⚙</button></div>
+        </div>
+        <div class="agent-row">
+          <div class="agent-status"></div>
+          <div class="agent-name"><div class="agent-icon">🔍</div>Insight · Marketing Analyst</div>
+          <div class="meta">94 / 100</div>
+          <div class="health good">97% ● excellente</div>
+          <div class="meta">399 €</div>
+          <div class="agent-actions"><button class="act-btn">⏸</button><button class="act-btn">⚙</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ WORKFLOWS VIEW ============ -->
+    <div class="view" id="v-workflows">
+      <div class="view-header">
+        <div>
+          <div class="view-title">Workflow · Deal Flow Hebdo</div>
+          <div class="view-subtitle">Démarré chaque lundi 09:00 · Iris → Atlas → Iris → Codex</div>
+        </div>
+        <div style="display:flex;gap:10px">
+          <button class="btn">Replay</button>
+          <button class="btn">Éditer</button>
+          <button class="btn btn-glow">Exécuter maintenant</button>
+        </div>
+      </div>
+
+      <div class="wf-canvas">
+        <div class="wf-flow">
+
+          <div class="wf-node done">
+            <div class="wf-node-status">DONE</div>
+            <div class="wf-node-head">
+              <div class="wf-node-icon" style="background:linear-gradient(135deg,#5B6CFF,#22D3EE)">I</div>
+              <div>
+                <div class="wf-node-title">Iris · Source leads</div>
+                <div class="wf-node-meta">11s · 184 leads</div>
+              </div>
+            </div>
+            <div class="wf-node-body">LinkedIn + Apollo · ICP "VP Data, Series B+, Europe" · n=180</div>
+          </div>
+
+          <div class="wf-arrow">→</div>
+
+          <div class="wf-node done">
+            <div class="wf-node-status">DONE</div>
+            <div class="wf-node-head">
+              <div class="wf-node-icon" style="background:linear-gradient(135deg,#FF3D8E,#5B6CFF)">A</div>
+              <div>
+                <div class="wf-node-title">Atlas · Qualify margin</div>
+                <div class="wf-node-meta">8s · 67 retenus</div>
+              </div>
+            </div>
+            <div class="wf-node-body">Marge brute estimée &gt; 80 k€ · 67/184 passent · 51 prioritaires</div>
+          </div>
+
+          <div class="wf-arrow">→</div>
+
+          <div class="wf-node active">
+            <div class="wf-node-status">EN COURS</div>
+            <div class="wf-node-head">
+              <div class="wf-node-icon" style="background:linear-gradient(135deg,#5B6CFF,#22D3EE)">I</div>
+              <div>
+                <div class="wf-node-title">Iris · Book demos</div>
+                <div class="wf-node-meta">3 min 22s · 6/51</div>
+              </div>
+            </div>
+            <div class="wf-node-body">Outreach LinkedIn + email · taux de réponse 11,8% · 6 démos confirmées</div>
+          </div>
+
+          <div class="wf-arrow">→</div>
+
+          <div class="wf-node pending">
+            <div class="wf-node-status">EN ATTENTE</div>
+            <div class="wf-node-head">
+              <div class="wf-node-icon" style="background:linear-gradient(135deg,#E8B86D,#FF3D8E)">C</div>
+              <div>
+                <div class="wf-node-title">Codex · Prepare contracts</div>
+                <div class="wf-node-meta">déclenché si signature</div>
+              </div>
+            </div>
+            <div class="wf-node-body">Pour chaque deal qualifié, prépare NDA + contrat + DPA · approbation humaine ≥ 100 k€</div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top:16px">
+        <div class="panel-head">
+          <div class="panel-title">Trace d'exécution · 12 dernières actions</div>
+          <div class="panel-meta">Tout est rejouable · audit immuable</div>
+        </div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ink-2);line-height:1.7">
+          <div><span style="color:var(--ink-3)">14:23:11.482</span> · iris.<span style="color:var(--cyan)">linkedin.search</span>(<span style="color:var(--gold)">icp</span>=<span style="color:var(--green)">"VP Data, Series B+"</span>, <span style="color:var(--gold)">n</span>=<span style="color:var(--magenta)">180</span>) → <span style="color:var(--green)">184 results</span></div>
+          <div><span style="color:var(--ink-3)">14:23:18.913</span> · iris.<span style="color:var(--cyan)">apollo.enrich</span>(<span style="color:var(--gold)">leads</span>=<span style="color:var(--magenta)">184</span>) → <span style="color:var(--green)">184 enriched</span></div>
+          <div><span style="color:var(--ink-3)">14:23:22.001</span> · iris.<span style="color:var(--cyan)">handoff</span>(<span style="color:var(--gold)">to</span>=<span style="color:var(--green)">"atlas"</span>, <span style="color:var(--gold)">action</span>=<span style="color:var(--green)">"qualify_margin"</span>)</div>
+          <div><span style="color:var(--ink-3)">14:23:30.144</span> · atlas.<span style="color:var(--cyan)">salesforce.lookup</span>(<span style="color:var(--gold)">accounts</span>=<span style="color:var(--magenta)">184</span>) → <span style="color:var(--green)">184 records</span></div>
+          <div><span style="color:var(--ink-3)">14:23:31.982</span> · atlas.<span style="color:var(--cyan)">model.predict</span>(<span style="color:var(--gold)">model</span>=<span style="color:var(--green)">"margin_v2"</span>, <span style="color:var(--gold)">threshold</span>=<span style="color:var(--magenta)">80000</span>) → <span style="color:var(--green)">67 passed</span></div>
+          <div><span style="color:var(--ink-3)">14:23:32.117</span> · atlas.<span style="color:var(--cyan)">handoff</span>(<span style="color:var(--gold)">to</span>=<span style="color:var(--green)">"iris"</span>, <span style="color:var(--gold)">action</span>=<span style="color:var(--green)">"book_demo"</span>, <span style="color:var(--gold)">leads</span>=<span style="color:var(--magenta)">51</span>)</div>
+          <div><span style="color:var(--ink-3)">14:24:02.553</span> · iris.<span style="color:var(--cyan)">email.send</span>(<span style="color:var(--gold)">to</span>=<span style="color:var(--green)">"sarah.chen@stripe.com"</span>, <span style="color:var(--gold)">template</span>=<span style="color:var(--green)">"sdr_outreach_v7"</span>) → <span style="color:var(--green)">delivered</span></div>
+          <div><span style="color:var(--ink-3)">14:25:14.298</span> · iris.<span style="color:var(--cyan)">calendar.book</span>(<span style="color:var(--gold)">slot</span>=<span style="color:var(--green)">"2026-05-12T10:00"</span>, <span style="color:var(--gold)">attendees</span>=<span style="color:var(--magenta)">2</span>) → <span style="color:var(--green)">confirmed</span></div>
+          <div><span style="color:var(--ink-3)">14:25:14.512</span> · iris.<span style="color:var(--cyan)">salesforce.update</span>(<span style="color:var(--gold)">stage</span>=<span style="color:var(--green)">"demo_booked"</span>) → <span style="color:var(--green)">ok</span></div>
+          <div><span style="color:var(--ink-3)">14:25:15.001</span> · <span style="color:var(--blue-2)">workflow.checkpoint</span>(<span style="color:var(--gold)">step</span>=<span style="color:var(--magenta)">3</span>, <span style="color:var(--gold)">progress</span>=<span style="color:var(--magenta)">11.8</span>%)</div>
+          <div><span style="color:var(--ink-3)">14:26:48.893</span> · iris.<span style="color:var(--cyan)">linkedin.message</span>(<span style="color:var(--gold)">to</span>=<span style="color:var(--green)">"j.dupont@blablacar.com"</span>) → <span style="color:var(--green)">sent</span></div>
+          <div><span style="color:var(--ink-3)">14:27:30.117</span> · <span style="color:var(--yellow)">⏸ awaiting</span> Codex.approval (contract &gt; 100k€)</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// nav
+document.querySelectorAll('.sidebar-link[data-view]').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('.sidebar-link').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active');
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    document.getElementById('v-'+b.dataset.view).classList.add('active');
+  });
+});
+
+// chart
+const chart=document.getElementById('chart');
+const heights=[18,22,15,12,8,5,7,12,28,42,58,72,84,91,76,68,72,88,94,82,76,68,52,38];
+heights.forEach((h,i)=>{
+  const bar=document.createElement('div');
+  bar.className='chart-bar';
+  bar.style.height='4px';
+  setTimeout(()=>bar.style.height=h+'%',60*i);
+  chart.appendChild(bar);
+});
+
+// chat scripted demo
+const cm=document.getElementById('chat-messages');
+const messages=[
+  {role:'user',name:'Claire',avatarClass:'user',text:'"Trouve 50 prospects ICP cette semaine, qualifie-les, et organise des démos — uniquement avec ceux dont la marge attendue dépasse 80k€."',time:'14:23'},
+  {role:'iris',name:'Iris',sub:'SDR Outbound',avatarClass:'iris',avatarChar:'I',text:"D'accord. Je sources sur LinkedIn et Apollo, je délègue l'analyse de marge à Atlas, et je booke avec ceux qui passent.",tools:[['linkedin.search(icp="VP Data, Series B+, Europe", n=180)','→ 184 candidats trouvés']],time:'14:23'},
+  {role:'iris',name:'Iris',sub:'SDR Outbound',avatarClass:'iris',avatarChar:'I',text:"Enrichissement Apollo terminé. J'envoie la liste à Atlas pour qualification.",tools:[['apollo.enrich(184 leads)','→ enrichis · domaines, ARR, stack']],time:'14:23'},
+  {role:'atlas',name:'Atlas',sub:'CFO',avatarClass:'atlas',avatarChar:'A',text:"Sur les 184, 67 ont un budget data > 200k€/an. Marge brute estimée : 71-94k€. Je priorise les 51 meilleurs et les passe à Iris.",tools:[['model.predict(margin_v2, threshold=80000)','→ 67 passent · top 51 priorisés']],time:'14:24'},
+  {role:'iris',name:'Iris',sub:'SDR Outbound',avatarClass:'iris',avatarChar:'I',text:"Séquence d'outreach lancée : LinkedIn + email personnalisé. Je vous mets à jour à chaque démo bookée.",tools:[['email.send(51 prospects)','→ délivrés · 6 réponses positives']],time:'14:24'},
+  {role:'iris',name:'Iris',sub:'SDR Outbound',avatarClass:'iris',avatarChar:'I',text:"6 démos confirmées sur ton calendrier mardi-jeudi. Stripe (240k€), Notion (180k€), Linear (120k€), 3 autres en cours de qualif. ✅",time:'14:27'},
+  {role:'codex',name:'Codex',sub:'Juriste',avatarClass:'codex',avatarChar:'C',text:"Le deal Stripe dépasse le seuil de 100k€. J'ai préparé le contrat MSA + DPA + NDA. Approbation humaine demandée avant signature.",time:'14:28'},
+];
+
+let mi=0;
+function addMsg(){
+  if(mi>=messages.length)return;
+  const m=messages[mi++];
+  const el=document.createElement('div');
+  el.className='msg';
+  let avatarHTML;
+  if(m.avatarClass==='user')avatarHTML=`<div class="msg-avatar user">${m.avatarChar||'CL'}</div>`;
+  else avatarHTML=`<div class="msg-avatar ${m.avatarClass}">${m.avatarChar}</div>`;
+  el.innerHTML=`
+    ${avatarHTML}
+    <div class="msg-body">
+      <div class="msg-name">${m.name||'Vous'} ${m.sub?`<span class="role">${m.sub}</span>`:''}<span class="msg-time">${m.time}</span></div>
+      <div class="msg-text${m.role==='user'?' muted':''}">${m.text}</div>
+      ${(m.tools||[]).map(([t,r])=>`<div class="msg-tool"><span class="tool-name">${t.split('(')[0]}</span>(<span class="tool-arg">${t.split('(')[1]||''}</span><span class="tool-result">${r}</span></div>`).join('')}
+    </div>
+  `;
+  cm.appendChild(el);
+  cm.scrollTop=cm.scrollHeight;
+  setTimeout(addMsg,1100);
+}
+setTimeout(addMsg,400);
+
+// chat send (echo)
+document.getElementById('chat-send').addEventListener('click',()=>{
+  const ta=document.getElementById('chat-input');
+  if(!ta.value.trim())return;
+  const txt=ta.value;
+  ta.value='';
+  const el=document.createElement('div');
+  el.className='msg';
+  el.innerHTML=`<div class="msg-avatar user">CL</div><div class="msg-body"><div class="msg-name">Vous<span class="msg-time">maintenant</span></div><div class="msg-text muted">${txt}</div></div>`;
+  cm.appendChild(el);cm.scrollTop=cm.scrollHeight;
+  // simulated agent reply
+  setTimeout(()=>{
+    const r=document.createElement('div');
+    r.className='msg';
+    r.innerHTML=`<div class="msg-avatar iris">I</div><div class="msg-body"><div class="msg-name">Iris <span class="role">SDR</span><span class="msg-time">à l'instant</span></div><div class="msg-text">Bien reçu. Je m'en occupe et je vous tiens au courant.</div></div>`;
+    cm.appendChild(r);cm.scrollTop=cm.scrollHeight;
+  },800);
+});
+document.getElementById('chat-input').addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();document.getElementById('chat-send').click()}
+});
+
+// live feed cycler
+setInterval(()=>{
+  const feed=document.getElementById('feed');
+  if(!feed)return;
+  const news=[
+    ['📞','Iris','a qualifié','7 nouveaux prospects'],
+    ['🎧','Sage','a résolu','un ticket P2 chez Aircall'],
+    ['📈','Lumen','a réduit le CPC de','−12% sur Google Ads'],
+    ['⚙️','Forge','a déployé','un hotfix en 2 min'],
+  ];
+  const [icon,agent,action,strong]=news[Math.floor(Math.random()*news.length)];
+  const el=document.createElement('div');
+  el.className='feed-item';
+  el.style.opacity='0';
+  el.innerHTML=`<div class="feed-icon">${icon}</div><div class="feed-content"><div class="feed-line"><span class="agent">${agent}</span> <span class="action">${action}</span> <strong>${strong}</strong></div><div class="feed-time">à l'instant</div></div>`;
+  feed.insertBefore(el,feed.firstChild);
+  setTimeout(()=>el.style.opacity='1',50);
+  if(feed.children.length>10)feed.removeChild(feed.lastChild);
+},5500);
+</script>
+</body>
+</html>

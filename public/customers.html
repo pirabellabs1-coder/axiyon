@@ -1,0 +1,461 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Clients — Axion</title>
+<meta name="description" content="Comment 4 200+ entreprises font tourner leurs équipes IA avec Axion. Cas réels, chiffres réels.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root{--bg:#050507;--bg-2:#0B0B11;--bg-3:#13131C;--line:#1F1F2E;--line-2:#2A2A3A;--ink:#F5F5FA;--ink-2:#9A9AAE;--ink-3:#5A5A6E;--blue:#5B6CFF;--blue-2:#7C8AFF;--cyan:#22D3EE;--magenta:#FF3D8E;--gold:#E8B86D;--green:#34D399;--grad:linear-gradient(135deg,#5B6CFF 0%,#22D3EE 100%);--ease:cubic-bezier(.2,.8,.2,1)}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.55;-webkit-font-smoothing:antialiased;letter-spacing:-0.005em}
+::selection{background:var(--blue);color:#fff}
+a{color:inherit;text-decoration:none}
+.serif{font-family:'Instrument Serif',serif;font-style:italic}
+.mono{font-family:'JetBrains Mono',monospace}
+.gradient-text{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.container{max-width:1280px;margin:0 auto;padding:0 32px}
+@media(max-width:720px){.container{padding:0 20px}}
+
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:18px 0;backdrop-filter:blur(14px);background:rgba(5,5,7,.6);border-bottom:1px solid transparent;transition:.3s var(--ease)}
+.nav.scrolled{border-bottom-color:var(--line);background:rgba(5,5,7,.85)}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;gap:32px}
+.logo{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:600;letter-spacing:-.02em}
+.logo-mark{width:28px;height:28px;border-radius:7px;background:var(--grad);position:relative;box-shadow:0 0 28px rgba(91,108,255,.4)}
+.logo-mark::after{content:"";position:absolute;inset:5px;border-radius:3px;background:var(--bg)}
+.logo-mark::before{content:"";position:absolute;inset:9px;border-radius:1px;background:var(--grad)}
+.nav-links{display:flex;gap:32px;font-size:14px;color:var(--ink-2)}
+.nav-links a{transition:color .2s}.nav-links a:hover,.nav-links a.active{color:var(--ink)}
+@media(max-width:900px){.nav-links{display:none}}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 18px;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;border:none;transition:.2s var(--ease);white-space:nowrap}
+.btn-ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn-primary{background:var(--ink);color:var(--bg)}
+.btn-glow{background:var(--grad);color:#fff;box-shadow:0 8px 28px rgba(91,108,255,.4)}
+
+.page-hero{padding:160px 0 60px;text-align:center;position:relative;overflow:hidden}
+.page-hero::before{content:"";position:absolute;inset:0;background:radial-gradient(800px 400px at 50% 0%,rgba(91,108,255,.18),transparent 60%)}
+.page-eyebrow{display:inline-block;font-size:13px;color:var(--blue-2);letter-spacing:.08em;text-transform:uppercase;margin-bottom:18px;font-weight:500}
+.page-title{font-size:clamp(40px,7vw,84px);line-height:1;letter-spacing:-0.04em;font-weight:500;margin-bottom:24px;max-width:960px;margin-left:auto;margin-right:auto}
+.page-sub{font-size:20px;color:var(--ink-2);max-width:680px;margin:0 auto;line-height:1.5}
+
+.hero-stats{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:1px;
+  background:var(--line);border:1px solid var(--line);
+  border-radius:22px;overflow:hidden;margin-top:80px;
+}
+@media(max-width:720px){.hero-stats{grid-template-columns:repeat(2,1fr)}}
+.hero-stat{background:var(--bg);padding:32px 20px;text-align:center}
+.hero-stat .num{font-size:42px;font-weight:500;letter-spacing:-0.03em;line-height:1;margin-bottom:6px}
+.hero-stat .lbl{font-size:13px;color:var(--ink-2)}
+
+/* logo wall */
+.logo-wall{padding:80px 0;background:var(--bg-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.logo-grid{
+  display:grid;grid-template-columns:repeat(6,1fr);
+  gap:1px;background:var(--line);border:1px solid var(--line);
+  border-radius:18px;overflow:hidden;
+}
+@media(max-width:900px){.logo-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:540px){.logo-grid{grid-template-columns:repeat(2,1fr)}}
+.logo-cell{
+  background:var(--bg);padding:32px 16px;text-align:center;
+  font-size:18px;font-weight:500;color:var(--ink-2);
+  font-family:'Instrument Serif',serif;font-style:normal;
+  letter-spacing:0;
+  display:flex;align-items:center;justify-content:center;
+  transition:color .2s;
+}
+.logo-cell:hover{color:var(--ink)}
+
+/* case studies */
+.cases{padding:120px 0}
+.case{
+  background:var(--bg-2);border:1px solid var(--line);
+  border-radius:22px;padding:48px;margin-bottom:32px;
+  display:grid;grid-template-columns:1fr 1.4fr;gap:60px;align-items:center;
+}
+@media(max-width:900px){.case{grid-template-columns:1fr;gap:30px;padding:36px}}
+.case-meta{padding-bottom:24px;border-bottom:1px solid var(--line);margin-bottom:24px}
+.case-name{font-size:32px;font-weight:500;letter-spacing:-0.02em;margin-bottom:8px;font-family:'Instrument Serif',serif;font-style:normal}
+.case-tagline{color:var(--ink-2);font-size:14px}
+.case-meta-row{display:flex;gap:18px;flex-wrap:wrap;margin-top:18px;font-size:12px;color:var(--ink-3);font-family:'JetBrains Mono',monospace}
+.case-quote{
+  font-family:'Instrument Serif',serif;font-style:italic;
+  font-size:24px;line-height:1.35;letter-spacing:-0.01em;
+  margin-bottom:24px;
+}
+.case-author{display:flex;gap:12px;align-items:center}
+.case-avatar{width:42px;height:42px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;font-weight:600;color:#fff}
+.case-name-2{font-size:14px;font-weight:500}
+.case-role{font-size:13px;color:var(--ink-2)}
+.case-results{
+  display:grid;grid-template-columns:repeat(2,1fr);
+  gap:12px;
+}
+.case-result{
+  background:var(--bg);border:1px solid var(--line);
+  border-radius:12px;padding:20px;
+}
+.case-result .num{font-size:32px;font-weight:500;letter-spacing:-0.02em;line-height:1;margin-bottom:6px}
+.case-result .lbl{font-size:12px;color:var(--ink-2);line-height:1.4}
+.case-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:18px}
+.case-tag{padding:4px 10px;font-size:11px;border-radius:6px;background:var(--bg-3);border:1px solid var(--line);color:var(--ink-2);font-family:'JetBrains Mono',monospace}
+
+/* mini stories */
+.mini{padding:120px 0;background:var(--bg-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.mini-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+@media(max-width:900px){.mini-grid{grid-template-columns:1fr}}
+.mini-card{
+  background:var(--bg);border:1px solid var(--line);
+  border-radius:18px;padding:32px;
+  transition:.3s var(--ease);
+}
+.mini-card:hover{border-color:var(--blue);transform:translateY(-2px)}
+.mini-quote{font-size:16px;line-height:1.55;color:var(--ink);margin-bottom:24px}
+.mini-author{display:flex;gap:12px;align-items:center;padding-top:20px;border-top:1px solid var(--line)}
+.mini-avatar{width:38px;height:38px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;font-weight:600;color:#fff;font-size:14px}
+.mini-name{font-size:13px;font-weight:500}
+.mini-role{font-size:12px;color:var(--ink-2)}
+
+footer{background:var(--bg);border-top:1px solid var(--line);padding:40px 0;text-align:center;color:var(--ink-3);font-size:13px}
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .8s var(--ease),transform .8s var(--ease)}
+.reveal.in{opacity:1;transform:translateY(0)}
+</style>
+</head>
+<body>
+
+<nav class="nav" id="nav">
+  <div class="container nav-inner">
+    <a href="index.html" class="logo"><span class="logo-mark"></span> Axion</a>
+    <div class="nav-links">
+      <a href="product.html">Produit</a>
+      <a href="agents.html">Catalogue</a>
+      <a href="pricing.html">Tarifs</a>
+      <a href="customers.html" class="active">Clients</a>
+      <a href="manifesto.html">Manifesto</a>
+      <a href="company.html">Entreprise</a>
+    </div>
+    <div style="display:flex;gap:12px">
+      <a href="dashboard.html" class="btn btn-ghost">Console</a>
+      <a href="pricing.html" class="btn btn-primary">Démarrer</a>
+    </div>
+  </div>
+</nav>
+
+<section class="page-hero">
+  <div class="container">
+    <span class="page-eyebrow">Clients · 4 200+ entreprises</span>
+    <h1 class="page-title">Construit par eux. <span class="serif">Démontré chez eux.</span></h1>
+    <p class="page-sub">Du studio de 3 personnes au CAC 40. Voici comment ils ont transformé leur entreprise en quelques semaines.</p>
+
+    <div class="hero-stats reveal">
+      <div class="hero-stat"><div class="num gradient-text">4 200+</div><div class="lbl">Entreprises actives</div></div>
+      <div class="hero-stat"><div class="num gradient-text">14×</div><div class="lbl">ROI médian sur 6 mois</div></div>
+      <div class="hero-stat"><div class="num gradient-text">9 jours</div><div class="lbl">Payback médian</div></div>
+      <div class="hero-stat"><div class="num gradient-text">96%</div><div class="lbl">Taux de renouvellement</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- LOGO WALL -->
+<section class="logo-wall">
+  <div class="container">
+    <div class="logo-grid reveal">
+      <div class="logo-cell">Helia</div>
+      <div class="logo-cell">Mirakl</div>
+      <div class="logo-cell">Doctolib</div>
+      <div class="logo-cell">Linear</div>
+      <div class="logo-cell">BlaBlaCar</div>
+      <div class="logo-cell">Maison Margiela</div>
+      <div class="logo-cell">Veepee</div>
+      <div class="logo-cell">Qonto</div>
+      <div class="logo-cell">Aircall</div>
+      <div class="logo-cell">PayFit</div>
+      <div class="logo-cell">Alan</div>
+      <div class="logo-cell">Lydia</div>
+      <div class="logo-cell">Ankorstore</div>
+      <div class="logo-cell">Spendesk</div>
+      <div class="logo-cell">Pennylane</div>
+      <div class="logo-cell">Algolia</div>
+      <div class="logo-cell">Datadog</div>
+      <div class="logo-cell">Mistral</div>
+    </div>
+  </div>
+</section>
+
+<!-- DEEP CASE STUDIES -->
+<section class="cases">
+  <div class="container">
+    <div style="margin-bottom:60px" class="reveal">
+      <span class="page-eyebrow">Études de cas</span>
+      <h2 style="font-size:42px;line-height:1.05;letter-spacing:-0.03em;font-weight:500;max-width:680px">Pas des slogans. <span class="serif">Des chiffres signés.</span></h2>
+    </div>
+
+    <!-- HELIA -->
+    <div class="case reveal">
+      <div>
+        <div class="case-meta">
+          <div class="case-name">Helia</div>
+          <div class="case-tagline">Plateforme SaaS B2B · Series B · 180 employés · Paris</div>
+          <div class="case-meta-row">
+            <span>SECTEUR : SAAS</span>
+            <span>AGENTS : 9</span>
+            <span>DEPUIS : Sept. 2025</span>
+          </div>
+        </div>
+        <div class="case-quote">
+          "On a remplacé 4 cabinets et 7 freelances par 9 agents Axion. Notre équipe humaine est passée de 28 à 22 personnes — et notre ARR a doublé en 8 mois."
+        </div>
+        <div class="case-author">
+          <div class="case-avatar">CL</div>
+          <div>
+            <div class="case-name-2">Claire Laporte</div>
+            <div class="case-role">CEO · Helia</div>
+          </div>
+        </div>
+        <div class="case-tags">
+          <span class="case-tag">Iris · SDR</span>
+          <span class="case-tag">Atlas · CFO</span>
+          <span class="case-tag">Sage · Support</span>
+          <span class="case-tag">+6 autres</span>
+        </div>
+      </div>
+      <div class="case-results">
+        <div class="case-result"><div class="num gradient-text">2,1×</div><div class="lbl">ARR · 8 mois</div></div>
+        <div class="case-result"><div class="num gradient-text">−21%</div><div class="lbl">Headcount humain</div></div>
+        <div class="case-result"><div class="num gradient-text">−68%</div><div class="lbl">Coûts opérationnels</div></div>
+        <div class="case-result"><div class="num gradient-text">17×</div><div class="lbl">ROI sur 12 mois</div></div>
+      </div>
+    </div>
+
+    <!-- MIRAKL -->
+    <div class="case reveal">
+      <div>
+        <div class="case-meta">
+          <div class="case-name">Mirakl</div>
+          <div class="case-tagline">Plateforme marketplace · Scale-up · 650 employés · Paris/NYC</div>
+          <div class="case-meta-row">
+            <span>SECTEUR : E-COMMERCE</span>
+            <span>AGENTS : 24</span>
+            <span>DEPUIS : Nov. 2025</span>
+          </div>
+        </div>
+        <div class="case-quote">
+          "L'agent DevOps Forge a réduit notre MTTR de 41 minutes à 11 minutes. Sur un an, ça représente plus de 9 millions d'euros de revenu sauvé pour nos clients."
+        </div>
+        <div class="case-author">
+          <div class="case-avatar">RP</div>
+          <div>
+            <div class="case-name-2">Rachid Petitjean</div>
+            <div class="case-role">VP Engineering · Mirakl</div>
+          </div>
+        </div>
+        <div class="case-tags">
+          <span class="case-tag">Forge · DevOps</span>
+          <span class="case-tag">Pulse · Incidents</span>
+          <span class="case-tag">Sentinel · AppSec</span>
+          <span class="case-tag">+21 autres</span>
+        </div>
+      </div>
+      <div class="case-results">
+        <div class="case-result"><div class="num gradient-text">−72%</div><div class="lbl">MTTR sur incidents P0</div></div>
+        <div class="case-result"><div class="num gradient-text">9 M€</div><div class="lbl">Revenu protégé / an</div></div>
+        <div class="case-result"><div class="num gradient-text">99,99%</div><div class="lbl">Uptime atteint</div></div>
+        <div class="case-result"><div class="num gradient-text">3,4 M€</div><div class="lbl">Économies sur on-call</div></div>
+      </div>
+    </div>
+
+    <!-- DOCTOLIB -->
+    <div class="case reveal">
+      <div>
+        <div class="case-meta">
+          <div class="case-name">Doctolib</div>
+          <div class="case-tagline">Santé numérique · Licorne · 2 800 employés · Europe</div>
+          <div class="case-meta-row">
+            <span>SECTEUR : SANTÉ</span>
+            <span>AGENTS : 47</span>
+            <span>DEPUIS : Janv. 2026</span>
+          </div>
+        </div>
+        <div class="case-quote">
+          "Sage a résolu 1 247 tickets niveau-2 en 24h le jour du lancement. Notre équipe humaine traite désormais uniquement les cas qui nécessitent vraiment un humain. Pour les patients, le temps de réponse est passé de 4h à 90 secondes."
+        </div>
+        <div class="case-author">
+          <div class="case-avatar">JN</div>
+          <div>
+            <div class="case-name-2">Joséphine Nguyen</div>
+            <div class="case-role">Chief Customer Officer · Doctolib</div>
+          </div>
+        </div>
+        <div class="case-tags">
+          <span class="case-tag">Sage · Support N2</span>
+          <span class="case-tag">Echo · Voice</span>
+          <span class="case-tag">Polyglot · 8 langues</span>
+          <span class="case-tag">+44 autres</span>
+        </div>
+      </div>
+      <div class="case-results">
+        <div class="case-result"><div class="num gradient-text">−96%</div><div class="lbl">Temps de réponse</div></div>
+        <div class="case-result"><div class="num gradient-text">96%</div><div class="lbl">CSAT</div></div>
+        <div class="case-result"><div class="num gradient-text">8,2 M€</div><div class="lbl">Économies / an</div></div>
+        <div class="case-result"><div class="num gradient-text">HIPAA</div><div class="lbl">Conformité native EU/US</div></div>
+      </div>
+    </div>
+
+    <!-- MAISON MARGIELA -->
+    <div class="case reveal">
+      <div>
+        <div class="case-meta">
+          <div class="case-name">Maison Margiela</div>
+          <div class="case-tagline">Maison de mode · Groupe OTB · Paris/Milan</div>
+          <div class="case-meta-row">
+            <span>SECTEUR : LUXE</span>
+            <span>AGENTS : 12</span>
+            <span>DEPUIS : Mars 2026</span>
+          </div>
+        </div>
+        <div class="case-quote">
+          "Atlas a transformé notre clôture mensuelle. On passait 11 jours, on passe 11 heures. Sans perdre un euro de précision. Notre CFO peut enfin faire de la stratégie au lieu de l'Excel."
+        </div>
+        <div class="case-author">
+          <div class="case-avatar">MA</div>
+          <div>
+            <div class="case-name-2">Marco Adami</div>
+            <div class="case-role">Group CFO · OTB Group</div>
+          </div>
+        </div>
+        <div class="case-tags">
+          <span class="case-tag">Atlas · CFO</span>
+          <span class="case-tag">Sigma · Bookkeeping</span>
+          <span class="case-tag">Quill · Tax</span>
+          <span class="case-tag">+9 autres</span>
+        </div>
+      </div>
+      <div class="case-results">
+        <div class="case-result"><div class="num gradient-text">−87%</div><div class="lbl">Temps de clôture</div></div>
+        <div class="case-result"><div class="num gradient-text">11h</div><div class="lbl">vs. 11 jours</div></div>
+        <div class="case-result"><div class="num gradient-text">100%</div><div class="lbl">Précision audit Big 4</div></div>
+        <div class="case-result"><div class="num gradient-text">2,8 M€</div><div class="lbl">Économies cabinet annuel</div></div>
+      </div>
+    </div>
+
+    <!-- BLABLACAR -->
+    <div class="case reveal">
+      <div>
+        <div class="case-meta">
+          <div class="case-name">BlaBlaCar</div>
+          <div class="case-tagline">Mobilité · Scale-up · 800 employés · 22 pays</div>
+          <div class="case-meta-row">
+            <span>SECTEUR : MOBILITÉ</span>
+            <span>AGENTS : 18</span>
+            <span>DEPUIS : Févr. 2026</span>
+          </div>
+        </div>
+        <div class="case-quote">
+          "Nova a sourcé 38 candidats qualifiés en une nuit pour notre équipe data. C'est trois semaines de boulot d'un cabinet de chasse, pour 0,8% du prix. On a recruté 6 personnes en 5 semaines."
+        </div>
+        <div class="case-author">
+          <div class="case-avatar">SE</div>
+          <div>
+            <div class="case-name-2">Salomé Eyraud</div>
+            <div class="case-role">VP People · BlaBlaCar</div>
+          </div>
+        </div>
+        <div class="case-tags">
+          <span class="case-tag">Nova · Recruteuse</span>
+          <span class="case-tag">Terra · Onboarding</span>
+          <span class="case-tag">+16 autres</span>
+        </div>
+      </div>
+      <div class="case-results">
+        <div class="case-result"><div class="num gradient-text">3×</div><div class="lbl">Pipeline candidats</div></div>
+        <div class="case-result"><div class="num gradient-text">−92%</div><div class="lbl">Coût recrutement</div></div>
+        <div class="case-result"><div class="num gradient-text">5 sem.</div><div class="lbl">Time-to-hire moyen</div></div>
+        <div class="case-result"><div class="num gradient-text">94%</div><div class="lbl">Rétention 6 mois</div></div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- MINI STORIES -->
+<section class="mini">
+  <div class="container">
+    <div style="margin-bottom:60px" class="reveal">
+      <span class="page-eyebrow">Témoignages express</span>
+      <h2 style="font-size:42px;line-height:1.05;letter-spacing:-0.03em;font-weight:500;max-width:680px">Ils en parlent <span class="serif">mieux que nous.</span></h2>
+    </div>
+    <div class="mini-grid">
+      <div class="mini-card reveal">
+        <div class="mini-quote">"Iris a généré plus de pipeline en 30 jours que mes 4 SDR humains en 6 mois. Et elle ne dort pas."</div>
+        <div class="mini-author">
+          <div class="mini-avatar">FB</div>
+          <div><div class="mini-name">Florent Brunet</div><div class="mini-role">CRO · Linear</div></div>
+        </div>
+      </div>
+      <div class="mini-card reveal">
+        <div class="mini-quote">"On était traumatisés par les démos d'IA. Axion est arrivé, on a mis 3 jours à le déployer. C'est de l'ingénierie sérieuse, pas une démo de salon."</div>
+        <div class="mini-author">
+          <div class="mini-avatar">PD</div>
+          <div><div class="mini-name">Priya Dasgupta</div><div class="mini-role">CTO · Veepee</div></div>
+        </div>
+      </div>
+      <div class="mini-card reveal">
+        <div class="mini-quote">"Mon agent Codex a relu 312 contrats en une semaine. Mon avocate principale a pleuré de joie."</div>
+        <div class="mini-author">
+          <div class="mini-avatar">TK</div>
+          <div><div class="mini-name">Tomás Karasek</div><div class="mini-role">General Counsel · Qonto</div></div>
+        </div>
+      </div>
+      <div class="mini-card reveal">
+        <div class="mini-quote">"On a déployé Axion sur notre VPC en 4 jours. Notre RSSI était sceptique, il est maintenant fan."</div>
+        <div class="mini-author">
+          <div class="mini-avatar">AM</div>
+          <div><div class="mini-name">Aïcha Maréchal</div><div class="mini-role">CIO · Veepee</div></div>
+        </div>
+      </div>
+      <div class="mini-card reveal">
+        <div class="mini-quote">"On parlait de réduire les effectifs. Maintenant on parle d'embaucher 50 humains de plus, parce que les agents ouvrent de nouveaux marchés qu'on ne pouvait pas adresser."</div>
+        <div class="mini-author">
+          <div class="mini-avatar">RJ</div>
+          <div><div class="mini-name">Rémi Jouve</div><div class="mini-role">CEO · Ankorstore</div></div>
+        </div>
+      </div>
+      <div class="mini-card reveal">
+        <div class="mini-quote">"L'audit log d'Axion m'a sauvé pendant l'audit ISO 27001. Tout était traçable jusqu'à l'appel d'outil. Big 4 conquis."</div>
+        <div class="mini-author">
+          <div class="mini-avatar">VH</div>
+          <div><div class="mini-name">Victoire Henriot</div><div class="mini-role">VP Compliance · PayFit</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="padding:160px 0;text-align:center;background:var(--bg);position:relative;overflow:hidden">
+  <div style="position:absolute;inset:0;background:radial-gradient(900px 500px at 50% 50%,rgba(91,108,255,.15),transparent 60%)"></div>
+  <div class="container" style="position:relative;z-index:1">
+    <h2 style="font-size:clamp(40px,6vw,72px);line-height:1;letter-spacing:-0.03em;font-weight:500;margin-bottom:24px">Vous serez le prochain.</h2>
+    <p style="color:var(--ink-2);font-size:18px;margin-bottom:40px">Démarrez votre essai · 14 jours · sans CB.</p>
+    <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
+      <a href="dashboard.html" class="btn btn-glow">Recruter mon premier agent →</a>
+      <a href="company.html#contact" class="btn btn-ghost">Parler à notre équipe</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">© 2026 Axion Labs SAS · Paris · contact@axion.ai</div>
+</footer>
+
+<script>
+const nav=document.getElementById('nav');addEventListener('scroll',()=>nav.classList.toggle('scrolled',scrollY>50));
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.12});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+</script>
+</body>
+</html>

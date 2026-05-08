@@ -1,0 +1,1155 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Axion — L'OS de l'entreprise autonome</title>
+<meta name="description" content="Axion donne à chaque entreprise une équipe d'employés IA. Vente, support, finance, opérations, ingénierie — recrutez en 60 secondes.">
+<meta property="og:title" content="Axion — L'OS de l'entreprise autonome">
+<meta property="og:description" content="Recrutez vos employés IA en 60 secondes. 200+ agents spécialisés, 1 000+ intégrations, gouvernance de niveau bancaire.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --bg:#050507;
+  --bg-2:#0B0B11;
+  --bg-3:#13131C;
+  --line:#1F1F2E;
+  --line-2:#2A2A3A;
+  --ink:#F5F5FA;
+  --ink-2:#9A9AAE;
+  --ink-3:#5A5A6E;
+  --blue:#5B6CFF;
+  --blue-2:#7C8AFF;
+  --cyan:#22D3EE;
+  --magenta:#FF3D8E;
+  --gold:#E8B86D;
+  --green:#34D399;
+  --red:#F87171;
+  --grad:linear-gradient(135deg,#5B6CFF 0%,#22D3EE 100%);
+  --grad-2:linear-gradient(135deg,#FF3D8E 0%,#5B6CFF 100%);
+  --shadow:0 30px 80px -20px rgba(91,108,255,.25);
+  --radius:14px;
+  --radius-l:22px;
+  --ease:cubic-bezier(.2,.8,.2,1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Inter',system-ui,sans-serif;
+  background:var(--bg);
+  color:var(--ink);
+  line-height:1.55;
+  font-weight:400;
+  letter-spacing:-0.005em;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+::selection{background:var(--blue);color:#fff}
+a{color:inherit;text-decoration:none}
+img{max-width:100%;display:block}
+.serif{font-family:'Instrument Serif',serif;font-style:italic;font-weight:400}
+.mono{font-family:'JetBrains Mono',monospace}
+.muted{color:var(--ink-2)}
+.gradient-text{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.gradient-text-2{background:var(--grad-2);-webkit-background-clip:text;background-clip:text;color:transparent}
+.container{max-width:1280px;margin:0 auto;padding:0 32px}
+@media(max-width:720px){.container{padding:0 20px}}
+
+/* ===== NAV ===== */
+.nav{
+  position:fixed;top:0;left:0;right:0;z-index:100;
+  padding:18px 0;
+  backdrop-filter:blur(14px);
+  background:rgba(5,5,7,.6);
+  border-bottom:1px solid transparent;
+  transition:all .3s var(--ease);
+}
+.nav.scrolled{border-bottom-color:var(--line);background:rgba(5,5,7,.85)}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;gap:32px}
+.logo{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:600;letter-spacing:-.02em}
+.logo-mark{
+  width:28px;height:28px;border-radius:7px;
+  background:var(--grad);
+  position:relative;
+  box-shadow:0 0 28px rgba(91,108,255,.4);
+}
+.logo-mark::after{
+  content:"";position:absolute;inset:5px;border-radius:3px;
+  background:var(--bg);
+}
+.logo-mark::before{
+  content:"";position:absolute;inset:9px;border-radius:1px;
+  background:var(--grad);
+}
+.nav-links{display:flex;gap:32px;font-size:14px;color:var(--ink-2)}
+.nav-links a{transition:color .2s}
+.nav-links a:hover{color:var(--ink)}
+.nav-cta{display:flex;gap:12px;align-items:center}
+@media(max-width:900px){.nav-links{display:none}}
+
+.btn{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:11px 18px;border-radius:10px;
+  font-size:14px;font-weight:500;
+  cursor:pointer;border:none;
+  transition:all .2s var(--ease);
+  white-space:nowrap;
+}
+.btn-ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn-ghost:hover{border-color:var(--line-2);background:var(--bg-2)}
+.btn-primary{
+  background:var(--ink);color:var(--bg);
+  position:relative;overflow:hidden;
+}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 10px 30px rgba(245,245,250,.2)}
+.btn-glow{
+  background:var(--grad);color:#fff;
+  box-shadow:0 8px 28px rgba(91,108,255,.4);
+}
+.btn-glow:hover{transform:translateY(-1px);box-shadow:0 14px 36px rgba(91,108,255,.6)}
+.btn-arrow{transition:transform .2s var(--ease)}
+.btn:hover .btn-arrow{transform:translateX(3px)}
+
+/* ===== HERO ===== */
+.hero{
+  position:relative;
+  padding:160px 0 120px;
+  overflow:hidden;
+}
+.hero-bg{
+  position:absolute;inset:0;z-index:0;
+  background:
+    radial-gradient(900px 500px at 20% 0%,rgba(91,108,255,.18),transparent 60%),
+    radial-gradient(700px 400px at 90% 30%,rgba(34,211,238,.12),transparent 60%),
+    radial-gradient(600px 300px at 60% 100%,rgba(255,61,142,.08),transparent 60%);
+}
+.hero-grid{
+  position:absolute;inset:0;z-index:0;
+  background-image:
+    linear-gradient(rgba(255,255,255,.02) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.02) 1px,transparent 1px);
+  background-size:60px 60px;
+  mask-image:radial-gradient(ellipse 80% 60% at 50% 50%,#000 30%,transparent 70%);
+}
+.hero-inner{position:relative;z-index:1;text-align:center;max-width:980px;margin:0 auto}
+.eyebrow{
+  display:inline-flex;align-items:center;gap:10px;
+  padding:7px 14px;border-radius:100px;
+  background:var(--bg-2);border:1px solid var(--line);
+  font-size:12px;color:var(--ink-2);margin-bottom:32px;
+  letter-spacing:.02em;
+}
+.eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 12px var(--green)}
+.hero h1{
+  font-size:clamp(44px,8vw,96px);
+  line-height:.96;
+  letter-spacing:-0.04em;
+  font-weight:500;
+  margin-bottom:28px;
+}
+.hero h1 .serif{display:block;color:var(--ink-2)}
+.hero p.lead{
+  font-size:clamp(18px,2.2vw,22px);
+  color:var(--ink-2);
+  max-width:680px;margin:0 auto 40px;
+  line-height:1.5;
+}
+.hero-cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:80px}
+.hero-trust{
+  display:flex;gap:48px;justify-content:center;flex-wrap:wrap;
+  padding-top:60px;border-top:1px solid var(--line);
+  color:var(--ink-3);font-size:13px;
+}
+.hero-trust strong{color:var(--ink);font-weight:500}
+
+/* Live ticker under hero */
+.ticker{
+  margin-top:80px;
+  border-top:1px solid var(--line);
+  border-bottom:1px solid var(--line);
+  padding:20px 0;
+  overflow:hidden;
+  background:var(--bg-2);
+}
+.ticker-track{
+  display:flex;gap:64px;
+  animation:ticker 40s linear infinite;
+  white-space:nowrap;
+}
+.ticker-item{display:flex;align-items:center;gap:14px;font-size:14px;color:var(--ink-2)}
+.ticker-item .mono{color:var(--ink)}
+.ticker-item .badge-live{
+  font-size:10px;padding:2px 6px;border-radius:4px;
+  background:rgba(52,211,153,.1);color:var(--green);
+  border:1px solid rgba(52,211,153,.3);
+}
+@keyframes ticker{
+  to{transform:translateX(-50%)}
+}
+
+/* ===== SECTIONS ===== */
+section{padding:120px 0;position:relative}
+.section-eyebrow{
+  display:inline-block;
+  font-size:13px;font-weight:500;
+  color:var(--blue-2);
+  letter-spacing:.08em;text-transform:uppercase;
+  margin-bottom:18px;
+}
+.section-title{
+  font-size:clamp(36px,5vw,64px);
+  line-height:1.02;
+  letter-spacing:-0.03em;
+  font-weight:500;
+  margin-bottom:24px;
+  max-width:880px;
+}
+.section-sub{
+  font-size:18px;color:var(--ink-2);
+  max-width:640px;line-height:1.55;
+}
+.section-head{margin-bottom:80px}
+.section-head.center{text-align:center;margin-left:auto;margin-right:auto}
+.section-head.center .section-sub{margin:0 auto}
+
+/* ===== AGENTS GRID (the catalog tease) ===== */
+.agents-section{background:var(--bg)}
+.agents-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:1px;
+  background:var(--line);
+  border:1px solid var(--line);
+  border-radius:var(--radius-l);
+  overflow:hidden;
+}
+.agent-card{
+  background:var(--bg);
+  padding:32px 28px;
+  position:relative;
+  transition:all .3s var(--ease);
+  cursor:pointer;
+}
+.agent-card:hover{background:var(--bg-2)}
+.agent-card:hover .agent-arrow{opacity:1;transform:translateX(0)}
+.agent-icon{
+  width:44px;height:44px;border-radius:11px;
+  background:var(--bg-3);border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:20px;font-size:20px;
+  position:relative;overflow:hidden;
+}
+.agent-icon::before{
+  content:"";position:absolute;inset:0;
+  background:var(--grad);opacity:0;transition:opacity .3s;
+}
+.agent-card:hover .agent-icon::before{opacity:.15}
+.agent-name{font-size:16px;font-weight:500;margin-bottom:6px}
+.agent-role{font-size:13px;color:var(--ink-2);margin-bottom:16px}
+.agent-stats{display:flex;gap:16px;font-size:11px;color:var(--ink-3);font-family:'JetBrains Mono',monospace}
+.agent-stats span strong{color:var(--ink)}
+.agent-arrow{
+  position:absolute;top:28px;right:28px;
+  opacity:0;transform:translateX(-8px);
+  transition:all .3s var(--ease);
+  color:var(--ink-2);
+}
+
+/* ===== PRODUCT SHOWCASE ===== */
+.product-section{background:var(--bg-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.product-tabs{
+  display:flex;gap:4px;
+  background:var(--bg);border:1px solid var(--line);
+  padding:6px;border-radius:14px;width:fit-content;margin:0 auto 60px;
+}
+.product-tab{
+  padding:10px 22px;border-radius:9px;
+  font-size:14px;color:var(--ink-2);
+  cursor:pointer;transition:all .2s;
+  font-family:inherit;background:transparent;border:none;
+}
+.product-tab.active{background:var(--bg-3);color:var(--ink)}
+.product-display{
+  display:grid;grid-template-columns:1fr 1.2fr;gap:80px;align-items:center;
+}
+@media(max-width:900px){.product-display{grid-template-columns:1fr;gap:40px}}
+.product-text h3{
+  font-size:36px;line-height:1.1;font-weight:500;
+  letter-spacing:-0.025em;margin-bottom:18px;
+}
+.product-text p{color:var(--ink-2);font-size:17px;margin-bottom:28px}
+.product-features{list-style:none}
+.product-features li{
+  display:flex;gap:14px;padding:14px 0;
+  border-bottom:1px solid var(--line);
+}
+.product-features li:last-child{border-bottom:none}
+.product-features .check{
+  color:var(--blue);flex-shrink:0;margin-top:2px;
+}
+.product-mock{
+  background:var(--bg-3);border:1px solid var(--line);
+  border-radius:var(--radius-l);padding:28px;
+  position:relative;overflow:hidden;
+  box-shadow:var(--shadow);
+  min-height:480px;
+}
+.product-mock::before{
+  content:"";position:absolute;top:-100px;right:-100px;
+  width:400px;height:400px;border-radius:50%;
+  background:var(--grad);opacity:.1;filter:blur(60px);
+}
+
+/* mock console */
+.mock-header{
+  display:flex;justify-content:space-between;align-items:center;
+  padding-bottom:18px;margin-bottom:18px;
+  border-bottom:1px solid var(--line);
+}
+.mock-dots{display:flex;gap:6px}
+.mock-dot{width:10px;height:10px;border-radius:50%;background:var(--line-2)}
+.mock-title{font-size:12px;color:var(--ink-3);font-family:'JetBrains Mono',monospace}
+.mock-actor{
+  display:flex;gap:14px;align-items:flex-start;
+  padding:14px 0;
+}
+.mock-avatar{
+  width:32px;height:32px;border-radius:8px;flex-shrink:0;
+  background:var(--grad);
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:600;color:#fff;
+}
+.mock-avatar.user{background:var(--bg);border:1px solid var(--line);color:var(--ink-2)}
+.mock-actor-content{flex:1}
+.mock-actor-name{
+  font-size:13px;font-weight:500;margin-bottom:4px;
+  display:flex;gap:8px;align-items:center;
+}
+.mock-actor-name .role{
+  font-size:10px;padding:1px 6px;border-radius:4px;
+  background:var(--bg);border:1px solid var(--line);
+  color:var(--ink-2);font-weight:400;
+}
+.mock-actor-msg{font-size:13px;color:var(--ink-2);line-height:1.6}
+.mock-tool{
+  margin-top:10px;padding:10px 14px;
+  background:var(--bg);border:1px solid var(--line);
+  border-radius:8px;font-family:'JetBrains Mono',monospace;
+  font-size:11px;color:var(--ink-2);
+}
+.mock-tool .tool-name{color:var(--cyan)}
+.mock-tool .tool-result{color:var(--green);margin-top:4px;display:block}
+
+/* ===== STATS ===== */
+.stats{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:1px;background:var(--line);
+  border:1px solid var(--line);border-radius:var(--radius-l);overflow:hidden;
+}
+@media(max-width:720px){.stats{grid-template-columns:repeat(2,1fr)}}
+.stat{
+  background:var(--bg);padding:40px 28px;
+}
+.stat-value{
+  font-size:48px;font-weight:500;letter-spacing:-0.03em;
+  line-height:1;margin-bottom:8px;
+}
+.stat-label{font-size:13px;color:var(--ink-2)}
+
+/* ===== HOW IT WORKS ===== */
+.how-section{background:var(--bg)}
+.how-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:32px}
+@media(max-width:900px){.how-grid{grid-template-columns:1fr}}
+.how-step{
+  padding:32px 28px;border:1px solid var(--line);
+  border-radius:var(--radius-l);position:relative;
+  background:var(--bg-2);
+  transition:all .3s var(--ease);
+}
+.how-step:hover{border-color:var(--blue);transform:translateY(-2px)}
+.how-step-num{
+  position:absolute;top:24px;right:28px;
+  font-size:64px;font-weight:300;
+  color:var(--bg-3);line-height:1;
+  font-family:'Instrument Serif',serif;
+}
+.how-step h4{font-size:20px;margin-bottom:12px;font-weight:500}
+.how-step p{color:var(--ink-2);font-size:14px;line-height:1.6}
+.how-step .icon-row{
+  margin-top:24px;display:flex;gap:8px;flex-wrap:wrap;
+}
+.chip{
+  padding:4px 10px;font-size:11px;border-radius:6px;
+  background:var(--bg-3);border:1px solid var(--line);
+  color:var(--ink-2);font-family:'JetBrains Mono',monospace;
+}
+
+/* ===== TRUST ===== */
+.trust-section{background:var(--bg)}
+.trust-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:24px}
+@media(max-width:720px){.trust-grid{grid-template-columns:1fr}}
+.trust-card{
+  padding:32px;background:var(--bg-2);
+  border:1px solid var(--line);border-radius:var(--radius-l);
+  display:flex;gap:20px;align-items:flex-start;
+}
+.trust-icon{
+  width:48px;height:48px;border-radius:12px;
+  background:var(--bg-3);border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;font-size:22px;
+}
+.trust-card h4{font-size:18px;font-weight:500;margin-bottom:8px}
+.trust-card p{color:var(--ink-2);font-size:14px;line-height:1.55}
+
+/* ===== TESTIMONIAL ===== */
+.testimonial-section{
+  padding:160px 0;background:var(--bg-2);
+  border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  position:relative;
+}
+.testimonial-section::before{
+  content:"";position:absolute;inset:0;
+  background:radial-gradient(800px 400px at 50% 0%,rgba(91,108,255,.1),transparent 70%);
+  pointer-events:none;
+}
+.testimonial{
+  max-width:920px;margin:0 auto;text-align:center;position:relative;
+}
+.testimonial-quote{
+  font-family:'Instrument Serif',serif;font-style:italic;
+  font-size:clamp(28px,4vw,44px);
+  line-height:1.25;letter-spacing:-0.02em;
+  margin-bottom:40px;color:var(--ink);
+}
+.testimonial-quote::before,.testimonial-quote::after{color:var(--blue)}
+.testimonial-author{display:flex;gap:14px;align-items:center;justify-content:center}
+.testimonial-avatar{
+  width:48px;height:48px;border-radius:50%;
+  background:var(--grad);
+  display:flex;align-items:center;justify-content:center;
+  font-weight:600;color:#fff;font-size:18px;
+}
+.testimonial-name{font-size:15px;font-weight:500;text-align:left}
+.testimonial-role{font-size:13px;color:var(--ink-2);text-align:left}
+
+/* ===== PRICING TEASE ===== */
+.pricing-section{background:var(--bg)}
+.pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+@media(max-width:900px){.pricing-grid{grid-template-columns:1fr}}
+.price-card{
+  padding:36px 32px;
+  border:1px solid var(--line);border-radius:var(--radius-l);
+  background:var(--bg-2);
+  display:flex;flex-direction:column;
+}
+.price-card.featured{
+  border-color:var(--blue);
+  background:linear-gradient(180deg,rgba(91,108,255,.08),var(--bg-2));
+  position:relative;
+}
+.price-card.featured::before{
+  content:"Le plus choisi";position:absolute;top:-1px;right:24px;
+  transform:translateY(-50%);
+  padding:4px 12px;font-size:11px;
+  background:var(--blue);border-radius:100px;
+  color:#fff;font-weight:500;letter-spacing:.04em;
+}
+.price-card h3{font-size:18px;font-weight:500;margin-bottom:8px}
+.price-card .desc{color:var(--ink-2);font-size:14px;margin-bottom:28px;min-height:42px}
+.price-amount{display:flex;align-items:baseline;gap:6px;margin-bottom:24px}
+.price-amount .num{font-size:48px;font-weight:500;letter-spacing:-0.03em}
+.price-amount .unit{color:var(--ink-2);font-size:14px}
+.price-features{list-style:none;margin-bottom:32px;flex:1}
+.price-features li{
+  padding:10px 0;font-size:14px;color:var(--ink-2);
+  display:flex;gap:10px;align-items:flex-start;
+}
+.price-features svg{color:var(--blue);flex-shrink:0;margin-top:3px}
+
+/* ===== FAQ ===== */
+.faq-section{background:var(--bg-2);border-top:1px solid var(--line)}
+.faq-grid{display:grid;grid-template-columns:1fr 1.5fr;gap:80px}
+@media(max-width:900px){.faq-grid{grid-template-columns:1fr;gap:40px}}
+.faq-list{display:flex;flex-direction:column}
+.faq-item{
+  border-bottom:1px solid var(--line);
+  padding:24px 0;
+}
+.faq-item:first-child{padding-top:0}
+.faq-q{
+  display:flex;justify-content:space-between;align-items:center;gap:20px;
+  cursor:pointer;font-size:17px;font-weight:500;
+  background:transparent;border:none;color:var(--ink);
+  width:100%;text-align:left;font-family:inherit;padding:0;
+}
+.faq-q:hover{color:var(--blue-2)}
+.faq-toggle{
+  width:28px;height:28px;border-radius:50%;
+  background:var(--bg-3);border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;font-size:18px;transition:transform .3s;
+}
+.faq-item.open .faq-toggle{transform:rotate(45deg)}
+.faq-a{
+  max-height:0;overflow:hidden;
+  transition:max-height .4s var(--ease),padding .3s;
+  color:var(--ink-2);font-size:15px;line-height:1.6;
+}
+.faq-item.open .faq-a{max-height:300px;padding-top:14px}
+
+/* ===== CTA ===== */
+.cta-section{
+  padding:160px 0;background:var(--bg);position:relative;
+  text-align:center;overflow:hidden;
+}
+.cta-bg{
+  position:absolute;inset:0;
+  background:radial-gradient(900px 500px at 50% 50%,rgba(91,108,255,.15),transparent 60%);
+}
+.cta-inner{position:relative;z-index:1;max-width:760px;margin:0 auto}
+.cta-section h2{
+  font-size:clamp(40px,6vw,72px);line-height:1;
+  letter-spacing:-0.03em;font-weight:500;margin-bottom:24px;
+}
+.cta-section p{color:var(--ink-2);font-size:18px;margin-bottom:40px}
+.cta-buttons{display:flex;gap:14px;justify-content:center;flex-wrap:wrap}
+
+/* ===== FOOTER ===== */
+footer{
+  background:var(--bg);border-top:1px solid var(--line);
+  padding:80px 0 32px;
+}
+.foot-top{
+  display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr 1fr;gap:48px;
+  margin-bottom:60px;
+}
+@media(max-width:900px){.foot-top{grid-template-columns:1fr 1fr}}
+@media(max-width:540px){.foot-top{grid-template-columns:1fr 1fr}}
+.foot-brand p{color:var(--ink-2);font-size:14px;margin-top:16px;max-width:280px;line-height:1.55}
+.foot-col h5{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);margin-bottom:18px;font-weight:500}
+.foot-col ul{list-style:none;display:flex;flex-direction:column;gap:12px}
+.foot-col a{color:var(--ink-2);font-size:14px;transition:color .2s}
+.foot-col a:hover{color:var(--ink)}
+.foot-bot{
+  border-top:1px solid var(--line);padding-top:32px;
+  display:flex;justify-content:space-between;align-items:center;
+  font-size:13px;color:var(--ink-3);flex-wrap:wrap;gap:20px;
+}
+.foot-social{display:flex;gap:14px}
+.foot-social a{
+  width:36px;height:36px;border-radius:50%;
+  background:var(--bg-2);border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;
+  transition:all .2s;
+}
+.foot-social a:hover{border-color:var(--blue);color:var(--blue)}
+
+/* ===== Reveal animations ===== */
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .8s var(--ease),transform .8s var(--ease)}
+.reveal.in{opacity:1;transform:translateY(0)}
+
+/* Custom cursor (subtle) */
+.cursor{
+  position:fixed;width:8px;height:8px;border-radius:50%;
+  background:var(--blue);pointer-events:none;z-index:9999;
+  mix-blend-mode:difference;transform:translate(-50%,-50%);
+  transition:width .2s,height .2s;
+}
+@media(max-width:900px){.cursor{display:none}}
+</style>
+</head>
+<body>
+
+<!-- ============== NAV ============== -->
+<nav class="nav" id="nav">
+  <div class="container nav-inner">
+    <a href="/" class="logo">
+      <span class="logo-mark"></span>
+      Axion
+    </a>
+    <div class="nav-links">
+      <a href="product.html">Produit</a>
+      <a href="agents.html">Catalogue</a>
+      <a href="pricing.html">Tarifs</a>
+      <a href="customers.html">Clients</a>
+      <a href="manifesto.html">Manifesto</a>
+      <a href="company.html">Entreprise</a>
+    </div>
+    <div class="nav-cta">
+      <a href="dashboard.html" class="btn btn-ghost">Connexion</a>
+      <a href="pricing.html" class="btn btn-primary">Démarrer <span class="btn-arrow">→</span></a>
+    </div>
+  </div>
+</nav>
+
+<!-- ============== HERO ============== -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="container hero-inner">
+    <span class="eyebrow"><span class="dot"></span> Série A · 38 M$ · menée par Sequoia <span style="color:var(--ink-3)">·</span> Mai 2026</span>
+    <h1>
+      L'OS de l'entreprise <span class="serif">autonome.</span>
+    </h1>
+    <p class="lead">
+      Axion donne à votre entreprise une équipe d'employés IA — vente, support, finance, opérations, ingénierie. Recrutez en 60 secondes. Mesurés en résultats, pas en tokens.
+    </p>
+    <div class="hero-cta">
+      <a href="pricing.html" class="btn btn-glow">Recruter mon premier agent <span class="btn-arrow">→</span></a>
+      <a href="product.html" class="btn btn-ghost">Voir une démo de 2 min</a>
+    </div>
+
+    <div class="hero-trust">
+      <div><strong>4 200+</strong> entreprises actives</div>
+      <div><strong>11 800+</strong> agents en production</div>
+      <div><strong>1,2 Md€</strong> de tâches exécutées / mois</div>
+      <div><strong>SOC 2 · HIPAA · ISO 27001</strong></div>
+    </div>
+  </div>
+
+  <!-- Live ticker -->
+  <div class="ticker">
+    <div class="ticker-track">
+      <div class="ticker-item"><span class="badge-live">LIVE</span> <span class="mono">SDR-04</span> · 84 prospects qualifiés à l'instant chez <strong>Linear</strong></div>
+      <div class="ticker-item"><span class="badge-live">LIVE</span> <span class="mono">FIN-01</span> · clôture mensuelle terminée chez <strong>Maison Margiela</strong> · 11 min</div>
+      <div class="ticker-item"><span class="badge-live">LIVE</span> <span class="mono">SUP-12</span> · 1 247 tickets résolus en 24h chez <strong>Doctolib</strong></div>
+      <div class="ticker-item"><span class="badge-live">LIVE</span> <span class="mono">REC-02</span> · 38 candidats sourcés cette nuit pour <strong>BlaBlaCar</strong></div>
+      <div class="ticker-item"><span class="badge-live">LIVE</span> <span class="mono">OPS-08</span> · pipeline ETL réparé de manière autonome · <strong>Mirakl</strong></div>
+      <!-- duplicate for seamless loop -->
+      <div class="ticker-item"><span class="badge-live">LIVE</span> <span class="mono">SDR-04</span> · 84 prospects qualifiés à l'instant chez <strong>Linear</strong></div>
+      <div class="ticker-item"><span class="badge-live">LIVE</span> <span class="mono">FIN-01</span> · clôture mensuelle terminée chez <strong>Maison Margiela</strong> · 11 min</div>
+      <div class="ticker-item"><span class="badge-live">LIVE</span> <span class="mono">SUP-12</span> · 1 247 tickets résolus en 24h chez <strong>Doctolib</strong></div>
+      <div class="ticker-item"><span class="badge-live">LIVE</span> <span class="mono">REC-02</span> · 38 candidats sourcés cette nuit pour <strong>BlaBlaCar</strong></div>
+      <div class="ticker-item"><span class="badge-live">LIVE</span> <span class="mono">OPS-08</span> · pipeline ETL réparé de manière autonome · <strong>Mirakl</strong></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== AGENTS PREVIEW ============== -->
+<section class="agents-section">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="section-eyebrow">Catalogue · 200+ agents spécialisés</span>
+      <h2 class="section-title">Recrutez l'employé IA dont vous avez besoin. <span class="serif">Aujourd'hui.</span></h2>
+      <p class="section-sub">Chaque agent Axion est entraîné sur dix ans de meilleures pratiques de son métier, intégré nativement à vos outils, et mesuré sur des résultats — pas des heures.</p>
+    </div>
+
+    <div class="agents-grid reveal">
+      <div class="agent-card">
+        <div class="agent-icon">📞</div>
+        <div class="agent-name">Iris · SDR Outbound</div>
+        <div class="agent-role">Prospection à froid sur LinkedIn, email, et téléphone</div>
+        <div class="agent-stats">
+          <span><strong>14×</strong> ROI moyen</span>
+          <span><strong>340</strong> leads/sem</span>
+        </div>
+        <span class="agent-arrow">→</span>
+      </div>
+      <div class="agent-card">
+        <div class="agent-icon">💼</div>
+        <div class="agent-name">Atlas · CFO Adjoint</div>
+        <div class="agent-role">Clôture comptable, prévisions de trésorerie, reporting investisseurs</div>
+        <div class="agent-stats">
+          <span><strong>−87%</strong> temps de clôture</span>
+          <span><strong>11h</strong> moyenne</span>
+        </div>
+        <span class="agent-arrow">→</span>
+      </div>
+      <div class="agent-card">
+        <div class="agent-icon">🎧</div>
+        <div class="agent-name">Sage · Support Niveau 2</div>
+        <div class="agent-role">Tickets complexes, escalades, root cause analysis</div>
+        <div class="agent-stats">
+          <span><strong>96%</strong> CSAT</span>
+          <span><strong>2,3 min</strong> TTR</span>
+        </div>
+        <span class="agent-arrow">→</span>
+      </div>
+      <div class="agent-card">
+        <div class="agent-icon">🧬</div>
+        <div class="agent-name">Nova · Recruteuse</div>
+        <div class="agent-role">Sourcing, screening, scheduling, références</div>
+        <div class="agent-stats">
+          <span><strong>3×</strong> pipeline</span>
+          <span><strong>60%</strong> coût vs. cabinet</span>
+        </div>
+        <span class="agent-arrow">→</span>
+      </div>
+      <div class="agent-card">
+        <div class="agent-icon">⚙️</div>
+        <div class="agent-name">Forge · DevOps Engineer</div>
+        <div class="agent-role">CI/CD, incidents, rollbacks, infra-as-code</div>
+        <div class="agent-stats">
+          <span><strong>−72%</strong> MTTR</span>
+          <span><strong>24/7</strong> on-call</span>
+        </div>
+        <span class="agent-arrow">→</span>
+      </div>
+      <div class="agent-card">
+        <div class="agent-icon">📈</div>
+        <div class="agent-name">Lumen · Growth Marketer</div>
+        <div class="agent-role">Campagnes performance, A/B test, attribution</div>
+        <div class="agent-stats">
+          <span><strong>−43%</strong> CAC</span>
+          <span><strong>2,1×</strong> ROAS</span>
+        </div>
+        <span class="agent-arrow">→</span>
+      </div>
+      <div class="agent-card">
+        <div class="agent-icon">⚖️</div>
+        <div class="agent-name">Codex · Juriste</div>
+        <div class="agent-role">Revue de contrats, NDA, conformité GDPR/AI Act</div>
+        <div class="agent-stats">
+          <span><strong>9 min</strong> par contrat</span>
+          <span><strong>−68%</strong> coût juridique</span>
+        </div>
+        <span class="agent-arrow">→</span>
+      </div>
+      <div class="agent-card">
+        <div class="agent-icon">🔭</div>
+        <div class="agent-name">Voir les 200+ agents</div>
+        <div class="agent-role">Vente · Finance · Support · RH · Ops · Ingénierie · Légal · Data...</div>
+        <div class="agent-stats">
+          <span style="color:var(--blue)"><strong>Catalogue complet →</strong></span>
+        </div>
+        <span class="agent-arrow">→</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== PRODUCT (HOW IT FEELS) ============== -->
+<section class="product-section">
+  <div class="container">
+    <div class="section-head center reveal">
+      <span class="section-eyebrow">La plateforme</span>
+      <h2 class="section-title" style="margin:0 auto 24px">Pas un chatbot. <span class="serif">Une équipe.</span></h2>
+      <p class="section-sub">Axion fournit la mémoire, les outils, la gouvernance et l'orchestration multi-agents que les modèles seuls ne peuvent pas donner.</p>
+    </div>
+
+    <div class="product-tabs reveal">
+      <button class="product-tab active" data-tab="orchestrate">Orchestration</button>
+      <button class="product-tab" data-tab="memory">Mémoire</button>
+      <button class="product-tab" data-tab="govern">Gouvernance</button>
+      <button class="product-tab" data-tab="custom">Personnalisation</button>
+    </div>
+
+    <div class="product-display reveal">
+      <div class="product-text" id="tab-content">
+        <h3 id="tab-title">Multi-agents qui collaborent comme une vraie équipe</h3>
+        <p id="tab-desc">Vos agents se parlent. Iris (SDR) qualifie un lead, Atlas (CFO) valide la marge, Codex (juriste) prépare le contrat — pendant que vous dormez. Axion orchestre le workflow, gère les blocages, et escalade vers vous quand il le faut.</p>
+        <ul class="product-features" id="tab-features">
+          <li><span class="check">✓</span> <span><strong>Workflows visuels</strong> — drag & drop, ou en langage naturel</span></li>
+          <li><span class="check">✓</span> <span><strong>Handoff intelligent</strong> — l'agent sait à qui parler ensuite</span></li>
+          <li><span class="check">✓</span> <span><strong>Approbations humaines</strong> — vous gardez le dernier mot</span></li>
+          <li><span class="check">✓</span> <span><strong>Replay complet</strong> — chaque décision est rejouable</span></li>
+        </ul>
+      </div>
+      <div class="product-mock">
+        <div class="mock-header">
+          <div class="mock-dots">
+            <div class="mock-dot"></div>
+            <div class="mock-dot"></div>
+            <div class="mock-dot"></div>
+          </div>
+          <div class="mock-title">workflow · enterprise-deal-flow.axn</div>
+        </div>
+        <div class="mock-actor">
+          <div class="mock-avatar user">VP</div>
+          <div class="mock-actor-content">
+            <div class="mock-actor-name">Vous <span class="role">Founder</span></div>
+            <div class="mock-actor-msg">"Trouve 50 prospects ICP cette semaine, qualifie-les, et organise des démos — uniquement avec ceux dont la marge attendue dépasse 80k€."</div>
+          </div>
+        </div>
+        <div class="mock-actor">
+          <div class="mock-avatar">I</div>
+          <div class="mock-actor-content">
+            <div class="mock-actor-name">Iris <span class="role">SDR</span></div>
+            <div class="mock-actor-msg">D'accord. Je sources sur LinkedIn et Apollo, je délègue l'analyse de marge à Atlas, et je booke avec ceux qui passent.</div>
+            <div class="mock-tool"><span class="tool-name">linkedin.search</span>(icp="VP Data, Series B+, Europe", n=180)<span class="tool-result">→ 184 candidats trouvés</span></div>
+          </div>
+        </div>
+        <div class="mock-actor">
+          <div class="mock-avatar" style="background:linear-gradient(135deg,#FF3D8E,#5B6CFF)">A</div>
+          <div class="mock-actor-content">
+            <div class="mock-actor-name">Atlas <span class="role">CFO</span></div>
+            <div class="mock-actor-msg">Sur les 184, 67 ont un budget data > 200k€/an. Marge brute estimée : 71-94k€. Je passe les 51 meilleurs à Iris.</div>
+          </div>
+        </div>
+        <div class="mock-actor">
+          <div class="mock-avatar">I</div>
+          <div class="mock-actor-content">
+            <div class="mock-actor-name">Iris <span class="role">SDR</span></div>
+            <div class="mock-actor-msg">Séquence d'outreach lancée. 6 démos confirmées sur ton calendrier mardi-jeudi. ✅</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== STATS ============== -->
+<section style="padding:80px 0">
+  <div class="container">
+    <div class="stats reveal">
+      <div class="stat">
+        <div class="stat-value gradient-text">14×</div>
+        <div class="stat-label">ROI moyen sur 6 mois</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value gradient-text">60s</div>
+        <div class="stat-label">Pour déployer un agent</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value gradient-text">99,98%</div>
+        <div class="stat-label">Uptime garanti contractuel</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value gradient-text">1 200+</div>
+        <div class="stat-label">Intégrations natives</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== HOW IT WORKS ============== -->
+<section class="how-section">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="section-eyebrow">En pratique</span>
+      <h2 class="section-title">De la signature au premier dollar généré : <span class="serif">trois étapes.</span></h2>
+    </div>
+
+    <div class="how-grid">
+      <div class="how-step reveal">
+        <div class="how-step-num">01</div>
+        <h4>Choisir l'agent</h4>
+        <p>Parcourez le catalogue. Iris pour la vente, Atlas pour la finance, Sage pour le support… chacun arrive avec un cerveau pré-entraîné et des outils branchés.</p>
+        <div class="icon-row">
+          <span class="chip">200+ agents</span>
+          <span class="chip">14 verticales</span>
+        </div>
+      </div>
+      <div class="how-step reveal">
+        <div class="how-step-num">02</div>
+        <h4>Brancher les outils</h4>
+        <p>OAuth en un clic. Salesforce, HubSpot, QuickBooks, Stripe, Slack, Notion, Linear… Vos données restent chez vous, l'agent les utilise sans les copier.</p>
+        <div class="icon-row">
+          <span class="chip">1 200+ intégrations</span>
+          <span class="chip">SOC 2 Type II</span>
+        </div>
+      </div>
+      <div class="how-step reveal">
+        <div class="how-step-num">03</div>
+        <h4>Déléguer le résultat</h4>
+        <p>Vous donnez l'objectif. L'agent planifie, exécute, vous rend des comptes chaque jour, et vous escalade les décisions stratégiques. Vous payez sur les résultats livrés.</p>
+        <div class="icon-row">
+          <span class="chip">Result-based pricing</span>
+          <span class="chip">Replay & audit</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== TRUST ============== -->
+<section class="trust-section">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="section-eyebrow">Confiance</span>
+      <h2 class="section-title">L'IA dans votre entreprise sans <span class="serif">tout exploser.</span></h2>
+      <p class="section-sub">La plupart des plateformes IA vous demandent de croiser les doigts. Axion est conçu comme un système financier : auditable, réversible, conforme.</p>
+    </div>
+    <div class="trust-grid reveal">
+      <div class="trust-card">
+        <div class="trust-icon">🛡</div>
+        <div>
+          <h4>Permissions granulaires</h4>
+          <p>Chaque agent a un rôle, une portée, un budget. Aucune action en dehors de son périmètre. Approbation humaine sur tout ce qui dépasse les seuils que vous fixez.</p>
+        </div>
+      </div>
+      <div class="trust-card">
+        <div class="trust-icon">📜</div>
+        <div>
+          <h4>Audit complet</h4>
+          <p>Chaque action, chaque décision, chaque appel d'outil est journalisé, signé et rejouable. Conforme SOC 2 Type II, ISO 27001, HIPAA, GDPR, AI Act 2026.</p>
+        </div>
+      </div>
+      <div class="trust-card">
+        <div class="trust-icon">🔐</div>
+        <div>
+          <h4>Vos données, votre infra</h4>
+          <p>Mode SaaS, VPC dédié, ou on-premise. Vos données ne servent jamais à entraîner les modèles. Chiffrement AES-256 au repos, mTLS en transit.</p>
+        </div>
+      </div>
+      <div class="trust-card">
+        <div class="trust-icon">⏪</div>
+        <div>
+          <h4>Time-travel & rollback</h4>
+          <p>Une décision automatisée a mal tourné ? Revenez en arrière sur l'état complet des systèmes affectés. Disponible jusqu'à 90 jours.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== TESTIMONIAL ============== -->
+<section class="testimonial-section">
+  <div class="container">
+    <div class="testimonial reveal">
+      <div class="testimonial-quote">
+        "On a remplacé 4 cabinets et 7 freelances par 9 agents Axion. Notre équipe humaine est passée de 28 à 22 personnes — et notre ARR a doublé en huit mois. Axion n'est pas un outil. C'est une nouvelle catégorie d'employé."
+      </div>
+      <div class="testimonial-author">
+        <div class="testimonial-avatar">CL</div>
+        <div>
+          <div class="testimonial-name">Claire Laporte</div>
+          <div class="testimonial-role">CEO · Helia (Series B, Paris)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== PRICING TEASE ============== -->
+<section class="pricing-section">
+  <div class="container">
+    <div class="section-head center reveal">
+      <span class="section-eyebrow">Tarifs</span>
+      <h2 class="section-title" style="margin:0 auto 24px">Vous payez le résultat, pas le temps. <span class="serif">Comme un vrai employé.</span></h2>
+      <p class="section-sub">Forfait fixe par agent + variable sur les outcomes. Pas de surfacturation au token, pas de surprises.</p>
+    </div>
+
+    <div class="pricing-grid">
+      <div class="price-card reveal">
+        <h3>Solo</h3>
+        <div class="desc">Pour les fondateurs et indépendants qui veulent vivre leur rêve à deux : eux et leur agent.</div>
+        <div class="price-amount">
+          <span class="num">99 €</span>
+          <span class="unit">/ agent / mois</span>
+        </div>
+        <ul class="price-features">
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Jusqu'à 3 agents</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> 1 000 tâches/mois incluses</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> 50+ intégrations</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Communauté Discord</li>
+        </ul>
+        <a href="pricing.html" class="btn btn-ghost" style="justify-content:center">Démarrer →</a>
+      </div>
+      <div class="price-card featured reveal">
+        <h3>Growth</h3>
+        <div class="desc">Pour les startups et PMEs qui veulent doubler la production sans doubler l'équipe.</div>
+        <div class="price-amount">
+          <span class="num">299 €</span>
+          <span class="unit">/ agent / mois</span>
+        </div>
+        <ul class="price-features">
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Agents illimités</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> 25 000 tâches/mois</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Toutes les intégrations</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Workflows multi-agents</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Support 24/7 + onboarding</li>
+        </ul>
+        <a href="pricing.html" class="btn btn-glow" style="justify-content:center">Démarrer →</a>
+      </div>
+      <div class="price-card reveal">
+        <h3>Enterprise</h3>
+        <div class="desc">Pour les groupes qui veulent leur propre OS d'agents — déployé chez eux, à leur image.</div>
+        <div class="price-amount">
+          <span class="num">Sur devis</span>
+        </div>
+        <ul class="price-features">
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Tout Growth +</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> VPC ou on-prem</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Agents sur mesure</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> SLA 99,99% + DPA</li>
+          <li><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 8.5L6.5 12L13 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> CSM dédié</li>
+        </ul>
+        <a href="pricing.html#enterprise" class="btn btn-ghost" style="justify-content:center">Parler à un humain →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== FAQ ============== -->
+<section class="faq-section">
+  <div class="container">
+    <div class="faq-grid">
+      <div class="reveal">
+        <span class="section-eyebrow">Questions fréquentes</span>
+        <h2 class="section-title" style="font-size:42px">On vous répond <span class="serif">vraiment.</span></h2>
+        <p class="section-sub" style="margin-top:20px">Si votre question n'est pas là, écrivez à <a href="mailto:contact@axion.ai" style="color:var(--blue-2);text-decoration:underline">contact@axion.ai</a> — un humain (et un agent) vous répondent en moins de 4 heures.</p>
+      </div>
+      <div class="faq-list reveal">
+        <div class="faq-item">
+          <button class="faq-q">Est-ce qu'Axion remplace mes employés ? <span class="faq-toggle">+</span></button>
+          <div class="faq-a">Non — sauf si c'est ce que vous voulez. La plupart de nos clients utilisent Axion pour absorber la croissance sans recruter. Vos meilleurs employés deviennent des chefs d'orchestre d'agents, pas des exécutants.</div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q">Et si l'agent fait une bêtise ? <span class="faq-toggle">+</span></button>
+          <div class="faq-a">Tout est journalisé, chiffré et rejouable jusqu'à 90 jours. Vous pouvez time-traveler l'état du système. Et chaque agent a un budget d'action que vous fixez : pas de surprises de 20k€ sur AdWords.</div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q">Quelle est la différence avec ChatGPT ou Claude ? <span class="faq-toggle">+</span></button>
+          <div class="faq-a">Un LLM est un cerveau. Axion est un employé : il a une mémoire de votre entreprise, des outils branchés, des permissions, un manager (vous), des objectifs mesurables. Et il travaille en équipe avec d'autres agents.</div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q">Mes données partent-elles dans un modèle ? <span class="faq-toggle">+</span></button>
+          <div class="faq-a">Jamais. Vos données restent dans votre tenant, chiffrées AES-256. Nous n'entraînons aucun modèle dessus. Mode VPC dédié et on-premise disponibles pour les régulés.</div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q">Combien de temps pour voir un retour ? <span class="faq-toggle">+</span></button>
+          <div class="faq-a">Médiane sur 4 200 clients : 9 jours pour le break-even sur le premier agent. ROI moyen 14× sur 6 mois.</div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-q">Vous êtes basés où ? <span class="faq-toggle">+</span></button>
+          <div class="faq-a">HQ à Paris (Marais), bureaux à San Francisco et Singapour. Données EU stockées en EU (Frankfurt + Paris), données US stockées en US — vous choisissez.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== FINAL CTA ============== -->
+<section class="cta-section">
+  <div class="cta-bg"></div>
+  <div class="container cta-inner">
+    <h2>L'avenir du travail n'est pas humain.<br><span class="serif">Et ce n'est pas grave.</span></h2>
+    <p>Vos concurrents ont déjà recruté leurs premiers agents. Combien de temps allez-vous attendre ?</p>
+    <div class="cta-buttons">
+      <a href="pricing.html" class="btn btn-glow">Recruter mon premier agent <span class="btn-arrow">→</span></a>
+      <a href="manifesto.html" class="btn btn-ghost">Lire le manifesto</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============== FOOTER ============== -->
+<footer>
+  <div class="container">
+    <div class="foot-top">
+      <div class="foot-brand">
+        <a href="/" class="logo"><span class="logo-mark"></span> Axion</a>
+        <p>Le système d'exploitation de l'entreprise autonome. Construit à Paris depuis 2025.</p>
+      </div>
+      <div class="foot-col">
+        <h5>Produit</h5>
+        <ul>
+          <li><a href="product.html">Plateforme</a></li>
+          <li><a href="agents.html">Catalogue</a></li>
+          <li><a href="dashboard.html">Console</a></li>
+          <li><a href="pricing.html">Tarifs</a></li>
+          <li><a href="customers.html">Clients</a></li>
+        </ul>
+      </div>
+      <div class="foot-col">
+        <h5>Entreprise</h5>
+        <ul>
+          <li><a href="manifesto.html">Manifesto</a></li>
+          <li><a href="company.html">À propos</a></li>
+          <li><a href="company.html#careers">Carrières</a></li>
+          <li><a href="company.html#press">Presse</a></li>
+          <li><a href="company.html#contact">Contact</a></li>
+        </ul>
+      </div>
+      <div class="foot-col">
+        <h5>Ressources</h5>
+        <ul>
+          <li><a href="docs/pitch-deck.md">Pitch deck</a></li>
+          <li><a href="docs/manifesto.md">Manifesto (texte)</a></li>
+          <li><a href="docs/financial-model.md">Modèle financier</a></li>
+          <li><a href="docs/product-roadmap.md">Roadmap</a></li>
+          <li><a href="docs/brand-guide.md">Brand guide</a></li>
+        </ul>
+      </div>
+      <div class="foot-col">
+        <h5>Légal</h5>
+        <ul>
+          <li><a href="#">CGU</a></li>
+          <li><a href="#">Politique de confidentialité</a></li>
+          <li><a href="#">DPA</a></li>
+          <li><a href="#">SOC 2 / ISO 27001</a></li>
+          <li><a href="#">Trust center</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot-bot">
+      <div>© 2026 Axion Labs SAS · Paris · contact@axion.ai</div>
+      <div class="foot-social">
+        <a href="#" aria-label="X">𝕏</a>
+        <a href="#" aria-label="LinkedIn">in</a>
+        <a href="#" aria-label="GitHub">gh</a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<div class="cursor" id="cursor"></div>
+
+<script>
+// nav scroll
+const nav=document.getElementById('nav');
+addEventListener('scroll',()=>{nav.classList.toggle('scrolled',scrollY>50)});
+
+// reveal
+const io=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})
+},{threshold:.12});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+// product tabs
+const tabs={
+  orchestrate:{
+    title:"Multi-agents qui collaborent comme une vraie équipe",
+    desc:"Vos agents se parlent. Iris (SDR) qualifie un lead, Atlas (CFO) valide la marge, Codex (juriste) prépare le contrat — pendant que vous dormez. Axion orchestre le workflow, gère les blocages, et escalade vers vous quand il le faut.",
+    f:[["Workflows visuels","drag & drop, ou en langage naturel"],["Handoff intelligent","l'agent sait à qui parler ensuite"],["Approbations humaines","vous gardez le dernier mot"],["Replay complet","chaque décision est rejouable"]]
+  },
+  memory:{
+    title:"Une mémoire d'entreprise. Pas un goldfish.",
+    desc:"Vos agents se souviennent de tout : l'historique de chaque client, les décisions passées, les nuances de votre secteur. Mémoire vectorielle, mémoire épisodique, mémoire de procédure — exactement comme un humain expérimenté.",
+    f:[["Knowledge graph","liens entre clients, décisions, documents"],["Onboarding silencieux","l'agent absorbe vos archives en quelques heures"],["Apprentissage continu","s'améliore à chaque feedback"],["Export complet","votre mémoire est à vous, exportable en JSON"]]
+  },
+  govern:{
+    title:"Une gouvernance digne d'une banque.",
+    desc:"Permissions par rôle, budgets d'action, approbations à seuil, audit immuable. Axion est conçu pour passer un audit Big 4 ou une revue AI Act sans frémir.",
+    f:[["RBAC granulaire","jusqu'à l'appel d'outil individuel"],["Budgets & limits","€ par jour, par tâche, par client"],["Audit immuable","journal signé cryptographiquement"],["Conformité native","SOC 2, ISO 27001, HIPAA, AI Act, GDPR"]]
+  },
+  custom:{
+    title:"Votre agent. Votre voix. Votre playbook.",
+    desc:"Chargez vos SOPs, votre wiki, vos transcripts d'appels. L'agent adopte votre style, vos process, vos red lines. Custom prompts ne suffisent pas — Axion fait du fine-tuning supervisé sur votre flux de travail réel.",
+    f:[["Voice cloning","ton de marque, jargon interne"],["SOP loader","upload PDF/Notion/Confluence en un clic"],["A/B persona","testez 3 versions, gardez la meilleure"],["Sandbox safe","entraînez sans toucher à la prod"]]
+  }
+};
+const $tabs=document.querySelectorAll('.product-tab');
+const $title=document.getElementById('tab-title');
+const $desc=document.getElementById('tab-desc');
+const $features=document.getElementById('tab-features');
+$tabs.forEach(t=>t.addEventListener('click',()=>{
+  $tabs.forEach(x=>x.classList.remove('active'));
+  t.classList.add('active');
+  const data=tabs[t.dataset.tab];
+  $title.textContent=data.title;
+  $desc.textContent=data.desc;
+  $features.innerHTML=data.f.map(([h,p])=>`<li><span class="check">✓</span><span><strong>${h}</strong> — ${p}</span></li>`).join('');
+}));
+
+// faq
+document.querySelectorAll('.faq-item').forEach(item=>{
+  item.querySelector('.faq-q').addEventListener('click',()=>{
+    item.classList.toggle('open');
+  });
+});
+
+// cursor
+const cursor=document.getElementById('cursor');
+addEventListener('mousemove',e=>{cursor.style.left=e.clientX+'px';cursor.style.top=e.clientY+'px'});
+document.querySelectorAll('a,button,.agent-card').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{cursor.style.width='24px';cursor.style.height='24px'});
+  el.addEventListener('mouseleave',()=>{cursor.style.width='8px';cursor.style.height='8px'});
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Manifesto — Axion</title>
+<meta name="description" content="Pourquoi Axion existe. La thèse, la conviction, la promesse.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root{--bg:#050507;--bg-2:#0B0B11;--bg-3:#13131C;--line:#1F1F2E;--line-2:#2A2A3A;--ink:#F5F5FA;--ink-2:#9A9AAE;--ink-3:#5A5A6E;--blue:#5B6CFF;--blue-2:#7C8AFF;--cyan:#22D3EE;--magenta:#FF3D8E;--gold:#E8B86D;--green:#34D399;--grad:linear-gradient(135deg,#5B6CFF 0%,#22D3EE 100%);--ease:cubic-bezier(.2,.8,.2,1)}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.6;-webkit-font-smoothing:antialiased;letter-spacing:-0.005em}
+::selection{background:var(--blue);color:#fff}
+a{color:inherit;text-decoration:none}
+.serif{font-family:'Instrument Serif',serif;font-style:italic;font-weight:400}
+.mono{font-family:'JetBrains Mono',monospace}
+.gradient-text{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.container{max-width:1280px;margin:0 auto;padding:0 32px}
+@media(max-width:720px){.container{padding:0 20px}}
+
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:18px 0;backdrop-filter:blur(14px);background:rgba(5,5,7,.6);border-bottom:1px solid transparent;transition:.3s var(--ease)}
+.nav.scrolled{border-bottom-color:var(--line);background:rgba(5,5,7,.85)}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;gap:32px}
+.logo{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:600;letter-spacing:-.02em}
+.logo-mark{width:28px;height:28px;border-radius:7px;background:var(--grad);position:relative;box-shadow:0 0 28px rgba(91,108,255,.4)}
+.logo-mark::after{content:"";position:absolute;inset:5px;border-radius:3px;background:var(--bg)}
+.logo-mark::before{content:"";position:absolute;inset:9px;border-radius:1px;background:var(--grad)}
+.nav-links{display:flex;gap:32px;font-size:14px;color:var(--ink-2)}
+.nav-links a{transition:color .2s}.nav-links a:hover,.nav-links a.active{color:var(--ink)}
+@media(max-width:900px){.nav-links{display:none}}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 18px;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;border:none;transition:.2s var(--ease);white-space:nowrap}
+.btn-ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn-primary{background:var(--ink);color:var(--bg)}
+.btn-glow{background:var(--grad);color:#fff;box-shadow:0 8px 28px rgba(91,108,255,.4)}
+
+/* manifesto layout */
+.manifesto{
+  padding:200px 0 120px;
+  position:relative;overflow:hidden;
+}
+.manifesto::before{
+  content:"";position:absolute;inset:0;
+  background:radial-gradient(700px 500px at 50% 0%,rgba(91,108,255,.15),transparent 70%);
+  pointer-events:none;
+}
+.manifesto-inner{
+  max-width:760px;margin:0 auto;position:relative;z-index:1;
+}
+.manifesto-eyebrow{
+  display:flex;gap:14px;align-items:center;
+  margin-bottom:48px;font-size:13px;color:var(--ink-2);
+  letter-spacing:.06em;text-transform:uppercase;
+  font-family:'JetBrains Mono',monospace;
+}
+.manifesto-eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--blue);box-shadow:0 0 12px var(--blue)}
+
+.manifesto h1{
+  font-size:clamp(48px,8vw,96px);
+  line-height:.96;letter-spacing:-0.04em;
+  font-weight:500;margin-bottom:60px;
+}
+.manifesto h2{
+  font-size:clamp(32px,5vw,52px);
+  line-height:1;letter-spacing:-0.03em;
+  font-weight:500;margin:80px 0 24px;
+}
+.manifesto h3{
+  font-size:24px;font-weight:500;letter-spacing:-0.02em;
+  margin:48px 0 14px;
+}
+.manifesto p{
+  font-size:19px;line-height:1.65;color:var(--ink-2);
+  margin-bottom:20px;
+}
+.manifesto p.lead{
+  font-size:24px;line-height:1.5;color:var(--ink);
+  font-weight:400;
+}
+.manifesto p strong,.manifesto strong{color:var(--ink);font-weight:500}
+.manifesto blockquote{
+  font-family:'Instrument Serif',serif;font-style:italic;
+  font-size:32px;line-height:1.3;letter-spacing:-0.02em;
+  color:var(--ink);
+  border-left:3px solid var(--blue);
+  padding:20px 0 20px 28px;margin:40px 0;
+}
+.manifesto ul{
+  list-style:none;margin:24px 0 32px;padding:0;
+}
+.manifesto ul li{
+  font-size:18px;color:var(--ink-2);
+  padding:14px 0 14px 32px;position:relative;
+  border-bottom:1px solid var(--line);
+}
+.manifesto ul li:before{
+  content:"›";position:absolute;left:0;top:14px;
+  color:var(--blue);font-weight:600;font-size:22px;
+}
+.manifesto hr{
+  border:none;height:1px;background:var(--line);
+  margin:60px 0;
+}
+
+.signature{
+  margin-top:80px;padding-top:40px;
+  border-top:1px solid var(--line);
+  display:flex;gap:18px;align-items:center;
+}
+.signature-avatar{
+  width:54px;height:54px;border-radius:50%;
+  background:var(--grad);
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-weight:600;font-size:20px;
+}
+.signature-name{font-size:16px;font-weight:500;font-family:'Instrument Serif',serif;font-style:normal;font-size:20px}
+.signature-role{font-size:13px;color:var(--ink-2)}
+
+.principles{
+  background:var(--bg-2);border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  padding:120px 0;
+}
+.principles-grid{
+  display:grid;grid-template-columns:repeat(2,1fr);gap:1px;
+  background:var(--line);border:1px solid var(--line);
+  border-radius:22px;overflow:hidden;
+}
+@media(max-width:720px){.principles-grid{grid-template-columns:1fr}}
+.principle{background:var(--bg);padding:40px 32px}
+.principle-num{font-family:'Instrument Serif',serif;font-size:48px;color:var(--blue);line-height:1;margin-bottom:14px}
+.principle h4{font-size:20px;font-weight:500;margin-bottom:10px;letter-spacing:-0.01em}
+.principle p{color:var(--ink-2);font-size:15px;line-height:1.6}
+
+footer{background:var(--bg);border-top:1px solid var(--line);padding:40px 0;text-align:center;color:var(--ink-3);font-size:13px}
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .8s var(--ease),transform .8s var(--ease)}
+.reveal.in{opacity:1;transform:translateY(0)}
+</style>
+</head>
+<body>
+
+<nav class="nav" id="nav">
+  <div class="container nav-inner">
+    <a href="index.html" class="logo"><span class="logo-mark"></span> Axion</a>
+    <div class="nav-links">
+      <a href="product.html">Produit</a>
+      <a href="agents.html">Catalogue</a>
+      <a href="pricing.html">Tarifs</a>
+      <a href="customers.html">Clients</a>
+      <a href="manifesto.html" class="active">Manifesto</a>
+      <a href="company.html">Entreprise</a>
+    </div>
+    <div style="display:flex;gap:12px">
+      <a href="dashboard.html" class="btn btn-ghost">Console</a>
+      <a href="pricing.html" class="btn btn-primary">Démarrer</a>
+    </div>
+  </div>
+</nav>
+
+<section class="manifesto">
+  <div class="container manifesto-inner">
+
+    <div class="manifesto-eyebrow"><span class="dot"></span> MANIFESTO · v1 · Paris · Mai 2026</div>
+
+    <h1>Le travail tel <span class="serif">qu'on l'a connu<br>est terminé.</span></h1>
+
+    <p class="lead">Pas dans dix ans. Pas en 2030. <strong>Maintenant.</strong></p>
+    <p>Et nous pensons que c'est une bonne nouvelle. Pour les humains. Pour les entreprises. Pour les choses qui méritent réellement notre temps.</p>
+
+    <hr>
+
+    <h2>I. Le constat.</h2>
+
+    <p>Pendant un siècle, l'entreprise a été une cathédrale d'humains qui s'envoient des emails. Des humains qui copient des chiffres d'un onglet à l'autre. Des humains qui relisent ce qu'un autre humain a écrit. Des humains qui prennent un avion pour faire ce qu'on aurait pu faire en visio.</p>
+
+    <p>Nous avons confondu <strong>l'effort</strong> avec <strong>le résultat</strong>. Confondu le temps passé avec la valeur produite. Confondu l'occupation des humains avec le progrès des humains.</p>
+
+    <blockquote>Un humain ne devrait jamais faire ce qu'une machine peut faire mieux. Et un humain ne devrait jamais ne <span class="serif">pas</span> faire ce que seule sa conscience peut faire.</blockquote>
+
+    <p>Le drame, c'est que nous avons inversé l'équation. Nous payons les humains pour faire des tâches répétitives, et nous les empêchons — par manque de temps — de faire le travail qui demande du jugement, de l'empathie, de l'audace.</p>
+
+    <h2>II. La rupture.</h2>
+
+    <p>En 2025, quelque chose a changé. Les modèles de langage ont franchi un seuil. Pas un seuil technique. Un seuil <strong>économique</strong> : pour la première fois, faire-faire à une IA était durablement moins cher, plus rapide, et — sur les bonnes tâches — plus rigoureux que faire-faire à un humain.</p>
+
+    <p>Mais une IA brute, ce n'est pas un employé. C'est un cerveau sans corps. Sans mémoire. Sans outils. Sans collègues. Sans manager. Sans culture. Sans recours.</p>
+
+    <p>Pour transformer une IA en employé, il faut une plateforme. Une couche entre votre entreprise et l'intelligence brute. <strong>Cette couche, c'est Axion.</strong></p>
+
+    <h2>III. La thèse.</h2>
+
+    <p>Dans cinq ans, la moitié du travail de la connaissance — vente, support, finance, opérations, ingénierie, légal — sera exécutée par des agents IA. Pas pilotés par des humains. <strong>Exécutée</strong> par des agents.</p>
+
+    <p>Et la question n'est plus <em>"si"</em>. La question est : <strong>chez qui ces agents tourneront-ils ?</strong></p>
+
+    <ul>
+      <li>Chez Microsoft, OpenAI, ou Google ? Trop puissant. Trop contrôlé. Trop américain pour l'Europe.</li>
+      <li>Construit en interne par chaque entreprise ? Trop cher. Trop fragile. Trop loin du métier.</li>
+      <li>Sur une plateforme dédiée, neutre, souveraine, auditable, qui place l'entreprise — et pas le modèle — au centre. <strong>C'est notre réponse. C'est Axion.</strong></li>
+    </ul>
+
+    <h2>IV. La promesse.</h2>
+
+    <p>Nous construisons l'OS de l'entreprise autonome. Cinq promesses.</p>
+
+    <h3>1. Vous restez aux commandes.</h3>
+    <p>Aucun agent ne fait quelque chose que vous n'avez pas autorisé. Permissions granulaires, budgets, approbations à seuil. Si l'agent dépasse, il s'arrête et vous demande.</p>
+
+    <h3>2. Vous voyez tout.</h3>
+    <p>Chaque action, chaque décision, chaque appel d'outil est journalisé, signé, rejouable. Vous pouvez time-traveler l'état du système jusqu'à 90 jours. Pas de boîte noire.</p>
+
+    <h3>3. Vos données restent vos données.</h3>
+    <p>Elles ne servent jamais à entraîner les modèles. Mode SaaS, VPC, ou on-premise. Vous choisissez où elles vivent. Vous gardez le couteau par le manche.</p>
+
+    <h3>4. Vous payez le résultat.</h3>
+    <p>Pas le token. Pas l'heure. Le résultat livré : un lead qualifié, un ticket résolu, un contrat signé. Comme un employé que vous payez pour son travail, pas son présentéisme.</p>
+
+    <h3>5. Vous repartez quand vous voulez.</h3>
+    <p>Pas de lock-in. Vos workflows, vos prompts, vos données, votre mémoire — tout est exportable en JSON, en standard ouvert. Si on n'est plus assez bons, vous partez. C'est sain.</p>
+
+    <h2>V. Pourquoi Paris.</h2>
+
+    <p>Axion est une entreprise française qui parle au monde. Nous avons délibérément choisi Paris comme HQ — pas Palo Alto, pas Londres, pas Singapour.</p>
+
+    <p>Parce que l'Europe a quelque chose que les autres n'ont pas : une <strong>obsession sanitaire pour la souveraineté</strong>. AI Act, RGPD, NIS2, Cyber Resilience Act. Beaucoup voient ça comme un frein. Nous voyons ça comme la spécification produit de notre marché.</p>
+
+    <p>Construire un OS d'agents <em>conforme par design</em> en Europe, et l'exporter au monde, c'est notre version d'un Salesforce qui aurait grandi à Paris au lieu de San Francisco. Et nous pensons sincèrement que c'est de cet écart-là que naissent les catégories nouvelles.</p>
+
+    <h2>VI. La discipline.</h2>
+
+    <p>Nous nous engageons publiquement sur cinq disciplines.</p>
+
+    <ul>
+      <li><strong>Pas d'opacity intentionnelle.</strong> Chaque agent dit pourquoi il fait ce qu'il fait. Si on ne sait pas l'expliquer, on ne le déploie pas.</li>
+      <li><strong>Pas de marketing fantasmé.</strong> Nos chiffres viennent de clients réels qui les ont signés. Si une métrique apparaît sur ce site, elle existe.</li>
+      <li><strong>Pas d'enfermement.</strong> Standards ouverts (MCP, OpenAPI, OpenTelemetry, JSON-LD). Export complet de toute votre matière en un clic.</li>
+      <li><strong>Pas de prix piégeux.</strong> Tous nos tarifs sont publics. Pas d'add-on caché, pas de minimum surprise.</li>
+      <li><strong>Pas de neutralité morale.</strong> Certaines applications, on les refusera. Surveillance de masse, désinformation, manipulation politique : non. Le résultat ne justifie pas tous les moyens.</li>
+    </ul>
+
+    <h2>VII. À ceux qui doutent.</h2>
+
+    <p>Nous savons que cette idée fait peur. Que les emplois changent. Que ce qu'on appelait un "métier" il y a 20 ans est en train de redevenir une <em>tâche</em>. Que les enfants qu'on élève aujourd'hui n'auront pas le travail qu'on leur promet.</p>
+
+    <p>Mais l'histoire est claire : chaque fois qu'on a délégué l'effort répétitif à une machine, l'humanité a élargi ce qu'elle pouvait s'autoriser à faire. Nous voulons que la prochaine génération <strong>fasse les choses qu'aucun agent ne fera jamais</strong> : prendre soin, créer, choisir, courir des risques, dire non.</p>
+
+    <blockquote>Notre mission n'est pas de rendre les entreprises sans humains. C'est de rendre les humains <span class="serif">irremplaçables.</span></blockquote>
+
+    <h2>VIII. Au travail.</h2>
+
+    <p>Si tu lis ce manifesto et que ça résonne — comme client, comme employé, comme investisseur, comme partenaire — viens.</p>
+
+    <p>On a beaucoup à construire. On a très peu de temps.</p>
+
+    <div class="signature">
+      <div class="signature-avatar">A</div>
+      <div>
+        <div class="signature-name">L'équipe Axion</div>
+        <div class="signature-role">Paris · San Francisco · Singapour</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- THE 8 PRINCIPLES -->
+<section class="principles">
+  <div class="container">
+    <div style="margin-bottom:60px;text-align:center" class="reveal">
+      <span style="display:inline-block;font-size:13px;color:var(--blue-2);letter-spacing:.08em;text-transform:uppercase;font-weight:500;margin-bottom:18px">Les huit principes</span>
+      <h2 style="font-size:42px;line-height:1.05;letter-spacing:-0.03em;font-weight:500;max-width:680px;margin:0 auto">Notre constitution. <span class="serif">Affichée à l'entrée.</span></h2>
+    </div>
+    <div class="principles-grid reveal">
+      <div class="principle">
+        <div class="principle-num">I</div>
+        <h4>L'humain garde le dernier mot</h4>
+        <p>Sur tout ce qui touche à l'argent, aux personnes, à la marque, à la stratégie. L'agent propose, l'humain dispose.</p>
+      </div>
+      <div class="principle">
+        <div class="principle-num">II</div>
+        <h4>L'audit est un produit</h4>
+        <p>Pas un add-on. Chaque action est immédiatement auditable. La transparence n'est pas une option — c'est une primitive.</p>
+      </div>
+      <div class="principle">
+        <div class="principle-num">III</div>
+        <h4>La donnée appartient au client</h4>
+        <p>Pas à nous. Pas aux modèles. Pas à OpenAI. Au client. Toujours. Exportable, supprimable, portable.</p>
+      </div>
+      <div class="principle">
+        <div class="principle-num">IV</div>
+        <h4>Le prix reflète le résultat</h4>
+        <p>Pas le coût d'inférence. Si on devient 10× plus efficaces, le client paie 10× moins. C'est notre marge qui doit absorber, pas la sienne.</p>
+      </div>
+      <div class="principle">
+        <div class="principle-num">V</div>
+        <h4>L'ouverture comme défaut</h4>
+        <p>Standards ouverts (MCP, OpenAPI, OpenTelemetry). Pas de format proprio quand un standard existe. Si Axion disparaît, le client survit.</p>
+      </div>
+      <div class="principle">
+        <div class="principle-num">VI</div>
+        <h4>La sécurité n'est pas négociable</h4>
+        <p>SOC 2, ISO 27001, HIPAA, AI Act. Un breach chez nous = la confiance détruite chez 4 200 clients. Coût acceptable : zéro.</p>
+      </div>
+      <div class="principle">
+        <div class="principle-num">VII</div>
+        <h4>Certaines applications, non</h4>
+        <p>Surveillance de masse, désinformation, manipulation, scoring social, armes autonomes. Non. Pas pour de l'argent. Pas même beaucoup.</p>
+      </div>
+      <div class="principle">
+        <div class="principle-num">VIII</div>
+        <h4>L'humain reste irremplaçable</h4>
+        <p>On ne construit pas Axion pour supprimer les emplois. On le construit pour libérer les meilleures heures de chaque humain. Si un client veut juste licencier, il a tort de produit.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="padding:160px 0;text-align:center;background:var(--bg);position:relative;overflow:hidden">
+  <div style="position:absolute;inset:0;background:radial-gradient(900px 500px at 50% 50%,rgba(91,108,255,.15),transparent 60%)"></div>
+  <div class="container" style="position:relative;z-index:1">
+    <h2 style="font-size:clamp(40px,6vw,72px);line-height:1;letter-spacing:-0.03em;font-weight:500;margin-bottom:24px">Si vous êtes d'accord, <span class="serif">venez.</span></h2>
+    <p style="color:var(--ink-2);font-size:18px;margin-bottom:40px">On a beaucoup à construire. On a très peu de temps.</p>
+    <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
+      <a href="dashboard.html" class="btn btn-glow">Démarrer maintenant →</a>
+      <a href="company.html#careers" class="btn btn-ghost">Rejoindre l'équipe</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">© 2026 Axion Labs SAS · Paris · contact@axion.ai</div>
+</footer>
+
+<script>
+const nav=document.getElementById('nav');addEventListener('scroll',()=>nav.classList.toggle('scrolled',scrollY>50));
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.12});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+</script>
+</body>
+</html>
