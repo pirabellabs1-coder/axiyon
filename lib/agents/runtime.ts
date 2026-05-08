@@ -125,7 +125,6 @@ export async function runAgent(args: RunArgs): Promise<RunResult> {
       messages,
       tools: toolset,
       maxSteps: 8,
-      experimental_toolCallStreaming: false,
       experimental_telemetry: { isEnabled: true, functionId: `agent.${template.slug}` },
     });
   } catch (e: unknown) {
