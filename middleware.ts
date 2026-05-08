@@ -1,5 +1,15 @@
+/**
+ * Edge-runtime middleware.
+ *
+ * IMPORTANT: must NOT import from `@/auth` (which pulls in bcrypt + drizzle
+ * adapter, both incompatible with edge). Uses `auth.config.ts` instead — a
+ * minimal config with no node-only deps.
+ */
+import NextAuth from "next-auth";
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
+import { authConfig } from "@/auth.config";
+
+const { auth } = NextAuth(authConfig);
 
 const PROTECTED = ["/dashboard", "/admin"];
 const ADMIN_ONLY = ["/admin"];
@@ -24,7 +34,7 @@ export default auth((req) => {
     url.searchParams.set("callbackUrl", pathname);
     return NextResponse.redirect(url);
   }
-  if (isAdmin && session && !session.user.isSuperuser) {
+  if (isAdmin && session && !session.user?.isSuperuser) {
     return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
