@@ -14,7 +14,8 @@ import { createHash } from "node:crypto";
 
 import { recallMemory, ingestMemory } from "@/lib/memory";
 
-// real-API implementations
+// approvals + real-API implementations
+import { requestApproval, requiresApproval } from "@/lib/approvals";
 import { gmailSend, gmailSearch, calendarBook, calendarList } from "@/lib/tools/impl/google";
 import {
   outlookSend,
@@ -62,13 +63,26 @@ function seededInt(seed: string, max: number): number {
 
 // ─── ToolContext ─────────────────────────────────────────────────
 // AI SDK tools don't have a built-in "context" channel, so we store it on a
-// module-level `AsyncLocalStorage`-ish singleton when calling generateText.
-let _orgIdContext: string | null = null;
-export function setToolOrgContext(orgId: string | null): void {
-  _orgIdContext = orgId;
+// module-level singleton when calling generateText. Includes orgId + agentId
+// + taskId so approval requests can be traced back.
+interface ToolContext {
+  orgId: string;
+  agentId: string;
+  taskId: string;
+}
+let _ctx: ToolContext | null = null;
+export function setToolOrgContext(ctx: ToolContext | null): void {
+  _ctx = ctx;
+}
+// Backwards-compat — older runtime passed just orgId as a string.
+export function setToolOrgContextLegacy(orgId: string | null): void {
+  _ctx = orgId ? { orgId, agentId: "unknown", taskId: "unknown" } : null;
 }
 function ctxOrg(): string | null {
-  return _orgIdContext;
+  return _ctx?.orgId ?? null;
+}
+function ctxFull(): ToolContext | null {
+  return _ctx;
 }
 
 // ─── Tool definitions ────────────────────────────────────────────
@@ -201,37 +215,84 @@ export const tools = {
 
   make_phone_call: tool({
     description:
-      "Place a real phone call via Twilio. Plays the given TwiML or fetches it from a URL.",
+      "Place a real phone call via Twilio. High-stakes — requires human approval the first time per session.",
     parameters: z.object({
       to: z.string().describe("E.164 phone number, e.g. +33...."),
       message: z.string().describe("Message to speak (will be wrapped in <Say>).").optional(),
       twiml_url: z.string().url().optional(),
     }),
     execute: async (args) => {
-      const orgId = ctxOrg();
-      if (!orgId) return { placed: false, mode: "preview" };
+      const ctx = ctxFull();
+      if (!ctx) return { placed: false, mode: "preview" };
+
+      // Approval gate — phone calls always require human OK
+      if (requiresApproval("make_phone_call")) {
+        const decision = await requestApproval({
+          orgId: ctx.orgId,
+          agentId: ctx.agentId,
+          taskId: ctx.taskId,
+          actionType: "make_phone_call",
+          summary: `Appel à ${args.to} : "${(args.message ?? "").slice(0, 200)}"`,
+          payload: args,
+          estimatedImpactEur: 0.3,
+        });
+        if (decision.status !== "approved") {
+          return {
+            placed: false,
+            status: decision.status,
+            approval_id: decision.id,
+            note:
+              decision.status === "pending"
+                ? "Appel en attente d'approbation humaine. Voir /dashboard/approvals."
+                : `Appel rejeté par l'utilisateur.`,
+          };
+        }
+      }
+
       const twiml = args.message
         ? `<Response><Say language="fr-FR" voice="Polly.Lea">${args.message
             .replace(/&/g, "&amp;")
             .replace(/</g, "&lt;")
             .slice(0, 800)}</Say></Response>`
         : undefined;
-      const r = await twilioCall(orgId, { to: args.to, twiml, url: args.twiml_url });
+      const r = await twilioCall(ctx.orgId, { to: args.to, twiml, url: args.twiml_url });
       if (r.ok) return { placed: true, mode: "twilio", call_sid: r.sid };
       return { placed: false, mode: "preview", error: r.error };
     },
   }),
 
   send_sms: tool({
-    description: "Send a real SMS via Twilio.",
+    description: "Send a real SMS via Twilio. Requires human approval.",
     parameters: z.object({
       to: z.string(),
       body: z.string().min(1).max(1600),
     }),
     execute: async (args) => {
-      const orgId = ctxOrg();
-      if (!orgId) return { sent: false, mode: "preview" };
-      const r = await twilioSms(orgId, args);
+      const ctx = ctxFull();
+      if (!ctx) return { sent: false, mode: "preview" };
+
+      const decision = await requestApproval({
+        orgId: ctx.orgId,
+        agentId: ctx.agentId,
+        taskId: ctx.taskId,
+        actionType: "send_sms",
+        summary: `SMS à ${args.to} : "${args.body.slice(0, 200)}"`,
+        payload: args,
+        estimatedImpactEur: 0.05,
+      });
+      if (decision.status !== "approved") {
+        return {
+          sent: false,
+          status: decision.status,
+          approval_id: decision.id,
+          note:
+            decision.status === "pending"
+              ? "SMS en attente d'approbation humaine. Voir /dashboard/approvals."
+              : "SMS rejeté.",
+        };
+      }
+
+      const r = await twilioSms(ctx.orgId, args);
       return r.ok ? { sent: true, mode: "twilio", sid: r.sid } : { sent: false, error: r.error };
     },
   }),
@@ -523,7 +584,7 @@ export const tools = {
   }),
 
   stripe_create_invoice: tool({
-    description: "Create a finalized Stripe invoice for a customer.",
+    description: "Create a finalized Stripe invoice for a customer. Requires approval if > 100 EUR.",
     parameters: z.object({
       customer: z.string(),
       amount_cents: z.number().int().positive(),
@@ -531,9 +592,34 @@ export const tools = {
       description: z.string().optional(),
     }),
     execute: async (args) => {
-      const orgId = ctxOrg();
-      if (!orgId) return { created: false };
-      const r = await stripeCreateInvoice(orgId, {
+      const ctx = ctxFull();
+      if (!ctx) return { created: false };
+
+      const amountEur = args.amount_cents / 100;
+      if (amountEur > 100) {
+        const decision = await requestApproval({
+          orgId: ctx.orgId,
+          agentId: ctx.agentId,
+          taskId: ctx.taskId,
+          actionType: "stripe_create_invoice",
+          summary: `Facture Stripe ${args.currency.toUpperCase()} ${amountEur.toFixed(2)} pour ${args.customer}${args.description ? ` — ${args.description}` : ""}`,
+          payload: args,
+          estimatedImpactEur: amountEur,
+        });
+        if (decision.status !== "approved") {
+          return {
+            created: false,
+            status: decision.status,
+            approval_id: decision.id,
+            note:
+              decision.status === "pending"
+                ? "Facture en attente d'approbation humaine. Voir /dashboard/approvals."
+                : "Facture rejetée.",
+          };
+        }
+      }
+
+      const r = await stripeCreateInvoice(ctx.orgId, {
         customer: args.customer,
         amount: args.amount_cents,
         currency: args.currency,

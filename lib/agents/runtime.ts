@@ -118,8 +118,13 @@ export async function runAgent(args: RunArgs): Promise<RunResult> {
   ];
 
   let result: Awaited<ReturnType<typeof generateText>>;
-  // Set the org context so the tools can find the right integrations.
-  setToolOrgContext(args.orgId);
+  // Set the tool context so tools can find the right integrations and
+  // pin approval requests to this agent + task.
+  setToolOrgContext({
+    orgId: args.orgId,
+    agentId: agent.id,
+    taskId: task.id,
+  });
   try {
     result = await generateText({
       model,
