@@ -275,8 +275,11 @@ CREATE INDEX IF NOT EXISTS "approvals_org_status_idx"
 
 export async function POST(req: Request) {
   const auth = req.headers.get("authorization");
-  const expected = `Bearer ${process.env.CRON_SECRET ?? ""}`;
-  if (!process.env.CRON_SECRET || auth !== expected) {
+  const cronOk =
+    process.env.CRON_SECRET && auth === `Bearer ${process.env.CRON_SECRET}`;
+  const migrationOk =
+    process.env.MIGRATION_SECRET && auth === `Bearer ${process.env.MIGRATION_SECRET}`;
+  if (!cronOk && !migrationOk) {
     return new NextResponse("Unauthorized", { status: 401 });
   }
 
