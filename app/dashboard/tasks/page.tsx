@@ -6,6 +6,7 @@ import { agentInstances, db, tasks } from "@/lib/db";
 import { Card } from "@/components/ui/card";
 import { getTemplate } from "@/lib/agents/catalog";
 import { formatEur, relativeTime } from "@/lib/utils";
+import { AgentIcon } from "@/components/agent-icon";
 
 export const dynamic = "force-dynamic";
 
@@ -75,7 +76,7 @@ export default async function TasksPage() {
                     </td>
                     <td className="px-4 py-2.5">
                       <div className="flex items-center gap-2">
-                        <span className="text-base">{t?.icon ?? "🤖"}</span>
+                        <AgentIcon name={t?.icon ?? "Bot"} wrapperClassName="size-7" size={13} />
                         <span>{agent?.name ?? "—"}</span>
                       </div>
                     </td>

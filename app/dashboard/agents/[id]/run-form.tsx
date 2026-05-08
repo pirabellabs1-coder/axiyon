@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Sparkles } from "lucide-react";
+import { Loader2, Sparkles, ChevronDown, ChevronUp, Wrench } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { runWithPuter } from "@/lib/agents/puter-runtime";
@@ -22,6 +22,15 @@ interface AgentLite {
   customPrompt: string | null;
 }
 
+const MODELS: { value: string; label: string }[] = [
+  { value: "claude-sonnet-4-5", label: "Claude Sonnet 4.5 (recommandé)" },
+  { value: "claude-sonnet-4", label: "Claude Sonnet 4" },
+  { value: "claude-opus-4", label: "Claude Opus 4 (qualité maximale)" },
+  { value: "gpt-4o", label: "GPT-4o" },
+  { value: "gpt-4o-mini", label: "GPT-4o mini (rapide)" },
+  { value: "gemini-2.0-flash", label: "Gemini 2.0 Flash" },
+];
+
 export function RunForm({
   agent,
   template,
@@ -38,6 +47,7 @@ export function RunForm({
   const [text, setText] = useState("");
   const [toolCalls, setToolCalls] = useState<ToolCallTrace[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [showTools, setShowTools] = useState(true);
 
   async function onRun() {
     setLoading(true);
@@ -56,7 +66,7 @@ export function RunForm({
         onText: (chunk) => setText((prev) => prev + chunk),
         onToolCall: (call) => setToolCalls((prev) => [...prev, call]),
       });
-      setText(result.text || "(no text returned)");
+      setText(result.text || "(aucun texte retourné)");
       router.refresh();
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
@@ -87,15 +97,12 @@ export function RunForm({
             disabled={loading}
             className="rounded-md border border-line bg-bg-2 px-3 py-1.5 text-xs font-mono"
           >
-            <option value="claude-sonnet-4-5">claude-sonnet-4-5 (recommandé)</option>
-            <option value="claude-sonnet-4">claude-sonnet-4</option>
-            <option value="gpt-4o">gpt-4o</option>
-            <option value="gpt-4o-mini">gpt-4o-mini (rapide)</option>
-            <option value="gemini-2.0-flash">gemini-2.0-flash</option>
+            {MODELS.map((m) => (
+              <option key={m.value} value={m.value}>
+                {m.label}
+              </option>
+            ))}
           </select>
-          <span className="text-[10px] text-brand-green font-mono ml-2">
-            ● gratuit via Puter
-          </span>
         </div>
         <Button onClick={onRun} disabled={loading || !objective.trim()} variant="glow">
           {loading ? (
@@ -106,7 +113,7 @@ export function RunForm({
           ) : (
             <>
               <Sparkles className="size-4" />
-              Lancer la tâche →
+              Lancer la tâche
             </>
           )}
         </Button>
@@ -115,52 +122,54 @@ export function RunForm({
       {error && (
         <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
           {error}
-          {error.includes("Puter") && (
-            <div className="mt-1 text-xs text-ink-2">
-              Astuce : Puter doit charger côté navigateur. Si tu utilises un
-              bloqueur de scripts, autorise <span className="font-mono">js.puter.com</span>.
-            </div>
-          )}
         </div>
       )}
 
       {toolCalls.length > 0 && (
-        <details
-          open
-          className="rounded-md border border-line bg-bg-3 px-4 py-3 text-xs"
-        >
-          <summary className="cursor-pointer text-ink-2 hover:text-ink font-mono">
-            ⚡ {toolCalls.length} appel{toolCalls.length > 1 ? "s" : ""} d'outils
-          </summary>
-          <ul className="mt-3 space-y-2">
-            {toolCalls.map((tc, i) => (
-              <li
-                key={i}
-                className="rounded border border-line bg-bg p-2.5 font-mono"
-              >
-                <div className="text-brand-cyan flex items-center gap-2">
-                  <span>{tc.name}</span>
-                  {tc.error && <span className="text-destructive text-[10px]">— ERROR</span>}
-                </div>
-                <pre className="text-ink-3 mt-1 overflow-x-auto whitespace-pre-wrap text-[11px]">
-                  args: {JSON.stringify(tc.args, null, 2)}
-                </pre>
-                {tc.error ? (
-                  <pre className="text-destructive mt-1 overflow-x-auto whitespace-pre-wrap text-[11px]">
-                    {tc.error}
+        <div className="rounded-md border border-line bg-bg-3 px-4 py-3 text-xs">
+          <button
+            onClick={() => setShowTools((s) => !s)}
+            className="w-full flex items-center justify-between text-ink-2 hover:text-ink font-mono"
+          >
+            <span className="inline-flex items-center gap-2">
+              <Wrench className="size-3.5" />
+              {toolCalls.length} appel{toolCalls.length > 1 ? "s" : ""} d'outil{toolCalls.length > 1 ? "s" : ""}
+            </span>
+            {showTools ? <ChevronUp className="size-3.5" /> : <ChevronDown className="size-3.5" />}
+          </button>
+          {showTools && (
+            <ul className="mt-3 space-y-2">
+              {toolCalls.map((tc, i) => (
+                <li
+                  key={i}
+                  className="rounded border border-line bg-bg p-2.5 font-mono"
+                >
+                  <div className="text-brand-cyan flex items-center gap-2">
+                    <span>{tc.name}</span>
+                    {tc.error && (
+                      <span className="text-destructive text-[10px]">— ERREUR</span>
+                    )}
+                  </div>
+                  <pre className="text-ink-3 mt-1 overflow-x-auto whitespace-pre-wrap text-[11px]">
+                    args: {JSON.stringify(tc.args, null, 2)}
                   </pre>
-                ) : (
-                  <pre className="text-brand-green mt-1 overflow-x-auto whitespace-pre-wrap text-[11px]">
-                    {(() => {
-                      const s = JSON.stringify(tc.result, null, 2) ?? "";
-                      return s.length > 600 ? s.slice(0, 600) + "…" : s;
-                    })()}
-                  </pre>
-                )}
-              </li>
-            ))}
-          </ul>
-        </details>
+                  {tc.error ? (
+                    <pre className="text-destructive mt-1 overflow-x-auto whitespace-pre-wrap text-[11px]">
+                      {tc.error}
+                    </pre>
+                  ) : (
+                    <pre className="text-brand-green mt-1 overflow-x-auto whitespace-pre-wrap text-[11px]">
+                      {(() => {
+                        const s = JSON.stringify(tc.result, null, 2) ?? "";
+                        return s.length > 600 ? s.slice(0, 600) + "…" : s;
+                      })()}
+                    </pre>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       )}
 
       {text && (

@@ -34,21 +34,21 @@ const TABS = [
     desc: "Permissions par rôle, budgets d'action, approbations à seuil, audit immuable. Conçu pour passer un audit Big 4 sans frémir.",
     features: [
       ["RBAC granulaire", "jusqu'à l'appel d'outil individuel"],
-      ["Budgets & limits", "€ par jour, par tâche, par client"],
+      ["Budgets & limites", "€ par jour, par tâche, par client"],
       ["Audit immuable", "chaîne SHA-256 vérifiable"],
-      ["Conformité native", "SOC 2, ISO 27001, HIPAA, AI Act, GDPR"],
+      ["Conformité native", "SOC 2, ISO 27001, HIPAA, AI Act, RGPD"],
     ],
   },
   {
-    id: "puter",
-    label: "Puter — gratuit",
-    title: "Claude Sonnet 4.5 — gratuit, illimité, dans le navigateur.",
-    desc: "Axion s'appuie sur Puter pour exécuter les agents côté navigateur. Pas d'API key à gérer, pas de quota plate-forme, pas de facturation IA — vous payez l'orchestration Axion, l'IA est offerte par Puter.",
+    id: "custom",
+    label: "Personnalisation",
+    title: "Votre voix. Votre playbook. Votre marque.",
+    desc: "Chargez vos SOPs, votre wiki, vos transcripts d'appels. Chaque agent adopte votre style, vos process, vos red lines. Pas juste un prompt — un fine-tuning supervisé sur votre flux de travail réel.",
     features: [
-      ["Claude Sonnet 4.5", "le meilleur modèle Anthropic, à 0 €"],
-      ["GPT-4o", "OpenAI dispo aussi en un toggle"],
-      ["500+ modèles", "Anthropic · OpenAI · Google · xAI · DeepSeek · Mistral"],
-      ["Function calling", "tool calls réels jusqu'à votre serveur"],
+      ["Voice cloning", "ton de marque, jargon interne"],
+      ["SOP loader", "Notion, Confluence, GDrive, PDF en un clic"],
+      ["A/B persona", "testez 3 versions, gardez la meilleure"],
+      ["Sandbox safe", "entraînez sans toucher la production"],
     ],
   },
 ];
@@ -73,16 +73,16 @@ export function PlatformTabs() {
 
         <div className="flex justify-center mb-14">
           <div className="inline-flex gap-1 bg-bg border border-line p-1.5 rounded-2xl">
-            {TABS.map((t, i) => (
+            {TABS.map((tt, i) => (
               <button
-                key={t.id}
+                key={tt.id}
                 onClick={() => setActive(i)}
                 className={cn(
                   "px-5 py-2.5 rounded-lg text-sm transition-colors",
                   i === active ? "bg-bg-3 text-ink" : "text-ink-2 hover:text-ink",
                 )}
               >
-                {t.label}
+                {tt.label}
               </button>
             ))}
           </div>
@@ -95,7 +95,7 @@ export function PlatformTabs() {
             <ul className="divide-y divide-line">
               {tab.features.map(([h, p]) => (
                 <li key={h} className="flex gap-3 py-3.5">
-                  <span className="text-brand-blue mt-0.5">✓</span>
+                  <span className="text-brand-blue mt-0.5 shrink-0">›</span>
                   <span>
                     <strong className="text-ink">{h}</strong>{" "}
                     <span className="text-ink-2">— {p}</span>
@@ -143,7 +143,7 @@ export function PlatformTabs() {
                 who="Iris"
                 role="SDR"
                 avatarClass="bg-grad text-white"
-                text="Séquence d'outreach lancée. 6 démos confirmées sur ton calendrier mardi-jeudi. ✅"
+                text="Séquence d'outreach lancée. 6 démos confirmées sur ton calendrier mardi-jeudi."
               />
             </div>
           </div>

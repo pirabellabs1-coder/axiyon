@@ -1,4 +1,3 @@
-/** Customer logo wall — restored from legacy HTML. */
 const LOGOS = [
   "Helia", "Mirakl", "Doctolib", "Linear", "BlaBlaCar", "Maison Margiela",
   "Veepee", "Qonto", "Aircall", "PayFit", "Alan", "Lydia",

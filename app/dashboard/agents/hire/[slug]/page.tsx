@@ -1,9 +1,10 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 
-import { getTemplate } from "@/lib/agents/catalog";
-import { Button } from "@/components/ui/button";
+import { categoryLabel, getTemplate } from "@/lib/agents/catalog";
 import { Card, CardContent } from "@/components/ui/card";
+import { AgentIcon } from "@/components/agent-icon";
 import { HireForm } from "./hire-form";
 
 export default async function HireSlugPage({
@@ -17,19 +18,22 @@ export default async function HireSlugPage({
 
   return (
     <div className="max-w-3xl space-y-6">
-      <Link href="/dashboard/agents/hire" className="text-sm text-ink-2 hover:text-ink">
-        ← Catalogue
+      <Link
+        href="/dashboard/agents/hire"
+        className="text-sm text-ink-2 hover:text-ink inline-flex items-center gap-1.5"
+      >
+        <ArrowLeft className="size-3.5" /> Catalogue
       </Link>
 
       <div className="flex items-start gap-4">
-        <div className="size-14 rounded-xl bg-bg-3 border border-line flex items-center justify-center text-2xl">
-          {template.icon}
-        </div>
+        <AgentIcon name={template.icon} size={26} wrapperClassName="size-14 rounded-xl" gradient />
         <div>
-          <h1 className="text-2xl font-medium">
+          <h1 className="text-2xl font-medium leading-tight">
             Recruter <span className="text-brand-blue-2">{template.name}</span>
           </h1>
-          <p className="text-ink-2 text-sm mt-1">{template.role}</p>
+          <p className="text-ink-2 text-sm mt-1">
+            {template.role} · {categoryLabel(template.category)}
+          </p>
         </div>
       </div>
 
@@ -38,9 +42,7 @@ export default async function HireSlugPage({
           <p>{template.description}</p>
           <div className="flex flex-wrap gap-1.5 pt-2">
             {template.skills.map((s) => (
-              <span key={s} className="chip">
-                {s}
-              </span>
+              <span key={s} className="chip">{s}</span>
             ))}
           </div>
         </CardContent>

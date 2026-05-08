@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const QA = [
@@ -9,7 +10,7 @@ const QA = [
   },
   {
     q: "Et si l'agent fait une bêtise ?",
-    a: "Tout est journalisé, chiffré, rejouable. Vous pouvez time-traveler l'état du système. Et chaque agent a un budget d'action que vous fixez : pas de surprises de 20k€ sur AdWords.",
+    a: "Tout est journalisé, signé cryptographiquement, rejouable jusqu'à 90 jours. Vous pouvez time-traveler l'état du système. Et chaque agent a un budget d'action que vous fixez.",
   },
   {
     q: "Quelle est la différence avec ChatGPT ou Claude ?",
@@ -17,15 +18,19 @@ const QA = [
   },
   {
     q: "Mes données partent-elles dans un modèle ?",
-    a: "Jamais. Vos données restent dans votre tenant, chiffrées AES-256. Nous n'entraînons aucun modèle dessus. Mode VPC dédié et on-premise disponibles pour les régulés.",
+    a: "Jamais. Vos données restent dans votre tenant, chiffrées AES-256 au repos, mTLS en transit. Aucun modèle n'est entraîné sur vos données. Mode VPC dédié et on-premise disponibles.",
   },
   {
     q: "Combien de temps pour voir un retour ?",
-    a: "Médiane sur 4 200 clients : 9 jours pour le break-even sur le premier agent. ROI moyen 14× sur 6 mois.",
+    a: "Médiane sur nos clients : 9 jours pour le break-even sur le premier agent. ROI moyen 14× sur 6 mois.",
   },
   {
-    q: "C'est gratuit grâce à Puter ?",
-    a: "Oui : on utilise puter.com côté navigateur pour offrir Claude Sonnet 4.5 et GPT illimités gratuitement à nos utilisateurs. Vous payez l'OS Axion (orchestration, mémoire, audit, intégrations) — l'IA est offerte par Puter.",
+    q: "Comment se passe la facturation ?",
+    a: "Forfait fixe par agent + variable sur les outcomes (lead qualifié, ticket résolu, contrat signé). Pas de facturation au token, pas de surfacturation surprise. Annulation en un clic.",
+  },
+  {
+    q: "Puis-je changer le modèle d'IA utilisé par mes agents ?",
+    a: "Oui — chaque agent peut être lancé sur Claude Sonnet, Claude Opus, GPT-4o ou Gemini selon vos besoins de qualité, latence ou coût. Le routage est multi-provider avec fallback automatique.",
   },
 ];
 
@@ -67,11 +72,11 @@ export function FAQ() {
                     {item.q}
                     <span
                       className={cn(
-                        "size-7 rounded-full bg-bg-3 border border-line flex items-center justify-center text-lg shrink-0 transition-transform",
+                        "size-7 rounded-full bg-bg-3 border border-line flex items-center justify-center shrink-0 transition-transform",
                         isOpen && "rotate-45",
                       )}
                     >
-                      +
+                      <Plus className="size-4 text-ink-2" />
                     </span>
                   </button>
                   <div

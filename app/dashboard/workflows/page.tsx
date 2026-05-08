@@ -1,25 +1,41 @@
-import { Card, CardContent } from "@/components/ui/card";
+import { redirect } from "next/navigation";
+import { eq, sql } from "drizzle-orm";
+import { auth } from "@/auth";
 
-export default function WorkflowsPage() {
+import { agentInstances, db } from "@/lib/db";
+import { WorkflowsClient } from "./workflows-client";
+
+export const dynamic = "force-dynamic";
+
+export default async function WorkflowsPage() {
+  const session = await auth();
+  if (!session?.user.activeOrgId) redirect("/login");
+  const orgId = session.user.activeOrgId;
+
+  // Bootstrap: trigger /api/workflows so presets get seeded if empty.
+  // (Not called here — the client component fetches them on mount.)
+
+  const agents = await db
+    .select({
+      id: agentInstances.id,
+      templateSlug: agentInstances.templateSlug,
+      enabledTools: agentInstances.enabledTools,
+      customPrompt: agentInstances.customPrompt,
+      name: agentInstances.name,
+    })
+    .from(agentInstances)
+    .where(eq(agentInstances.orgId, orgId))
+    .orderBy(sql`${agentInstances.createdAt} DESC`);
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-medium tracking-tight">Workflows</h1>
-        <p className="text-ink-2 mt-1">
-          Orchestrez plusieurs agents en chaîne. Bientôt accessible en YAML + UI.
-        </p>
-      </div>
-      <Card>
-        <CardContent className="p-12 text-center space-y-2">
-          <div className="text-5xl">🧩</div>
-          <p className="text-ink-2">
-            Les workflows multi-agents sont pré-câblés dans la DB
-            (table <span className="font-mono text-brand-cyan">workflows</span>) et exécutables via
-            l'API <span className="font-mono text-brand-cyan">POST /api/workflows/[slug]/run</span>.
-          </p>
-          <p className="text-ink-3 text-sm">L'éditeur visuel arrive dans la prochaine release.</p>
-        </CardContent>
-      </Card>
-    </div>
+    <WorkflowsClient
+      hiredAgents={agents.map((a) => ({
+        id: a.id,
+        name: a.name,
+        templateSlug: a.templateSlug,
+        enabledTools: (a.enabledTools as string[] | null) ?? [],
+        customPrompt: a.customPrompt,
+      }))}
+    />
   );
 }

@@ -1,11 +1,12 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Loader2, Send } from "lucide-react";
+import { Loader2, Send, Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { CATALOG } from "@/lib/agents/catalog";
 import { cn } from "@/lib/utils";
+import { AgentIcon } from "@/components/agent-icon";
 
 interface AgentLite {
   id: string;
@@ -35,12 +36,14 @@ export function ChatClient({ agents }: { agents: AgentLite[] }) {
   if (agents.length === 0) {
     return (
       <div className="card p-12 text-center space-y-4 m-auto max-w-lg">
-        <div className="text-5xl">🤖</div>
+        <AgentIcon name="Bot" size={28} wrapperClassName="size-14 rounded-xl mx-auto" gradient />
         <p className="text-ink-2">
           Vous devez d'abord recruter un agent pour discuter avec lui.
         </p>
         <Button asChild variant="glow">
-          <Link href="/dashboard/agents/hire">Recruter un agent →</Link>
+          <Link href="/dashboard/agents/hire">
+            <Sparkles className="size-4" /> Recruter un agent
+          </Link>
         </Button>
       </div>
     );
@@ -59,12 +62,13 @@ export function ChatClient({ agents }: { agents: AgentLite[] }) {
     setLoading(true);
 
     try {
-      // Wait for puter to be ready
       const t0 = Date.now();
       while (!window.puter?.ai && Date.now() - t0 < 5000) {
         await new Promise((r) => setTimeout(r, 100));
       }
-      if (!window.puter?.ai) throw new Error("Puter.js indisponible — autorise js.puter.com.");
+      if (!window.puter?.ai) {
+        throw new Error("Le moteur IA n'a pas pu charger. Réessayez dans quelques secondes.");
+      }
 
       const history = draftMsgs.map((m) => ({ role: m.role, content: m.content }));
       const sysPrompt = template.systemPrompt;
@@ -101,7 +105,6 @@ export function ChatClient({ agents }: { agents: AgentLite[] }) {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-[260px_1fr] gap-4 flex-1 min-h-0">
-      {/* Agent picker */}
       <div className="card p-3 overflow-y-auto">
         <div className="text-[11px] uppercase tracking-wider font-mono text-ink-3 px-2 py-2">
           Agents
@@ -122,7 +125,7 @@ export function ChatClient({ agents }: { agents: AgentLite[] }) {
                   agentId === a.id ? "bg-bg-3 text-ink" : "text-ink-2 hover:bg-bg-3",
                 )}
               >
-                <span className="text-base">{tpl?.icon ?? "🤖"}</span>
+                <AgentIcon name={tpl?.icon ?? "Bot"} wrapperClassName="size-8" size={14} />
                 <div className="flex-1 min-w-0">
                   <div className="font-medium truncate">{a.name}</div>
                   <div className="text-xs text-ink-3 truncate">
@@ -133,41 +136,26 @@ export function ChatClient({ agents }: { agents: AgentLite[] }) {
             );
           })}
         </div>
-        <div className="mt-4 px-2 py-2 text-[10px] text-brand-green font-mono leading-relaxed">
-          ● Powered by Puter
-          <br />
-          <span className="text-ink-3">
-            Claude Sonnet 4.5 · gratuit · illimité
-          </span>
-        </div>
       </div>
 
-      {/* Conversation */}
       <div className="card p-0 flex flex-col overflow-hidden min-h-[500px]">
         <div className="px-5 py-3 border-b border-line flex items-center gap-3">
-          <div className="size-9 rounded-md bg-bg-3 border border-line flex items-center justify-center text-base">
-            {template?.icon ?? "🤖"}
-          </div>
+          <AgentIcon name={template?.icon ?? "Bot"} wrapperClassName="size-9" size={16} gradient />
           <div className="flex-1 min-w-0">
             <div className="font-medium text-sm">{activeAgent?.name}</div>
-            <div className="text-xs text-ink-2">{template?.role ?? "AI agent"}</div>
+            <div className="text-xs text-ink-2">{template?.role ?? "Agent IA"}</div>
           </div>
-          <span className="text-xs text-brand-green font-mono">● live · puter</span>
+          <span className="inline-flex items-center gap-1.5 text-xs text-brand-green font-mono">
+            <span className="size-1.5 rounded-full bg-brand-green animate-pulse" />
+            En ligne
+          </span>
         </div>
 
         <div ref={scrollRef} className="flex-1 overflow-y-auto p-5 space-y-4">
           {messages.length === 0 ? (
             <div className="text-center text-ink-3 text-sm pt-12">
-              Démarrez la conversation. L'agent vous répond gratuitement via{" "}
-              <a
-                href="https://puter.com"
-                target="_blank"
-                rel="noreferrer"
-                className="text-brand-blue-2 hover:underline"
-              >
-                Puter
-              </a>{" "}
-              (Claude Sonnet 4.5).
+              Démarrez la conversation. L'agent peut planifier et exécuter des actions
+              avec ses outils.
             </div>
           ) : (
             messages.map((m) => (
@@ -176,9 +164,7 @@ export function ChatClient({ agents }: { agents: AgentLite[] }) {
                 className={cn("flex gap-3 animate-in", m.role === "user" && "justify-end")}
               >
                 {m.role !== "user" && (
-                  <div className="size-7 rounded-md bg-grad text-white flex items-center justify-center text-xs font-semibold shrink-0">
-                    {template?.icon ?? "A"}
-                  </div>
+                  <AgentIcon name={template?.icon ?? "Bot"} wrapperClassName="size-7" size={13} gradient />
                 )}
                 <div
                   className={cn(
@@ -191,7 +177,7 @@ export function ChatClient({ agents }: { agents: AgentLite[] }) {
                   {m.content || (m.role === "assistant" && loading ? "…" : "")}
                 </div>
                 {m.role === "user" && (
-                  <div className="size-7 rounded-md bg-bg-3 border border-line text-xs flex items-center justify-center shrink-0">
+                  <div className="size-7 rounded-md bg-bg-3 border border-line text-xs flex items-center justify-center shrink-0 font-medium text-ink-2">
                     Vous
                   </div>
                 )}
@@ -200,11 +186,9 @@ export function ChatClient({ agents }: { agents: AgentLite[] }) {
           )}
           {loading && messages[messages.length - 1]?.role === "user" && (
             <div className="flex gap-3">
-              <div className="size-7 rounded-md bg-grad text-white flex items-center justify-center text-xs font-semibold shrink-0">
-                {template?.icon ?? "A"}
-              </div>
-              <div className="rounded-md bg-bg-3 border border-line px-3 py-2 text-sm text-ink-2">
-                <Loader2 className="inline-block size-3 animate-spin" /> rédige…
+              <AgentIcon name={template?.icon ?? "Bot"} wrapperClassName="size-7" size={13} gradient />
+              <div className="rounded-md bg-bg-3 border border-line px-3 py-2 text-sm text-ink-2 inline-flex items-center gap-2">
+                <Loader2 className="size-3 animate-spin" /> rédige…
               </div>
             </div>
           )}

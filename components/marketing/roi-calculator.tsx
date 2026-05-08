@@ -80,9 +80,6 @@ export function ROICalculator() {
             <div className="text-brand-green text-sm mt-2 font-mono">
               → ROI <strong>{roi.toFixed(1)}×</strong> · payback {payback} jours
             </div>
-            <div className="text-ink-3 text-xs mt-5">
-              Et avec Puter, l'IA elle-même est gratuite — vous payez l'orchestration.
-            </div>
           </div>
         </div>
       </div>
@@ -111,7 +108,7 @@ function Slider({
     <label className="flex flex-col gap-1.5">
       <div className="flex items-center justify-between text-sm">
         <span className="text-ink-2">{label}</span>
-        <span className="font-mono text-ink font-medium">{value}</span>
+        <span className="font-mono text-ink font-medium tabular-nums">{value}</span>
       </div>
       <input
         type="range"

@@ -9,11 +9,10 @@ const ITEMS = [
 ] as const;
 
 export function MarketingTicker() {
-  // Duplicated for seamless loop.
   const items = [...ITEMS, ...ITEMS];
   return (
     <div className="border-y border-line bg-bg-2 py-5 overflow-hidden">
-      <div className="flex gap-16 whitespace-nowrap animate-[ticker_40s_linear_infinite] [--tw-anim:ticker]">
+      <div className="flex gap-16 whitespace-nowrap animate-[ticker_40s_linear_infinite]">
         {items.map((it, i) => (
           <div key={i} className="flex items-center gap-3.5 text-sm text-ink-2 flex-shrink-0">
             <span className="text-[10px] px-1.5 py-0.5 rounded border border-brand-green/30 bg-brand-green/10 text-brand-green font-mono">
