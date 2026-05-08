@@ -1,0 +1,492 @@
+openapi: 3.1.0
+info:
+  title: Axion API
+  version: "1.0.0"
+  description: |
+    Axion — The Operating System for the Autonomous Enterprise.
+
+    Hire AI employees, orchestrate them as workflows, audit every action.
+  contact:
+    name: Axion Engineering
+    email: engineering@axion.ai
+    url: https://axion.ai
+  license:
+    name: Proprietary
+servers:
+  - url: https://api.axion.ai/v1
+    description: Production
+  - url: https://api.staging.axion.ai/v1
+    description: Staging
+  - url: http://localhost:8000/v1
+    description: Local
+security:
+  - bearerAuth: []
+  - bearerAuth: []
+    orgHeader: []
+tags:
+  - name: auth
+  - name: orgs
+  - name: agents
+  - name: workflows
+  - name: tasks
+  - name: memory
+  - name: audit
+  - name: billing
+  - name: integrations
+  - name: webhooks
+paths:
+  /auth/signup:
+    post:
+      tags: [auth]
+      summary: Create user + initial org, return token pair
+      security: []
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/UserCreate" } } }
+      responses:
+        "201": { description: created, content: { application/json: { schema: { $ref: "#/components/schemas/TokenPair" } } } }
+        "409": { description: email already in use }
+
+  /auth/login:
+    post:
+      tags: [auth]
+      summary: Login
+      security: []
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/LoginRequest" } } }
+      responses:
+        "200": { description: ok, content: { application/json: { schema: { $ref: "#/components/schemas/TokenPair" } } } }
+        "401": { description: invalid credentials }
+
+  /auth/refresh:
+    post:
+      tags: [auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refresh_token]
+              properties:
+                refresh_token: { type: string }
+      responses:
+        "200": { description: ok, content: { application/json: { schema: { $ref: "#/components/schemas/TokenPair" } } } }
+
+  /auth/me:
+    get:
+      tags: [auth]
+      responses:
+        "200": { description: ok, content: { application/json: { schema: { $ref: "#/components/schemas/User" } } } }
+
+  /agents/catalog:
+    get:
+      tags: [agents]
+      summary: List agent templates
+      parameters:
+        - { in: query, name: category, schema: { type: string } }
+        - { in: query, name: q, schema: { type: string } }
+      responses:
+        "200":
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/AgentTemplate" }
+
+  /agents/catalog/{slug}:
+    get:
+      tags: [agents]
+      parameters:
+        - { in: path, name: slug, required: true, schema: { type: string } }
+      responses:
+        "200": { description: ok, content: { application/json: { schema: { $ref: "#/components/schemas/AgentTemplate" } } } }
+        "404": { description: not found }
+
+  /agents:
+    get:
+      tags: [agents]
+      parameters:
+        - { in: query, name: status, schema: { $ref: "#/components/schemas/AgentStatus" } }
+      responses:
+        "200":
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/AgentInstance" }
+    post:
+      tags: [agents]
+      summary: Hire a new agent
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/AgentInstanceCreate" } } }
+      responses:
+        "201": { description: created, content: { application/json: { schema: { $ref: "#/components/schemas/AgentInstance" } } } }
+
+  /agents/{id}:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: string, format: uuid } }
+    get:
+      tags: [agents]
+      responses:
+        "200": { description: ok, content: { application/json: { schema: { $ref: "#/components/schemas/AgentInstance" } } } }
+    patch:
+      tags: [agents]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: "#/components/schemas/AgentInstanceUpdate" } } }
+      responses:
+        "200": { description: ok, content: { application/json: { schema: { $ref: "#/components/schemas/AgentInstance" } } } }
+    delete:
+      tags: [agents]
+      responses: { "204": { description: deleted } }
+
+  /agents/{id}/run:
+    post:
+      tags: [agents]
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: string, format: uuid } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [objective]
+              properties:
+                objective: { type: string }
+                inputs: { type: object, additionalProperties: true }
+                timeout_s: { type: integer, default: 300, minimum: 10, maximum: 3600 }
+      responses:
+        "202": { description: accepted, content: { application/json: { schema: { $ref: "#/components/schemas/Task" } } } }
+
+  /workflows:
+    get:
+      tags: [workflows]
+      responses:
+        "200":
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/Workflow" }
+    post:
+      tags: [workflows]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [slug, spec]
+              properties:
+                slug: { type: string, pattern: "^[a-z0-9-]+$" }
+                spec: { $ref: "#/components/schemas/WorkflowSpec" }
+      responses:
+        "201": { description: created, content: { application/json: { schema: { $ref: "#/components/schemas/Workflow" } } } }
+
+  /workflows/{slug}/publish:
+    post:
+      tags: [workflows]
+      parameters:
+        - { in: path, name: slug, required: true, schema: { type: string } }
+      responses: { "200": { description: ok } }
+
+  /workflows/{slug}/run:
+    post:
+      tags: [workflows]
+      parameters:
+        - { in: path, name: slug, required: true, schema: { type: string } }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                inputs: { type: object, additionalProperties: true }
+      responses:
+        "202": { description: accepted, content: { application/json: { schema: { $ref: "#/components/schemas/WorkflowRun" } } } }
+
+  /workflows/runs/{run_id}:
+    get:
+      tags: [workflows]
+      parameters:
+        - { in: path, name: run_id, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "200": { description: ok, content: { application/json: { schema: { $ref: "#/components/schemas/WorkflowRun" } } } }
+
+  /workflows/runs/{run_id}/replay:
+    post:
+      tags: [workflows]
+      parameters:
+        - { in: path, name: run_id, required: true, schema: { type: string, format: uuid } }
+      responses:
+        "202": { description: accepted, content: { application/json: { schema: { $ref: "#/components/schemas/WorkflowRun" } } } }
+
+  /memory/ingest:
+    post:
+      tags: [memory]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [content]
+              properties:
+                content: { type: string }
+                kind: { type: string, enum: [semantic, episodic, procedural, client, task] }
+                importance: { type: number, minimum: 0, maximum: 1, default: 0.5 }
+                source: { type: string }
+                metadata: { type: object, additionalProperties: true }
+                agent_id: { type: string, format: uuid }
+      responses: { "201": { description: created } }
+
+  /memory/recall:
+    post:
+      tags: [memory]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [query]
+              properties:
+                query: { type: string }
+                k: { type: integer, default: 8 }
+                kind: { type: string }
+                min_importance: { type: number, default: 0 }
+      responses:
+        "200":
+          description: ok
+          content:
+            application/json:
+              schema: { type: array, items: { type: object } }
+
+  /audit:
+    get:
+      tags: [audit]
+      parameters:
+        - { in: query, name: actor_type, schema: { type: string } }
+        - { in: query, name: action, schema: { type: string } }
+        - { in: query, name: limit, schema: { type: integer, default: 100 } }
+      responses:
+        "200":
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: "#/components/schemas/AuditRecord" }
+
+  /audit/verify:
+    post:
+      tags: [audit]
+      responses:
+        "200":
+          description: ok
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  records_verified: { type: integer }
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    orgHeader:
+      type: apiKey
+      in: header
+      name: X-Org-Id
+
+  schemas:
+    UserCreate:
+      type: object
+      required: [email, full_name, password]
+      properties:
+        email: { type: string, format: email }
+        full_name: { type: string }
+        password: { type: string, format: password, minLength: 10 }
+        org_name: { type: string }
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, format: password }
+
+    TokenPair:
+      type: object
+      properties:
+        access_token: { type: string }
+        refresh_token: { type: string }
+        token_type: { type: string, default: bearer }
+        expires_in: { type: integer }
+
+    User:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        email: { type: string, format: email }
+        full_name: { type: string }
+        is_active: { type: boolean }
+        locale: { type: string }
+        timezone: { type: string }
+        created_at: { type: string, format: date-time }
+
+    AgentStatus:
+      type: string
+      enum: [idle, running, paused, error, archived]
+
+    AgentTemplate:
+      type: object
+      properties:
+        slug: { type: string }
+        name: { type: string }
+        role: { type: string }
+        category: { type: string }
+        description: { type: string }
+        icon: { type: string }
+        skills: { type: array, items: { type: string } }
+        default_tools: { type: array, items: { type: string } }
+        price_eur_monthly: { type: integer }
+
+    AgentInstanceCreate:
+      type: object
+      required: [template_slug, name]
+      properties:
+        template_slug: { type: string }
+        name: { type: string }
+        config: { type: object, additionalProperties: true }
+        enabled_tools: { type: array, items: { type: string } }
+        custom_prompt: { type: string }
+        voice_clone_id: { type: string }
+        budget_per_day_eur: { type: integer, default: 100 }
+
+    AgentInstanceUpdate:
+      type: object
+      properties:
+        name: { type: string }
+        config: { type: object, additionalProperties: true }
+        enabled_tools: { type: array, items: { type: string } }
+        custom_prompt: { type: string }
+        budget_per_day_eur: { type: integer }
+        status: { $ref: "#/components/schemas/AgentStatus" }
+
+    AgentInstance:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        org_id: { type: string, format: uuid }
+        template_slug: { type: string }
+        name: { type: string }
+        status: { $ref: "#/components/schemas/AgentStatus" }
+        config: { type: object, additionalProperties: true }
+        enabled_tools: { type: array, items: { type: string } }
+        budget_per_day_eur: { type: integer }
+        health_score: { type: number }
+        tasks_today: { type: integer }
+        created_at: { type: string, format: date-time }
+
+    Task:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        org_id: { type: string, format: uuid }
+        agent_id: { type: string, format: uuid }
+        objective: { type: string }
+        status: { type: string, enum: [queued, running, succeeded, failed, cancelled] }
+        input_payload: { type: object }
+        output_payload: { type: object }
+        duration_ms: { type: integer, nullable: true }
+        tokens_in: { type: integer }
+        tokens_out: { type: integer }
+        cost_eur: { type: number }
+        model_used: { type: string, nullable: true }
+        error: { type: string, nullable: true }
+        trace_id: { type: string, nullable: true }
+        created_at: { type: string, format: date-time }
+        started_at: { type: string, format: date-time, nullable: true }
+        finished_at: { type: string, format: date-time, nullable: true }
+
+    Workflow:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        slug: { type: string }
+        name: { type: string }
+        version: { type: integer }
+        status: { type: string, enum: [draft, published, archived] }
+        spec: { $ref: "#/components/schemas/WorkflowSpec" }
+        schedule_cron: { type: string, nullable: true }
+
+    WorkflowSpec:
+      type: object
+      required: [name, steps]
+      properties:
+        name: { type: string }
+        description: { type: string, nullable: true }
+        schedule_cron: { type: string, nullable: true }
+        inputs_schema: { type: object }
+        steps:
+          type: array
+          items: { $ref: "#/components/schemas/WorkflowStep" }
+        on_blocker:
+          type: object
+          properties:
+            escalate_to: { type: string }
+        max_cost_eur: { type: number, nullable: true }
+
+    WorkflowStep:
+      type: object
+      required: [id, agent, action]
+      properties:
+        id: { type: string }
+        agent: { type: string }
+        action: { type: string }
+        params: { type: object }
+        depends_on: { type: array, items: { type: string } }
+        timeout_s: { type: integer, default: 300 }
+        retry: { type: integer, default: 2 }
+        on_failure: { type: string, enum: [fail, continue, escalate], default: fail }
+        requires_approval: { type: boolean, default: false }
+        approval_threshold_eur: { type: number, nullable: true }
+
+    WorkflowRun:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        workflow_id: { type: string, format: uuid }
+        status: { type: string, enum: [pending, running, succeeded, failed, cancelled, awaiting_approval] }
+        inputs: { type: object }
+        outputs: { type: object }
+        cost_eur: { type: number }
+        error: { type: string, nullable: true }
+
+    AuditRecord:
+      type: object
+      properties:
+        id: { type: string, format: uuid }
+        created_at: { type: string, format: date-time }
+        actor_type: { type: string }
+        actor_id: { type: string }
+        action: { type: string }
+        resource_type: { type: string }
+        resource_id: { type: string, nullable: true }
+        payload: { type: object }
+        record_hash: { type: string }
+        prev_hash: { type: string, nullable: true }

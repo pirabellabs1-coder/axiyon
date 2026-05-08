@@ -1,0 +1,50 @@
+name: Deploy · staging
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: staging
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::123456789012:role/github-actions-staging
+          aws-region: eu-west-3
+
+      - uses: aws-actions/amazon-eks-cluster-action@v0.1
+        with:
+          cluster-name: axion-staging
+
+      - uses: azure/setup-helm@v4
+
+      - name: Run DB migrations
+        run: |
+          kubectl run -n axion --rm -i --tty migrate-${{ github.run_id }} \
+            --image=ghcr.io/${{ github.repository_owner }}/axion-api:${{ github.sha }} \
+            --restart=Never --command -- alembic upgrade head
+
+      - name: Helm upgrade
+        run: |
+          helm upgrade --install axion infrastructure/helm \
+            --namespace axion --create-namespace \
+            -f infrastructure/helm/values.yaml \
+            --set global.imageTag=${{ github.sha }} \
+            --set global.env=staging \
+            --wait --timeout 8m
+
+      - name: Smoke test
+        run: |
+          curl -fsS https://api.staging.axion.ai/health || exit 1

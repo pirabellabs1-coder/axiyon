@@ -1,0 +1,108 @@
+name: axion
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: axion
+      POSTGRES_USER: axion
+      POSTGRES_PASSWORD: axion
+    ports:
+      - "5432:5432"
+    volumes:
+      - axion-pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U axion -d axion"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - axion-redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 6
+
+  api:
+    build:
+      context: ../../backend
+      dockerfile: Dockerfile
+    image: axion/api:dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - ../../backend/.env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://axion:axion@postgres:5432/axion
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/1
+      CELERY_RESULT_BACKEND: redis://redis:6379/2
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+
+  worker:
+    build:
+      context: ../../backend
+      dockerfile: Dockerfile.worker
+    image: axion/worker:dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    env_file:
+      - ../../backend/.env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://axion:axion@postgres:5432/axion
+      CELERY_BROKER_URL: redis://redis:6379/1
+      CELERY_RESULT_BACKEND: redis://redis:6379/2
+    deploy:
+      replicas: 2
+
+  beat:
+    build:
+      context: ../../backend
+      dockerfile: Dockerfile.worker
+    image: axion/worker:dev
+    command: ["celery", "-A", "axion.workers.celery_app:celery_app", "beat", "-l", "INFO"]
+    depends_on:
+      - redis
+    env_file:
+      - ../../backend/.env
+
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3001:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: axion
+    volumes:
+      - axion-grafana:/var/lib/grafana
+
+volumes:
+  axion-pg:
+  axion-redis:
+  axion-grafana:

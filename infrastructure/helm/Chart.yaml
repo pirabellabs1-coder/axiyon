@@ -1,0 +1,21 @@
+apiVersion: v2
+name: axion
+description: Axion — The Operating System for the Autonomous Enterprise
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - ai
+  - agents
+  - workflows
+  - automation
+home: https://axion.ai
+sources:
+  - https://github.com/axion-labs/axion
+maintainers:
+  - name: Axion Engineering
+    email: engineering@axion.ai
+icon: https://axion.ai/logo.png
+annotations:
+  category: AI
+  licenses: Proprietary

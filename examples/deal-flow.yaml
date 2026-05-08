@@ -1,0 +1,58 @@
+# Example workflow: weekly deal-flow.
+# Sources ICP leads → CFO qualifies margin → SDR books demos → Codex prepares contract.
+#
+# Deploy with: axion workflows deploy deal-flow.yaml
+# Run on demand: axion workflows run deal-flow --inputs '{"target": 50}' --wait
+slug: deal-flow
+spec:
+  name: Deal Flow Hebdo
+  description: |
+    Source 50 ICP-matching prospects, qualify them on margin via Atlas,
+    book demos for the qualified ones, then have Codex prep contract drafts.
+    Stops for human approval before signing anything > 50 k€.
+  schedule_cron: "0 9 * * 1"   # every Monday 9 AM
+  inputs_schema:
+    type: object
+    properties:
+      target: { type: integer, default: 50 }
+
+  steps:
+    - id: source
+      agent: sdr-outbound
+      action: source_leads
+      params:
+        n: 200
+        icp: "VP Data, Series B+, Europe"
+      timeout_s: 120
+      retry: 1
+
+    - id: qualify
+      agent: cfo-assistant
+      action: qualify_margin
+      params:
+        margin_threshold_eur: 80000
+        next_action: iris.book_demo
+      depends_on: [source]
+      timeout_s: 90
+
+    - id: book
+      agent: sdr-outbound
+      action: book_demos
+      params:
+        max_concurrent: 8
+      depends_on: [qualify]
+      timeout_s: 600
+      retry: 2
+
+    - id: prepare-contracts
+      agent: legal-counsel
+      action: prepare
+      depends_on: [book]
+      requires_approval: true
+      approval_threshold_eur: 50000
+      on_failure: escalate
+
+  on_blocker:
+    escalate_to: founder@helia.io
+
+  max_cost_eur: 25.0

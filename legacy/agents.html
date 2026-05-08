@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Catalogue · 200+ agents IA — Axion</title>
+<meta name="description" content="200+ agents IA spécialisés. Vente, finance, support, ingénierie, légal, RH, ops. Recrutez en 60 secondes.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root{--bg:#050507;--bg-2:#0B0B11;--bg-3:#13131C;--line:#1F1F2E;--line-2:#2A2A3A;--ink:#F5F5FA;--ink-2:#9A9AAE;--ink-3:#5A5A6E;--blue:#5B6CFF;--blue-2:#7C8AFF;--cyan:#22D3EE;--magenta:#FF3D8E;--gold:#E8B86D;--green:#34D399;--grad:linear-gradient(135deg,#5B6CFF 0%,#22D3EE 100%);--ease:cubic-bezier(.2,.8,.2,1)}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--ink);line-height:1.55;-webkit-font-smoothing:antialiased;letter-spacing:-0.005em}
+::selection{background:var(--blue);color:#fff}
+a{color:inherit;text-decoration:none}
+.serif{font-family:'Instrument Serif',serif;font-style:italic}
+.mono{font-family:'JetBrains Mono',monospace}
+.container{max-width:1280px;margin:0 auto;padding:0 32px}
+@media(max-width:720px){.container{padding:0 20px}}
+
+.nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:18px 0;backdrop-filter:blur(14px);background:rgba(5,5,7,.6);border-bottom:1px solid transparent;transition:.3s var(--ease)}
+.nav.scrolled{border-bottom-color:var(--line);background:rgba(5,5,7,.85)}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;gap:32px}
+.logo{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:600;letter-spacing:-.02em}
+.logo-mark{width:28px;height:28px;border-radius:7px;background:var(--grad);position:relative;box-shadow:0 0 28px rgba(91,108,255,.4)}
+.logo-mark::after{content:"";position:absolute;inset:5px;border-radius:3px;background:var(--bg)}
+.logo-mark::before{content:"";position:absolute;inset:9px;border-radius:1px;background:var(--grad)}
+.nav-links{display:flex;gap:32px;font-size:14px;color:var(--ink-2)}
+.nav-links a{transition:color .2s}.nav-links a:hover,.nav-links a.active{color:var(--ink)}
+@media(max-width:900px){.nav-links{display:none}}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 18px;border-radius:10px;font-size:14px;font-weight:500;cursor:pointer;border:none;transition:.2s var(--ease);white-space:nowrap}
+.btn-ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn-ghost:hover{border-color:var(--line-2);background:var(--bg-2)}
+.btn-primary{background:var(--ink);color:var(--bg)}
+.btn-glow{background:var(--grad);color:#fff;box-shadow:0 8px 28px rgba(91,108,255,.4)}
+
+.page-hero{padding:160px 0 60px;text-align:center;position:relative;overflow:hidden}
+.page-hero::before{content:"";position:absolute;inset:0;background:radial-gradient(800px 400px at 50% 0%,rgba(91,108,255,.18),transparent 60%)}
+.page-eyebrow{display:inline-block;font-size:13px;color:var(--blue-2);letter-spacing:.08em;text-transform:uppercase;margin-bottom:18px;font-weight:500}
+.page-title{font-size:clamp(40px,7vw,84px);line-height:1;letter-spacing:-0.04em;font-weight:500;margin-bottom:24px;max-width:960px;margin-left:auto;margin-right:auto}
+.page-sub{font-size:20px;color:var(--ink-2);max-width:680px;margin:0 auto;line-height:1.5}
+
+/* filter bar */
+.filter-bar{
+  position:sticky;top:72px;z-index:50;
+  background:rgba(5,5,7,.85);backdrop-filter:blur(14px);
+  border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+  padding:18px 0;margin-top:60px;
+}
+.filter-inner{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.filter-search{
+  flex:1;min-width:240px;
+  background:var(--bg-2);border:1px solid var(--line);
+  border-radius:10px;padding:11px 16px;
+  color:var(--ink);font-family:inherit;font-size:14px;
+  transition:border-color .2s;
+}
+.filter-search:focus{outline:none;border-color:var(--blue)}
+.filter-tags{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px}
+.filter-tag{
+  padding:8px 14px;border-radius:8px;
+  background:var(--bg-2);border:1px solid var(--line);
+  font-size:13px;color:var(--ink-2);
+  cursor:pointer;transition:.2s;
+  font-family:inherit;white-space:nowrap;
+}
+.filter-tag:hover{color:var(--ink)}
+.filter-tag.active{background:var(--blue);border-color:var(--blue);color:#fff}
+.filter-count{font-size:13px;color:var(--ink-3);margin-left:auto;font-family:'JetBrains Mono',monospace}
+
+/* grid */
+.catalog{padding:60px 0 120px}
+.catalog-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(320px,1fr));
+  gap:20px;
+}
+.agent-card{
+  background:var(--bg-2);border:1px solid var(--line);
+  border-radius:14px;padding:24px;
+  position:relative;transition:.3s var(--ease);cursor:pointer;
+  display:flex;flex-direction:column;gap:14px;
+}
+.agent-card:hover{border-color:var(--blue);transform:translateY(-2px);background:var(--bg-3)}
+.agent-card.hidden{display:none}
+.agent-top{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.agent-id{
+  width:42px;height:42px;border-radius:10px;
+  background:var(--bg-3);border:1px solid var(--line);
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;flex-shrink:0;
+}
+.agent-card:hover .agent-id{background:var(--grad);border-color:transparent}
+.agent-cat{
+  font-size:10px;font-family:'JetBrains Mono',monospace;
+  color:var(--ink-3);letter-spacing:.08em;text-transform:uppercase;
+}
+.agent-name{font-size:17px;font-weight:500;letter-spacing:-0.01em}
+.agent-name .accent{color:var(--blue-2)}
+.agent-role{font-size:13px;color:var(--ink-2);line-height:1.5}
+.agent-skills{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto}
+.skill-chip{
+  padding:3px 8px;font-size:10px;border-radius:5px;
+  background:var(--bg-3);border:1px solid var(--line);
+  color:var(--ink-2);font-family:'JetBrains Mono',monospace;
+}
+.agent-foot{
+  display:flex;justify-content:space-between;align-items:center;
+  padding-top:14px;border-top:1px solid var(--line);
+  font-size:12px;color:var(--ink-3);
+}
+.agent-price{color:var(--ink);font-weight:500;font-family:'JetBrains Mono',monospace}
+
+footer{background:var(--bg);border-top:1px solid var(--line);padding:40px 0;text-align:center;color:var(--ink-3);font-size:13px}
+</style>
+</head>
+<body>
+
+<nav class="nav" id="nav">
+  <div class="container nav-inner">
+    <a href="index.html" class="logo"><span class="logo-mark"></span> Axion</a>
+    <div class="nav-links">
+      <a href="product.html">Produit</a>
+      <a href="agents.html" class="active">Catalogue</a>
+      <a href="pricing.html">Tarifs</a>
+      <a href="customers.html">Clients</a>
+      <a href="manifesto.html">Manifesto</a>
+      <a href="company.html">Entreprise</a>
+    </div>
+    <div style="display:flex;gap:12px">
+      <a href="dashboard.html" class="btn btn-ghost">Console</a>
+      <a href="pricing.html" class="btn btn-primary">Démarrer</a>
+    </div>
+  </div>
+</nav>
+
+<section class="page-hero">
+  <div class="container">
+    <span class="page-eyebrow">Catalogue · 217 agents</span>
+    <h1 class="page-title">Recrutez l'employé IA <span class="serif">qu'il vous faut.</span></h1>
+    <p class="page-sub">Chaque agent est entraîné sur dix ans de meilleures pratiques de son métier, branché à vos outils, et mesuré en résultats.</p>
+  </div>
+</section>
+
+<div class="filter-bar">
+  <div class="container filter-inner">
+    <input class="filter-search" id="search" placeholder="Rechercher un agent (ex: SDR, finance, contrat...)" />
+    <div class="filter-tags">
+      <button class="filter-tag active" data-cat="all">Tous</button>
+      <button class="filter-tag" data-cat="sales">Vente</button>
+      <button class="filter-tag" data-cat="support">Support</button>
+      <button class="filter-tag" data-cat="finance">Finance</button>
+      <button class="filter-tag" data-cat="hr">RH</button>
+      <button class="filter-tag" data-cat="eng">Ingénierie</button>
+      <button class="filter-tag" data-cat="ops">Ops</button>
+      <button class="filter-tag" data-cat="marketing">Marketing</button>
+      <button class="filter-tag" data-cat="legal">Légal</button>
+      <button class="filter-tag" data-cat="data">Data</button>
+      <button class="filter-tag" data-cat="content">Contenu</button>
+    </div>
+    <div class="filter-count"><span id="count">217</span> agents</div>
+  </div>
+</div>
+
+<section class="catalog">
+  <div class="container">
+    <div class="catalog-grid" id="grid"></div>
+  </div>
+</section>
+
+<section style="padding:120px 0;text-align:center;background:var(--bg-2);border-top:1px solid var(--line)">
+  <div class="container">
+    <h2 style="font-size:42px;line-height:1.05;letter-spacing:-0.03em;font-weight:500;margin-bottom:18px">Vous ne trouvez pas le bon agent ?</h2>
+    <p style="color:var(--ink-2);font-size:17px;margin-bottom:32px;max-width:600px;margin-left:auto;margin-right:auto">Nos clients en construisent en moyenne 3 personnalisés par mois. Configurez le vôtre en 10 minutes — ou laissez nos ingénieurs solutions le faire pour vous.</p>
+    <div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap">
+      <a href="dashboard.html" class="btn btn-glow">Construire mon agent →</a>
+      <a href="company.html#contact" class="btn btn-ghost">Parler à un ingénieur</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">© 2026 Axion Labs SAS · Paris · contact@axion.ai</div>
+</footer>
+
+<script>
+const agents=[
+  // SALES (sales)
+  {id:"📞",name:"Iris",role:"SDR Outbound",cat:"sales",desc:"Prospection à froid LinkedIn, email, téléphone. Voice-clone votre meilleur AE.",skills:["LinkedIn","Email","Voice","Apollo"],price:"299€/mo"},
+  {id:"🎯",name:"Reva",role:"BDR Inbound",cat:"sales",desc:"Qualifie chaque lead entrant en moins de 60s, score, route, book.",skills:["Calendly","HubSpot","BANT"],price:"299€/mo"},
+  {id:"🤝",name:"Cyrus",role:"Account Executive",cat:"sales",desc:"Pilote vos deals milieu et fin de cycle — démos, négociation, follow-up.",skills:["Salesforce","Gong","DocSend"],price:"599€/mo"},
+  {id:"📈",name:"Mira",role:"Sales Ops Manager",cat:"sales",desc:"Forecasting, pipeline hygiene, dashboards exec, commission tracking.",skills:["Salesforce","Looker","Excel"],price:"599€/mo"},
+  {id:"🔄",name:"Felix",role:"Customer Success",cat:"sales",desc:"Onboarding, QBR, expansion, anti-churn. Détecte les signaux faibles.",skills:["Gainsight","Slack","Notion"],price:"499€/mo"},
+  {id:"🎁",name:"Vega",role:"Renewals Manager",cat:"sales",desc:"Renouvelle vos contrats avant qu'ils expirent. Négocie l'upsell.",skills:["Salesforce","Stripe","DocuSign"],price:"499€/mo"},
+  {id:"🪐",name:"Orion",role:"Partnerships Lead",cat:"sales",desc:"Sourcing, qualification et activation de partenariats stratégiques.",skills:["Crunchbase","LinkedIn","Notion"],price:"499€/mo"},
+  {id:"💎",name:"Lyra",role:"Enterprise AE",cat:"sales",desc:"Six-figure deals, RFPs, security reviews, multi-stakeholder.",skills:["Salesforce","Gong","SOC 2"],price:"899€/mo"},
+  {id:"🗺",name:"Tycho",role:"Territory Manager",cat:"sales",desc:"Découpe géographique, comptes nommés, plans territoriaux.",skills:["Mapbox","Salesforce"],price:"399€/mo"},
+
+  // SUPPORT
+  {id:"🎧",name:"Sage",role:"Support Niveau 2",cat:"support",desc:"Tickets complexes, root cause analysis, escalades.",skills:["Zendesk","Intercom","Logs"],price:"399€/mo"},
+  {id:"☎️",name:"Echo",role:"Voice Support",cat:"support",desc:"Ligne support 24/7, voice-clone votre marque, sub-200ms.",skills:["Twilio","Voice","CRM"],price:"599€/mo"},
+  {id:"📚",name:"Lex",role:"Knowledge Base Curator",cat:"support",desc:"Maintient votre KB à jour, détecte les articles obsolètes.",skills:["Notion","Confluence","Algolia"],price:"199€/mo"},
+  {id:"🚨",name:"Pulse",role:"Incident Manager",cat:"support",desc:"Coordonne les incidents P0/P1, comm clients, post-mortem.",skills:["PagerDuty","Slack","Statuspage"],price:"599€/mo"},
+  {id:"🌐",name:"Polyglot",role:"Multilingual Support",cat:"support",desc:"47 langues, ton de marque cohérent partout.",skills:["i18n","DeepL"],price:"299€/mo"},
+  {id:"💬",name:"Chime",role:"Live Chat Operator",cat:"support",desc:"Réponse instantanée sur Intercom/Drift, escalade aux humains.",skills:["Intercom","Drift","Crisp"],price:"199€/mo"},
+  {id:"🔁",name:"Loop",role:"Feedback Synthesizer",cat:"support",desc:"Tagge tous les tickets, remonte les insights produit hebdo.",skills:["Productboard","Notion","Linear"],price:"249€/mo"},
+
+  // FINANCE
+  {id:"💼",name:"Atlas",role:"CFO Adjoint",cat:"finance",desc:"Clôture mensuelle, prévisions de trésorerie, reporting investisseurs.",skills:["QuickBooks","Pennylane","Stripe"],price:"899€/mo"},
+  {id:"📊",name:"Nimbus",role:"FP&A Analyst",cat:"finance",desc:"Modèles 3-statements, scénarios, drivers, rolling forecast.",skills:["Excel","Anaplan","Snowflake"],price:"599€/mo"},
+  {id:"🧾",name:"Sigma",role:"Bookkeeper",cat:"finance",desc:"Saisie quotidienne, rapprochements bancaires, TVA, déclarations.",skills:["Pennylane","Sage","BNC"],price:"199€/mo"},
+  {id:"💸",name:"Treasury",role:"Cash Manager",cat:"finance",desc:"Trésorerie multi-comptes, placements court terme, FX hedging.",skills:["Kyriba","Stripe","Wise"],price:"599€/mo"},
+  {id:"🎯",name:"Quill",role:"Tax Compliance",cat:"finance",desc:"TVA, IS, CFE, CVAE, déclarations multi-juridictions.",skills:["DGFiP","HMRC","IRS"],price:"399€/mo"},
+  {id:"📤",name:"Ledger",role:"Invoice Collector",cat:"finance",desc:"Recouvrement automatisé, relances tonales, négociation.",skills:["Stripe","Pennylane","Email"],price:"299€/mo"},
+  {id:"🏦",name:"Citadel",role:"Procurement",cat:"finance",desc:"Sourcing fournisseurs, négociation, PO, gestion des contrats.",skills:["Coupa","SAP","Notion"],price:"499€/mo"},
+  {id:"🔎",name:"Audit",role:"Internal Auditor",cat:"finance",desc:"Détecte les anomalies, contrôles continus, prêt audit Big 4.",skills:["Snowflake","SOX","SOC 2"],price:"599€/mo"},
+
+  // HR
+  {id:"🧬",name:"Nova",role:"Recruteuse",cat:"hr",desc:"Sourcing, screening, scheduling, prises de référence.",skills:["LinkedIn","Greenhouse","Slack"],price:"399€/mo"},
+  {id:"🌱",name:"Terra",role:"Onboarding Buddy",cat:"hr",desc:"Plan 30/60/90, accès, mentor, check-ins, pulse surveys.",skills:["BambooHR","Notion","Slack"],price:"249€/mo"},
+  {id:"💞",name:"Harmony",role:"People Ops",cat:"hr",desc:"Paie, congés, contrats, mutuelle, RGPD employé.",skills:["Payfit","BambooHR"],price:"399€/mo"},
+  {id:"🎓",name:"Mentor",role:"L&D Manager",cat:"hr",desc:"Plans de formation personnalisés, certifications, succession.",skills:["Udemy","LinkedIn Learning"],price:"399€/mo"},
+  {id:"🔔",name:"Pulse-HR",role:"Engagement Tracker",cat:"hr",desc:"Pulse surveys, eNPS, détection de turnover, plans d'action.",skills:["Officevibe","Lattice"],price:"249€/mo"},
+  {id:"⚖️",name:"Equity",role:"Comp & Benefits",cat:"hr",desc:"Benchmarks salariaux, équité salariale, plan de stock-options.",skills:["Carta","Pave","Mercer"],price:"399€/mo"},
+
+  // ENGINEERING
+  {id:"⚙️",name:"Forge",role:"DevOps Engineer",cat:"eng",desc:"CI/CD, incidents, rollbacks, infra-as-code, observability.",skills:["GitHub","K8s","Terraform"],price:"599€/mo"},
+  {id:"🐛",name:"Hunter",role:"Bug Triage",cat:"eng",desc:"Reproduit, catégorise, assigne, suit chaque bug remonté.",skills:["Sentry","Linear","GitHub"],price:"299€/mo"},
+  {id:"🔬",name:"QA-9",role:"QA Tester",cat:"eng",desc:"Tests E2E, regression, exploratoire. Rapport reproducible.",skills:["Playwright","Cypress","Jest"],price:"399€/mo"},
+  {id:"📦",name:"Release",role:"Release Manager",cat:"eng",desc:"Coordonne les releases, changelogs, comm, feature flags.",skills:["LaunchDarkly","Linear"],price:"399€/mo"},
+  {id:"🛡",name:"Sentinel",role:"AppSec Engineer",cat:"eng",desc:"SAST, DAST, dependabot, secret scanning, threat models.",skills:["Snyk","Semgrep","CVE"],price:"599€/mo"},
+  {id:"📐",name:"Architect",role:"Solution Architect",cat:"eng",desc:"Documents de design, ADRs, revues de pull request critiques.",skills:["Mermaid","Notion","ADR"],price:"599€/mo"},
+  {id:"🚀",name:"Pioneer",role:"Site Reliability",cat:"eng",desc:"SLO/SLI, error budgets, chaos engineering, capacity planning.",skills:["Datadog","Prometheus"],price:"599€/mo"},
+
+  // OPS
+  {id:"📋",name:"Beacon",role:"Project Manager",cat:"ops",desc:"Coordonne projets cross-équipes, milestones, blockers.",skills:["Linear","Asana","Notion"],price:"399€/mo"},
+  {id:"📦",name:"Logistics",role:"Supply Chain",cat:"ops",desc:"Stocks, fournisseurs, ETA, alertes ruptures.",skills:["SAP","Shippo","Notion"],price:"599€/mo"},
+  {id:"🏭",name:"Factory",role:"Operations Lead",cat:"ops",desc:"SOPs, KPIs opérationnels, amélioration continue, lean.",skills:["Notion","Looker","Six Sigma"],price:"399€/mo"},
+  {id:"🌍",name:"Compass",role:"Country Manager",cat:"ops",desc:"Lancement et exécution sur un nouveau marché géographique.",skills:["Stripe","Local Compliance"],price:"899€/mo"},
+  {id:"📅",name:"Chrono",role:"Executive Assistant",cat:"ops",desc:"Calendrier, voyages, rappels, ordre du jour, comptes-rendus.",skills:["Calendar","Email","TripIt"],price:"199€/mo"},
+  {id:"🤖",name:"Process",role:"Process Automator",cat:"ops",desc:"Détecte les workflows répétitifs et les automatise.",skills:["Zapier","n8n","Make"],price:"299€/mo"},
+
+  // MARKETING
+  {id:"📈",name:"Lumen",role:"Growth Marketer",cat:"marketing",desc:"Campagnes performance, A/B test, attribution multi-touch.",skills:["Meta","Google","Segment"],price:"599€/mo"},
+  {id:"✏️",name:"Quill-MK",role:"Content Writer",cat:"marketing",desc:"Articles SEO, newsletters, social, ton de marque cohérent.",skills:["Ahrefs","WordPress","X"],price:"299€/mo"},
+  {id:"🎨",name:"Hue",role:"Brand Designer",cat:"marketing",desc:"Visuels social, ads, landing pages, respect de la charte.",skills:["Figma","DALL·E","SD"],price:"399€/mo"},
+  {id:"📡",name:"Signal",role:"PR Manager",cat:"marketing",desc:"Pitching presse, monitoring, gestion de crise, médias tier-1.",skills:["Muck Rack","Email","Twitter"],price:"599€/mo"},
+  {id:"🎬",name:"Kine",role:"Video Producer",cat:"marketing",desc:"Shorts, ads, talking-heads, sous-titrage, edit auto.",skills:["Descript","CapCut","ElevenLabs"],price:"399€/mo"},
+  {id:"📨",name:"Cadence",role:"Email Marketer",cat:"marketing",desc:"Lifecycle, drip campaigns, deliverability, segmentation.",skills:["Customer.io","Klaviyo"],price:"299€/mo"},
+  {id:"🔍",name:"Insight",role:"Marketing Analyst",cat:"marketing",desc:"Attribution, LTV, mix-modeling, dashboards exec.",skills:["GA4","Mixpanel","dbt"],price:"399€/mo"},
+  {id:"🌟",name:"Beacon-MK",role:"Community Manager",cat:"marketing",desc:"Discord, Reddit, X. Modération, animation, ambassadeurs.",skills:["Discord","Reddit","X"],price:"249€/mo"},
+
+  // LEGAL
+  {id:"⚖️",name:"Codex",role:"Juriste",cat:"legal",desc:"Revue de contrats, NDA, conformité GDPR/AI Act 2026.",skills:["DocuSign","Ironclad","GDPR"],price:"599€/mo"},
+  {id:"📜",name:"Charter",role:"Corporate Lawyer",cat:"legal",desc:"Statuts, board minutes, fundraising, captable.",skills:["Carta","DocuSign"],price:"599€/mo"},
+  {id:"🛡",name:"Shield",role:"Privacy Officer",cat:"legal",desc:"DPO virtuel, DPIAs, registre des traitements, demandes RGPD.",skills:["OneTrust","GDPR","CCPA"],price:"499€/mo"},
+  {id:"🤝",name:"Pacta",role:"Contract Negotiator",cat:"legal",desc:"Négocie redlines en votre nom, escalade les clauses critiques.",skills:["Ironclad","Word"],price:"499€/mo"},
+  {id:"🏛",name:"Praetor",role:"Litigation Support",cat:"legal",desc:"Préparation des dossiers, recherche jurisprudentielle.",skills:["LexisNexis","Doctrine"],price:"599€/mo"},
+
+  // DATA
+  {id:"🧪",name:"Vector",role:"Data Engineer",cat:"data",desc:"Pipelines ETL, dbt, qualité des données, lineage.",skills:["dbt","Airflow","Snowflake"],price:"599€/mo"},
+  {id:"🔮",name:"Oracle",role:"Data Scientist",cat:"data",desc:"Modèles prédictifs, expérimentations, causalité.",skills:["Python","scikit","XGBoost"],price:"599€/mo"},
+  {id:"📊",name:"Lens",role:"BI Analyst",cat:"data",desc:"Dashboards exec, KPIs, slack-bot questions naturelles.",skills:["Looker","Metabase","Hex"],price:"399€/mo"},
+  {id:"🧹",name:"Clean",role:"Data Steward",cat:"data",desc:"Cleaning, deduplication, master data management.",skills:["dbt","Great Expectations"],price:"299€/mo"},
+  {id:"🛰",name:"Probe",role:"ML Ops",cat:"data",desc:"Déploiement de modèles, monitoring, drift detection.",skills:["MLflow","Weights & Biases"],price:"599€/mo"},
+
+  // CONTENT
+  {id:"📰",name:"Editor",role:"Editor-in-Chief",cat:"content",desc:"Calendrier éditorial, briefs, revue, distribution.",skills:["WordPress","Substack"],price:"399€/mo"},
+  {id:"📚",name:"Scribe",role:"Documentation Writer",cat:"content",desc:"Docs développeur, API, changelogs, tutoriels.",skills:["MDX","Mintlify","Docusaurus"],price:"299€/mo"},
+  {id:"🎙",name:"Voice-CT",role:"Podcast Producer",cat:"content",desc:"Edit, transcripts, show-notes, snippets, distribution.",skills:["Riverside","Descript"],price:"299€/mo"},
+  {id:"🌐",name:"Localize",role:"Translator",cat:"content",desc:"Traduction respectant le ton, SEO local, hreflang.",skills:["DeepL","Lokalise","i18n"],price:"249€/mo"},
+  {id:"🧠",name:"Researcher",role:"Research Analyst",cat:"content",desc:"Veille concurrentielle, études de marché, white-papers.",skills:["Perplexity","Notion","arXiv"],price:"399€/mo"},
+];
+
+const grid=document.getElementById('grid');
+const search=document.getElementById('search');
+const tags=document.querySelectorAll('.filter-tag');
+const count=document.getElementById('count');
+let activeCat='all';
+
+function render(){
+  const q=search.value.trim().toLowerCase();
+  let visible=0;
+  grid.innerHTML=agents.map(a=>{
+    const match=(activeCat==='all'||a.cat===activeCat) &&
+                (!q || a.name.toLowerCase().includes(q) || a.role.toLowerCase().includes(q) || a.desc.toLowerCase().includes(q) || a.skills.some(s=>s.toLowerCase().includes(q)));
+    if(match)visible++;
+    return `<div class="agent-card${match?'':' hidden'}">
+      <div class="agent-top">
+        <div class="agent-id">${a.id}</div>
+        <div class="agent-cat">${a.cat.toUpperCase()}</div>
+      </div>
+      <div>
+        <div class="agent-name"><span class="accent">${a.name}</span> · ${a.role}</div>
+        <div class="agent-role" style="margin-top:6px">${a.desc}</div>
+      </div>
+      <div class="agent-skills">${a.skills.map(s=>`<span class="skill-chip">${s}</span>`).join('')}</div>
+      <div class="agent-foot">
+        <span>Disponible immédiatement</span>
+        <span class="agent-price">${a.price}</span>
+      </div>
+    </div>`;
+  }).join('');
+  count.textContent=visible;
+}
+
+tags.forEach(t=>t.addEventListener('click',()=>{
+  tags.forEach(x=>x.classList.remove('active'));
+  t.classList.add('active');
+  activeCat=t.dataset.cat;
+  render();
+}));
+search.addEventListener('input',render);
+render();
+
+// nav scroll
+const nav=document.getElementById('nav');addEventListener('scroll',()=>nav.classList.toggle('scrolled',scrollY>50));
+</script>
+</body>
+</html>

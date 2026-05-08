@@ -1,0 +1,95 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: axion-worker
+  namespace: axion
+  labels:
+    app: axion
+    component: worker
+spec:
+  replicas: 8
+  selector:
+    matchLabels:
+      app: axion
+      component: worker
+  template:
+    metadata:
+      labels:
+        app: axion
+        component: worker
+    spec:
+      serviceAccountName: axion
+      terminationGracePeriodSeconds: 120
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      containers:
+        - name: worker
+          image: ghcr.io/axion-labs/axion-worker:1.0.0
+          command:
+            - celery
+            - -A
+            - axion.workers.celery_app:celery_app
+            - worker
+            - -l
+            - INFO
+            - --concurrency=8
+          envFrom:
+            - secretRef: { name: axion-secrets }
+            - configMapRef: { name: axion-config }
+          resources:
+            requests: { cpu: 250m, memory: 768Mi }
+            limits:   { cpu: 1500m, memory: 1.5Gi }
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: [ALL] }
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: axion-beat
+  namespace: axion
+  labels:
+    app: axion
+    component: beat
+spec:
+  replicas: 1   # singleton
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: axion
+      component: beat
+  template:
+    metadata:
+      labels:
+        app: axion
+        component: beat
+    spec:
+      serviceAccountName: axion
+      containers:
+        - name: beat
+          image: ghcr.io/axion-labs/axion-worker:1.0.0
+          command:
+            - celery
+            - -A
+            - axion.workers.celery_app:celery_app
+            - beat
+            - -l
+            - INFO
+          envFrom:
+            - secretRef: { name: axion-secrets }
+            - configMapRef: { name: axion-config }
+          resources:
+            requests: { cpu: 50m, memory: 128Mi }
+            limits:   { cpu: 250m, memory: 256Mi }

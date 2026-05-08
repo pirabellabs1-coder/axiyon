@@ -1,0 +1,14 @@
+{{- if and .Values.api.enabled .Values.api.podDisruptionBudget.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "axion.fullname" . }}-api
+  labels:
+    {{- include "axion.labels" . | nindent 4 }}
+spec:
+  minAvailable: {{ .Values.api.podDisruptionBudget.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include "axion.labels" . | nindent 6 }}
+      app.kubernetes.io/component: api
+{{- end }}

@@ -1,0 +1,29 @@
+# Example workflow: monthly accounting close.
+# Atlas (CFO) pulls trial balance → Sigma reconciles bank entries → exports XLSX.
+slug: monthly-close
+spec:
+  name: Monthly Close
+  description: Automated monthly accounting close with Atlas + Sigma.
+  schedule_cron: "0 6 1 * *"   # 1st of each month, 06:00 UTC
+
+  steps:
+    - id: trial-balance
+      agent: cfo-assistant
+      action: monthly_close
+      params:
+        period: "{{ inputs.period }}"
+
+    - id: book-entries
+      agent: bookkeeper
+      action: reconcile
+      depends_on: [trial-balance]
+
+    - id: tax-prep
+      agent: cfo-assistant
+      action: tax_prep
+      depends_on: [book-entries]
+      requires_approval: true
+
+  on_blocker:
+    escalate_to: cfo@your-org.com
+  max_cost_eur: 12.0

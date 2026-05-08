@@ -1,0 +1,83 @@
+name: Deploy · production
+
+on:
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: "Commit SHA to deploy (must be tagged `v*` and CI-green)"
+        required: true
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://api.axion.ai
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.sha }}
+
+      - name: Verify CI green on this SHA
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run list --commit ${{ inputs.sha }} --workflow CI --json status,conclusion \
+            | jq -e '.[0].conclusion == "success"' >/dev/null
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::123456789012:role/github-actions-production
+          aws-region: eu-west-3
+
+      - uses: aws-actions/amazon-eks-cluster-action@v0.1
+        with:
+          cluster-name: axion-production
+
+      - uses: azure/setup-helm@v4
+
+      - name: Backup DB snapshot
+        run: |
+          aws rds create-db-snapshot \
+            --db-instance-identifier axion-production \
+            --db-snapshot-identifier predeploy-${{ inputs.sha }}
+
+      - name: Run DB migrations (with rollback safety)
+        run: |
+          kubectl run -n axion --rm -i --tty migrate-${{ github.run_id }} \
+            --image=ghcr.io/${{ github.repository_owner }}/axion-api:${{ inputs.sha }} \
+            --restart=Never --command -- alembic upgrade head
+
+      - name: Helm upgrade (canary 25 → 100%)
+        run: |
+          helm upgrade --install axion infrastructure/helm \
+            --namespace axion --create-namespace \
+            -f infrastructure/helm/values.yaml \
+            -f infrastructure/helm/values.production.yaml \
+            --set global.imageTag=${{ inputs.sha }} \
+            --set global.env=production \
+            --wait --timeout 15m
+
+      - name: Smoke test
+        run: |
+          for i in 1 2 3 4 5; do
+            if curl -fsS https://api.axion.ai/health; then exit 0; fi
+            sleep 10
+          done
+          exit 1
+
+      - name: Notify
+        if: always()
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          curl -X POST "$SLACK_WEBHOOK_URL" -H 'Content-Type: application/json' \
+            -d "{\"text\":\"🚀 axion ${{ inputs.sha }} deployed to production · ${{ job.status }}\"}"

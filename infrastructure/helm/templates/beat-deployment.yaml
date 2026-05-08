@@ -1,0 +1,48 @@
+{{- if .Values.beat.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "axion.fullname" . }}-beat
+  labels:
+    {{- include "axion.labels" . | nindent 4 }}
+    app.kubernetes.io/component: beat
+spec:
+  replicas: 1   # singleton — must NEVER be scaled
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "axion.labels" . | nindent 6 }}
+      app.kubernetes.io/component: beat
+  template:
+    metadata:
+      labels:
+        {{- include "axion.labels" . | nindent 8 }}
+        app.kubernetes.io/component: beat
+    spec:
+      serviceAccountName: {{ include "axion.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.securityContext | nindent 8 }}
+      containers:
+        - name: beat
+          image: {{ include "axion.image" (dict "Values" .Values "repo" .Values.worker) }}
+          command:
+            - celery
+            - -A
+            - axion.workers.celery_app:celery_app
+            - beat
+            - -l
+            - INFO
+          env:
+            {{- include "axion.envSecrets" . | nindent 12 }}
+          resources:
+            {{- toYaml .Values.beat.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.containerSecurityContext | nindent 12 }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+{{- end }}

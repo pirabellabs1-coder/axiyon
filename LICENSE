@@ -1,0 +1,86 @@
+Axion Platform License v1.0
+============================
+
+Copyright © 2025-2026 Axion Labs SAS. All rights reserved.
+
+This software, in its compiled and source forms (the "Platform"), is the
+proprietary work of Axion Labs SAS, a French société par actions simplifiée
+registered with SIREN 932 187 426, headquartered at 42 rue de Bretagne,
+75003 Paris, France.
+
+------------------------------------------------------------------------------
+1. PERMITTED USE
+------------------------------------------------------------------------------
+
+Subject to the terms of an active subscription agreement or master services
+agreement with Axion Labs SAS ("Customer Agreement"), the Platform may be:
+
+  a) Run by the Customer in its own production environment, including
+     SaaS, dedicated VPC, or on-premise deployments, for the duration of
+     the Customer Agreement.
+
+  b) Modified by the Customer for internal compatibility, integration,
+     or auditability purposes, provided such modifications are not
+     redistributed.
+
+  c) Studied for the purpose of integrating the Customer's own systems.
+
+------------------------------------------------------------------------------
+2. CLIENT SDKs AND CLI — MIT LICENSE
+------------------------------------------------------------------------------
+
+The following components are released under the MIT License (see
+`sdk/python/LICENSE` and `sdk/typescript/LICENSE`):
+
+  - `sdk/python/`     — the official Python SDK
+  - `sdk/typescript/` — the official TypeScript SDK
+  - `cli/`            — the `axion` command-line interface
+
+These components may be freely used, modified, and redistributed under the
+MIT License.
+
+------------------------------------------------------------------------------
+3. MANIFESTO — CC BY-SA 4.0
+------------------------------------------------------------------------------
+
+The text content of `axion/docs/manifesto.md` is licensed under
+Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0).
+
+------------------------------------------------------------------------------
+4. RESTRICTIONS
+------------------------------------------------------------------------------
+
+Outside of Sections 1, 2, and 3, no person may, without prior written consent
+from Axion Labs SAS:
+
+  a) Redistribute, sublicense, sell, rent, or lease the Platform.
+  b) Reverse-engineer, decompile, or attempt to derive the source code,
+     except to the extent expressly permitted by applicable law (e.g.
+     interoperability under EU Directive 2009/24/EC, art. 6).
+  c) Use the Platform to:
+     - Build a service that competes with the Platform itself.
+     - Operate mass surveillance or social-scoring systems.
+     - Generate or distribute disinformation or political microtargeting.
+     - Operate autonomous weapons systems.
+
+------------------------------------------------------------------------------
+5. WARRANTY DISCLAIMER
+------------------------------------------------------------------------------
+
+THE PLATFORM IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. IN NO EVENT SHALL
+AXION LABS SAS BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER
+IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM OR IN CONNECTION
+WITH THE PLATFORM.
+
+------------------------------------------------------------------------------
+6. CONTACT
+------------------------------------------------------------------------------
+
+Licensing questions:   licensing@axion.ai
+Security disclosures:  security@axion.ai
+General contact:       contact@axion.ai
+
+This license is governed by the laws of France. Any dispute shall be brought
+exclusively before the competent courts of Paris, France.
