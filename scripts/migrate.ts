@@ -8,7 +8,7 @@
  */
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
-import { neon } from "@neondatabase/serverless";
+import { Pool } from "@neondatabase/serverless";
 
 const url = process.env.POSTGRES_URL ?? process.env.DATABASE_URL;
 if (!url) {
@@ -16,7 +16,7 @@ if (!url) {
   process.exit(1);
 }
 
-const sql = neon(url);
+const pool = new Pool({ connectionString: url });
 const dir = join(process.cwd(), "lib", "db", "migrations");
 const files = readdirSync(dir)
   .filter((f) => f.endsWith(".sql"))
@@ -26,7 +26,6 @@ for (const file of files) {
   const path = join(dir, file);
   const content = readFileSync(path, "utf8");
   console.log(`▶ Applying ${file}…`);
-  // Split on semicolons that end a line, ignoring those inside strings.
   const statements = content
     .split(/;\s*\n/)
     .map((s) => s.trim())
@@ -34,7 +33,7 @@ for (const file of files) {
 
   for (const stmt of statements) {
     try {
-      await sql.query(stmt);
+      await pool.query(stmt);
     } catch (e) {
       const msg = (e as Error).message;
       if (msg.includes("already exists")) {
@@ -49,4 +48,5 @@ for (const file of files) {
   console.log(`✓ ${file}`);
 }
 
+await pool.end();
 console.log("\nAll migrations applied.");
