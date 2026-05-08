@@ -78,10 +78,24 @@ export default async function AgentDetailPage({
           <div>
             <h3 className="font-medium mb-2">Lancer une tâche</h3>
             <p className="text-sm text-ink-2">
-              Donnez un objectif clair. L'agent va planifier, appeler ses outils, et vous rendre un résultat.
+              Donnez un objectif clair. L'agent va planifier, appeler ses outils,
+              et vous rendre un résultat.{" "}
+              <span className="text-brand-green">Propulsé par Puter — Claude/GPT gratuit illimité.</span>
             </p>
           </div>
-          <RunForm agentId={agent.id} suggestedObjective={defaultObjective(agent.templateSlug)} />
+          {template && (
+            <RunForm
+              agent={{
+                id: agent.id,
+                name: agent.name,
+                templateSlug: agent.templateSlug,
+                enabledTools: (agent.enabledTools as string[] | null) ?? [],
+                customPrompt: agent.customPrompt,
+              }}
+              template={template}
+              suggestedObjective={defaultObjective(agent.templateSlug)}
+            />
+          )}
         </CardContent>
       </Card>
 

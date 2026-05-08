@@ -41,8 +41,7 @@ function LoginForm() {
       setLoading(false);
       return;
     }
-    router.push(callbackUrl);
-    router.refresh();
+    window.location.assign(callbackUrl);
   }
 
   return (

@@ -61,6 +61,29 @@ export default async function OverviewPage() {
         </p>
       </div>
 
+      <div className="rounded-xl border border-brand-green/30 bg-brand-green/5 p-4 text-sm flex items-start gap-3">
+        <span className="text-xl">⚡</span>
+        <div>
+          <div className="font-medium text-brand-green">
+            IA gratuite illimitée — propulsée par Puter
+          </div>
+          <p className="text-ink-2 mt-1">
+            Tous vos agents tournent sur <span className="font-mono">claude-sonnet-4-5</span>{" "}
+            (ou GPT-4o, Gemini, etc.) via{" "}
+            <a
+              href="https://puter.com"
+              target="_blank"
+              rel="noreferrer"
+              className="text-brand-blue-2 hover:underline"
+            >
+              Puter
+            </a>
+            . Aucune clé d'API requise. Coût : <strong className="text-ink">0 €</strong>.
+            La première fois, Puter te demandera de te connecter (10 sec).
+          </p>
+        </div>
+      </div>
+
       {/* KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <KPI label="Agents actifs" value={String(agents.filter((a) => a.status !== "archived").length)} />

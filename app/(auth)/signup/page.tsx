@@ -60,8 +60,8 @@ function SignupForm() {
       setLoading(false);
       return;
     }
-    router.push(callbackUrl);
-    router.refresh();
+    // Full reload so middleware picks up the freshly-set session cookie.
+    window.location.assign(callbackUrl);
   }
 
   return (

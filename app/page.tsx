@@ -3,6 +3,13 @@ import { auth } from "@/auth";
 import { Button } from "@/components/ui/button";
 import { MarketingNav } from "@/components/nav";
 import { TEMPLATES } from "@/lib/agents/catalog";
+import { MarketingTicker } from "@/components/marketing/ticker";
+import { CustomerWall } from "@/components/marketing/customer-wall";
+import { Testimonial } from "@/components/marketing/testimonial";
+import { FAQ } from "@/components/marketing/faq";
+import { HowItWorks } from "@/components/marketing/how-it-works";
+import { PlatformTabs } from "@/components/marketing/platform-tabs";
+import { ROICalculator } from "@/components/marketing/roi-calculator";
 
 export default async function HomePage() {
   const session = await auth();
@@ -12,7 +19,7 @@ export default async function HomePage() {
       <MarketingNav session={session?.user} />
 
       {/* HERO */}
-      <section className="relative overflow-hidden pt-40 pb-32">
+      <section className="relative overflow-hidden pt-40 pb-24">
         <div
           className="absolute inset-0 -z-10"
           style={{
@@ -35,17 +42,17 @@ export default async function HomePage() {
         <div className="container-x text-center max-w-4xl mx-auto">
           <span className="inline-flex items-center gap-2 rounded-full border border-line bg-bg-2 px-3.5 py-1.5 text-xs text-ink-2 mb-8">
             <span className="size-1.5 rounded-full bg-brand-green shadow-[0_0_12px_#34D399]" />
-            Plateforme live · Postgres · IA · Audit immuable
+            Live · Postgres · Auth.js · Audit SHA-256 · IA gratuite via Puter
           </span>
           <h1 className="text-[clamp(44px,8vw,96px)] leading-[.96] tracking-[-0.04em] font-medium mb-7">
             L'OS de l'entreprise{" "}
             <span className="font-serif italic text-ink-2 block">autonome.</span>
           </h1>
           <p className="text-[clamp(18px,2.2vw,22px)] text-ink-2 max-w-2xl mx-auto mb-10 leading-snug">
-            Recrutez vos employés IA en 60 secondes. Vente, finance, support, ingénierie —
-            mesurés en résultats, pas en tokens. Construit sur Postgres, déployé sur Vercel.
+            Recrutez vos employés IA en 60 secondes. Vente, finance, support,
+            ingénierie. Mesurés en résultats. <strong className="text-ink">Claude Sonnet 4.5 gratuit illimité</strong> via Puter.
           </p>
-          <div className="flex gap-3.5 justify-center flex-wrap mb-20">
+          <div className="flex gap-3.5 justify-center flex-wrap mb-16">
             <Button asChild variant="glow" size="lg">
               <Link href="/signup">Créer mon compte gratuit →</Link>
             </Button>
@@ -54,7 +61,7 @@ export default async function HomePage() {
             </Button>
           </div>
 
-          <div className="flex gap-12 justify-center flex-wrap pt-14 border-t border-line text-ink-3 text-sm">
+          <div className="flex gap-12 justify-center flex-wrap pt-12 border-t border-line text-ink-3 text-sm">
             <div>
               <strong className="text-ink font-medium">{TEMPLATES.length}</strong> agents prêts
             </div>
@@ -65,16 +72,18 @@ export default async function HomePage() {
               <strong className="text-ink font-medium">SHA-256</strong> audit immuable
             </div>
             <div>
-              <strong className="text-ink font-medium">Postgres + AI SDK</strong>
+              <strong className="gradient-text font-medium">Puter · gratuit</strong> — Claude Sonnet 4.5
             </div>
           </div>
         </div>
       </section>
 
-      {/* AGENTS GRID */}
+      <MarketingTicker />
+
+      {/* AGENT GRID */}
       <section className="py-24">
         <div className="container-x">
-          <div className="mb-16 max-w-3xl">
+          <div className="mb-14 max-w-3xl">
             <span className="inline-block text-[13px] font-medium tracking-widest uppercase text-brand-blue-2 mb-4">
               Catalogue · {TEMPLATES.length} agents
             </span>
@@ -83,27 +92,27 @@ export default async function HomePage() {
               <span className="font-serif italic">Aujourd'hui.</span>
             </h2>
             <p className="text-lg text-ink-2 leading-snug">
-              Chaque agent Axion est branché sur de vrais outils, exécute de vraies tâches via Claude / GPT,
-              et trace chaque action dans un journal immuable.
+              Chaque agent Axion est branché sur de vrais outils, exécute de vraies tâches
+              via Claude/GPT, et trace chaque action dans un journal immuable.
             </p>
           </div>
 
           <div className="grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-px bg-line border border-line rounded-xl overflow-hidden">
-            {TEMPLATES.slice(0, 8).map((t) => (
+            {TEMPLATES.slice(0, 8).map((tpl) => (
               <div
-                key={t.slug}
-                className="bg-bg p-7 hover:bg-bg-2 transition-colors group cursor-pointer"
+                key={tpl.slug}
+                className="bg-bg p-7 hover:bg-bg-2 transition-colors group"
               >
                 <div className="size-11 rounded-[11px] bg-bg-3 border border-line flex items-center justify-center mb-5 text-xl">
-                  {t.icon}
+                  {tpl.icon}
                 </div>
                 <div className="font-medium mb-1.5">
-                  <span className="text-brand-blue-2">{t.name}</span>{" "}
-                  · <span className="text-ink-2 text-sm">{t.role}</span>
+                  <span className="text-brand-blue-2">{tpl.name}</span>{" "}
+                  · <span className="text-ink-2 text-sm">{tpl.role}</span>
                 </div>
-                <div className="text-sm text-ink-2 leading-relaxed mb-4">{t.description}</div>
-                <div className="flex flex-wrap gap-1.5 mt-auto">
-                  {t.skills.slice(0, 3).map((s) => (
+                <div className="text-sm text-ink-2 leading-relaxed mb-4">{tpl.description}</div>
+                <div className="flex flex-wrap gap-1.5">
+                  {tpl.skills.slice(0, 3).map((s) => (
                     <span key={s} className="chip">
                       {s}
                     </span>
@@ -111,7 +120,7 @@ export default async function HomePage() {
                 </div>
                 <div className="mt-4 pt-4 border-t border-line flex items-center justify-between text-xs text-ink-3">
                   <span>Disponible</span>
-                  <span className="font-mono text-ink">{t.priceEurMonthly} €/mo</span>
+                  <span className="font-mono text-ink">{tpl.priceEurMonthly} €/mo</span>
                 </div>
               </div>
             ))}
@@ -125,37 +134,12 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* HOW IT WORKS */}
-      <section className="py-24 bg-bg-2 border-y border-line">
-        <div className="container-x">
-          <div className="mb-16 max-w-3xl">
-            <span className="text-[13px] font-medium tracking-widest uppercase text-brand-blue-2">
-              En pratique
-            </span>
-            <h2 className="text-[clamp(36px,5vw,56px)] leading-[1.05] tracking-[-0.03em] font-medium mt-4">
-              Trois étapes. <span className="font-serif italic">Rien de plus.</span>
-            </h2>
-          </div>
-          <div className="grid md:grid-cols-3 gap-6">
-            {[
-              { n: "01", title: "Créez votre compte", desc: "Email + mot de passe. 30 secondes. Pas de CB." },
-              { n: "02", title: "Recrutez un agent", desc: "Choisissez dans le catalogue, donnez-lui un objectif." },
-              { n: "03", title: "Voyez les résultats", desc: "L'agent appelle ses outils, vous rend des comptes, audite tout." },
-            ].map((s) => (
-              <div
-                key={s.n}
-                className="rounded-xl border border-line bg-bg p-8 relative hover:border-brand-blue transition-colors"
-              >
-                <div className="absolute top-6 right-7 text-6xl font-serif text-bg-3 leading-none">
-                  {s.n}
-                </div>
-                <h4 className="text-xl font-medium mb-3">{s.title}</h4>
-                <p className="text-ink-2 text-sm leading-relaxed">{s.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <PlatformTabs />
+      <HowItWorks />
+      <CustomerWall />
+      <Testimonial />
+      <ROICalculator />
+      <FAQ />
 
       {/* FINAL CTA */}
       <section className="py-32 text-center relative overflow-hidden">
@@ -173,7 +157,7 @@ export default async function HomePage() {
             <span className="font-serif italic">Vous, encore ?</span>
           </h2>
           <p className="text-ink-2 text-lg mb-10">
-            Compte gratuit. Pas de CB. Premier agent en 60 secondes.
+            Compte gratuit. Pas de CB. IA gratuite. Premier agent en 60 secondes.
           </p>
           <div className="flex gap-3.5 justify-center flex-wrap">
             <Button asChild variant="glow" size="lg">
@@ -186,8 +170,12 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <footer className="py-10 border-t border-line text-center text-xs text-ink-3">
-        © 2026 Axion Labs SAS · Paris · contact@axion.ai
+      <footer className="py-10 border-t border-line text-center text-xs text-ink-3 space-x-3">
+        <span>© 2026 Axion Labs SAS · Paris</span>
+        <span>·</span>
+        <a href="mailto:contact@axion.ai" className="hover:text-ink">contact@axion.ai</a>
+        <span>·</span>
+        <span>IA fournie gratuitement par <a href="https://puter.com" target="_blank" rel="noreferrer" className="hover:text-ink">Puter</a></span>
       </footer>
     </>
   );
