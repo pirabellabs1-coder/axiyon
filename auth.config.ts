@@ -21,13 +21,11 @@ export const authConfig = {
       if (token && session.user) {
         // We mirror what `auth.ts` writes into the JWT so the shape stays
         // identical between edge and node runtimes.
-        (session.user as Record<string, unknown>).id = token.id ?? token.sub;
-        (session.user as Record<string, unknown>).isSuperuser =
-          (token.isSuperuser as boolean) ?? false;
-        (session.user as Record<string, unknown>).activeOrgId =
-          (token.activeOrgId as string | null) ?? null;
-        (session.user as Record<string, unknown>).activeOrgRole =
-          (token.activeOrgRole as string | null) ?? null;
+        const u = session.user as unknown as Record<string, unknown>;
+        u.id = (token.id as string | undefined) ?? token.sub;
+        u.isSuperuser = (token.isSuperuser as boolean) ?? false;
+        u.activeOrgId = (token.activeOrgId as string | null) ?? null;
+        u.activeOrgRole = (token.activeOrgRole as string | null) ?? null;
       }
       return session;
     },
