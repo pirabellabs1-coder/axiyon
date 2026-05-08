@@ -216,6 +216,61 @@ CREATE TABLE IF NOT EXISTS "memory_entries" (
   "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS "memory_org_kind_idx" ON "memory_entries" ("org_id", "kind");
+
+-- ─── Integrations + approvals (migration 0001) ───────────────────
+
+DO $$ BEGIN
+  CREATE TYPE "approval_status" AS ENUM ('pending', 'approved', 'rejected', 'expired');
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+DO $$ BEGIN
+  CREATE TYPE "integration_status" AS ENUM ('connected', 'expired', 'revoked', 'error');
+EXCEPTION WHEN duplicate_object THEN null; END $$;
+
+CREATE TABLE IF NOT EXISTS "integrations" (
+  "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  "org_id" UUID NOT NULL REFERENCES "orgs"("id") ON DELETE CASCADE,
+  "provider" VARCHAR(32) NOT NULL,
+  "scope" VARCHAR(32),
+  "account_id" VARCHAR(256),
+  "account_email" VARCHAR(256),
+  "account_name" VARCHAR(256),
+  "access_token_enc" TEXT NOT NULL,
+  "refresh_token_enc" TEXT,
+  "expires_at" TIMESTAMPTZ,
+  "scopes" JSONB NOT NULL DEFAULT '[]'::jsonb,
+  "metadata" JSONB NOT NULL DEFAULT '{}'::jsonb,
+  "status" "integration_status" NOT NULL DEFAULT 'connected',
+  "last_used_at" TIMESTAMPTZ,
+  "connected_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  "updated_at" TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS "integrations_org_provider_account_uq"
+  ON "integrations" ("org_id", "provider", "scope", "account_id");
+CREATE INDEX IF NOT EXISTS "integrations_org_idx"
+  ON "integrations" ("org_id", "status");
+
+CREATE TABLE IF NOT EXISTS "approvals" (
+  "id" UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  "org_id" UUID NOT NULL REFERENCES "orgs"("id") ON DELETE CASCADE,
+  "agent_id" UUID REFERENCES "agent_instances"("id") ON DELETE CASCADE,
+  "task_id" UUID,
+  "action_type" VARCHAR(64) NOT NULL,
+  "summary" TEXT NOT NULL,
+  "payload" JSONB NOT NULL,
+  "estimated_impact_eur" DOUBLE PRECISION DEFAULT 0,
+  "status" "approval_status" NOT NULL DEFAULT 'pending',
+  "expires_at" TIMESTAMPTZ,
+  "responded_at" TIMESTAMPTZ,
+  "responded_by" UUID REFERENCES "users"("id"),
+  "response_note" TEXT,
+  "created_at" TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS "approvals_org_status_idx"
+  ON "approvals" ("org_id", "status", "created_at");
 `;
 
 export async function POST(req: Request) {
