@@ -32,9 +32,10 @@ export async function POST(
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const tool = (serverTools as Record<string, { execute?: (args: unknown, opts?: unknown) => Promise<unknown> }>)[
-    name
-  ];
+  const tool = (serverTools as unknown as Record<
+    string,
+    { execute?: (args: unknown, opts?: unknown) => Promise<unknown> }
+  >)[name];
   if (!tool?.execute) {
     return NextResponse.json({ error: `Tool ${name} has no executor` }, { status: 500 });
   }
