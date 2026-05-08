@@ -16,7 +16,7 @@ import {
 } from "@/lib/db";
 import { audit } from "@/lib/audit";
 import { getTemplate } from "@/lib/agents/catalog";
-import { selectTools, type ToolName } from "@/lib/agents/tools";
+import { selectTools, setToolOrgContext } from "@/lib/agents/tools";
 import { estimateCostEur, hasAnyProvider, pickModel, type RoutingPolicy } from "@/lib/llm/router";
 import { ingestMemory } from "@/lib/memory";
 
@@ -118,6 +118,8 @@ export async function runAgent(args: RunArgs): Promise<RunResult> {
   ];
 
   let result: Awaited<ReturnType<typeof generateText>>;
+  // Set the org context so the tools can find the right integrations.
+  setToolOrgContext(args.orgId);
   try {
     result = await generateText({
       model,
@@ -128,6 +130,7 @@ export async function runAgent(args: RunArgs): Promise<RunResult> {
       experimental_telemetry: { isEnabled: true, functionId: `agent.${template.slug}` },
     });
   } catch (e: unknown) {
+    setToolOrgContext(null);
     const error = e instanceof Error ? e.message : "LLM call failed";
     await db
       .update(tasks)
@@ -153,6 +156,8 @@ export async function runAgent(args: RunArgs): Promise<RunResult> {
       modelUsed: null,
       error,
     };
+  } finally {
+    setToolOrgContext(null);
   }
 
   // Aggregate tool calls across steps. The AI SDK's generic over `tools` makes

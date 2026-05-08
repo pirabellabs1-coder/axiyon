@@ -74,6 +74,20 @@ export const memoryKindEnum = pgEnum("memory_kind", [
 
 export const tierEnum = pgEnum("billing_tier", ["solo", "growth", "enterprise"]);
 
+export const approvalStatusEnum = pgEnum("approval_status", [
+  "pending",
+  "approved",
+  "rejected",
+  "expired",
+]);
+
+export const integrationStatusEnum = pgEnum("integration_status", [
+  "connected",
+  "expired",
+  "revoked",
+  "error",
+]);
+
 // ── Users + auth (Auth.js compatible tables) ─────────────────────
 
 export const users = pgTable("users", {
@@ -349,6 +363,76 @@ export const workflowsRelations = relations(workflows, ({ one, many }) => ({
   runs: many(workflowRuns),
 }));
 
+// ── Integrations (OAuth tokens, encrypted at rest) ──────────────
+
+export const integrations = pgTable(
+  "integrations",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orgId: uuid("org_id")
+      .notNull()
+      .references(() => orgs.id, { onDelete: "cascade" }),
+    /** e.g. 'google', 'microsoft', 'twilio', 'hubspot', 'salesforce', 'slack', 'github', 'notion', 'stripe' */
+    provider: varchar("provider", { length: 32 }).notNull(),
+    /** Optional discriminator if a provider has multiple auth flows (e.g. 'gmail' vs 'gcal' both under 'google') */
+    scope: varchar("scope", { length: 32 }),
+    accountId: varchar("account_id", { length: 256 }),
+    accountEmail: varchar("account_email", { length: 256 }),
+    accountName: varchar("account_name", { length: 256 }),
+    /** AES-256-GCM ciphertext of the OAuth access token. */
+    accessTokenEnc: text("access_token_enc").notNull(),
+    /** Optional refresh token (also encrypted). */
+    refreshTokenEnc: text("refresh_token_enc"),
+    expiresAt: timestamp("expires_at", { withTimezone: true }),
+    scopes: jsonb("scopes").$type<string[]>().default([]).notNull(),
+    metadata: jsonb("metadata").$type<Record<string, unknown>>().default({}).notNull(),
+    status: integrationStatusEnum("status").notNull().default("connected"),
+    lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
+    connectedAt: timestamp("connected_at", { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    orgProviderIdx: uniqueIndex("integrations_org_provider_account_uq").on(
+      t.orgId,
+      t.provider,
+      t.scope,
+      t.accountId,
+    ),
+    orgIdx: index("integrations_org_idx").on(t.orgId, t.status),
+  }),
+);
+
+// ── Approvals queue (high-stakes agent actions) ─────────────────
+
+export const approvals = pgTable(
+  "approvals",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orgId: uuid("org_id")
+      .notNull()
+      .references(() => orgs.id, { onDelete: "cascade" }),
+    agentId: uuid("agent_id").references(() => agentInstances.id, { onDelete: "cascade" }),
+    taskId: uuid("task_id"),
+    /** e.g. 'send_email', 'twilio_call', 'stripe_charge', 'salesforce_create_deal' */
+    actionType: varchar("action_type", { length: 64 }).notNull(),
+    summary: text("summary").notNull(),
+    /** Full payload that will execute if approved. */
+    payload: jsonb("payload").$type<Record<string, unknown>>().notNull(),
+    /** Estimated impact in EUR (for sorting + thresholds). */
+    estimatedImpactEur: doublePrecision("estimated_impact_eur").default(0),
+    status: approvalStatusEnum("status").notNull().default("pending"),
+    expiresAt: timestamp("expires_at", { withTimezone: true }),
+    respondedAt: timestamp("responded_at", { withTimezone: true }),
+    respondedBy: uuid("responded_by").references(() => users.id),
+    responseNote: text("response_note"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    orgStatusIdx: index("approvals_org_status_idx").on(t.orgId, t.status, t.createdAt),
+  }),
+);
+
 // ── Type exports ────────────────────────────────────────────────
 
 export type User = typeof users.$inferSelect;
@@ -363,3 +447,7 @@ export type Task = typeof tasks.$inferSelect;
 export type NewTask = typeof tasks.$inferInsert;
 export type AuditLog = typeof auditLogs.$inferSelect;
 export type MemoryEntry = typeof memoryEntries.$inferSelect;
+export type Integration = typeof integrations.$inferSelect;
+export type NewIntegration = typeof integrations.$inferInsert;
+export type Approval = typeof approvals.$inferSelect;
+export type NewApproval = typeof approvals.$inferInsert;
