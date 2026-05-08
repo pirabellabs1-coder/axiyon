@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Instrument_Serif, JetBrains_Mono } from "next/font/google";
-import Script from "next/script";
 import "./globals.css";
 import { Providers } from "@/components/providers";
 
@@ -48,10 +47,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="fr" className={`${inter.variable} ${instrument.variable} ${mono.variable}`}>
       <body className="min-h-screen font-sans">
         <Providers>{children}</Providers>
-        {/* Puter.js — free unlimited Claude/GPT/Gemini for browser-side agents.
-            https://developer.puter.com — no API key, no backend, runs against
-            the end-user's Puter account (auto-signs in on first use). */}
-        <Script src="https://js.puter.com/v2/" strategy="afterInteractive" />
       </body>
     </html>
   );
