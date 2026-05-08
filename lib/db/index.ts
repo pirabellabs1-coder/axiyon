@@ -1,13 +1,12 @@
 /**
  * Drizzle client connected to Vercel Postgres (Neon).
  *
- * Two clients:
- *   - `db`        : pooled (default for serverless functions)
- *   - `dbDirect`  : non-pooled (for migrations / long transactions)
+ * Uses HTTP transport (`drizzle-orm/neon-http`) — no WebSocket pool, no module-load
+ * connection attempt, no risk of hanging serverless cold starts. Each query is a
+ * standalone HTTP fetch which Neon optimises with their pooler.
  */
-import { neon, neonConfig, Pool } from "@neondatabase/serverless";
-import { drizzle } from "drizzle-orm/neon-serverless";
-import { drizzle as drizzleHttp } from "drizzle-orm/neon-http";
+import { neon, neonConfig } from "@neondatabase/serverless";
+import { drizzle } from "drizzle-orm/neon-http";
 
 import * as schema from "./schema";
 
@@ -24,21 +23,19 @@ function url(): string {
   return u;
 }
 
-// Pooled — for normal queries (uses Neon's built-in pgbouncer)
+// One shared HTTP client per cold start.
 declare global {
   // eslint-disable-next-line no-var
-  var __axion_pool: Pool | undefined;
+  var __axion_sql: ReturnType<typeof neon> | undefined;
 }
 
-export const pool: Pool =
-  globalThis.__axion_pool ?? new Pool({ connectionString: url() });
+const sqlClient = globalThis.__axion_sql ?? neon(url());
+if (process.env.NODE_ENV !== "production") globalThis.__axion_sql = sqlClient;
 
-if (process.env.NODE_ENV !== "production") globalThis.__axion_pool = pool;
+export const db = drizzle(sqlClient, { schema });
 
-export const db = drizzle(pool, { schema });
-
-// HTTP-based — for serverless functions hitting one query (avoids pool overhead)
-export const dbHttp = drizzleHttp(neon(url()), { schema });
+// Backwards-compat alias for any code still importing `dbHttp`.
+export const dbHttp = db;
 
 // Re-export the schema so callers do `import { db, users } from "@/lib/db"`.
 export * from "./schema";
