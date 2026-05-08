@@ -61,7 +61,7 @@ export default async function TasksPage() {
                     <td className="px-4 py-2.5">
                       <span
                         className={
-                          "text-[11px] font-mono " +
+                          "inline-flex items-center gap-1.5 text-[11px] font-mono " +
                           (task.status === "succeeded"
                             ? "text-brand-green"
                             : task.status === "failed"
@@ -71,7 +71,8 @@ export default async function TasksPage() {
                                 : "text-ink-3")
                         }
                       >
-                        ● {task.status}
+                        <span className="size-1.5 rounded-full bg-current inline-block" />
+                        {task.status}
                       </span>
                     </td>
                     <td className="px-4 py-2.5">
