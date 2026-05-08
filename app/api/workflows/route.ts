@@ -93,7 +93,7 @@ export async function GET() {
       description: r.workflows.description,
       version: r.workflows.version,
       status: r.workflows.status,
-      spec: r.workflows.spec as WorkflowSpec,
+      spec: r.workflows.spec as unknown as WorkflowSpec,
       scheduleCron: r.workflows.scheduleCron,
       createdAt: r.workflows.createdAt,
     })),
