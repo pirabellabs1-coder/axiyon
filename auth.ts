@@ -1,13 +1,14 @@
 /**
- * Auth.js v5 (NextAuth) configuration.
+ * Auth.js v5 — credentials-only with JWT sessions.
  *
- * Credentials provider with bcrypt-hashed passwords. Drizzle adapter persists
- * sessions/accounts. Session strategy is JWT (stateless) so middleware can
- * read it from the cookie without a DB hit.
+ * NOTE: we deliberately do NOT use DrizzleAdapter. With JWT session strategy
+ * and a credentials provider, the adapter is unused but its constructor at
+ * module load attempts to wire up the DB driver — which on serverless cold
+ * starts can hang and bring down every API route that imports `@/auth`.
+ * Skip it. We persist users via our own /api/auth/signup route.
  */
 import NextAuth, { type DefaultSession } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
-import { DrizzleAdapter } from "@auth/drizzle-adapter";
 import bcrypt from "bcryptjs";
 import { eq } from "drizzle-orm";
 
@@ -36,7 +37,6 @@ export const {
   signIn,
   signOut,
 } = NextAuth({
-  adapter: DrizzleAdapter(db),
   session: { strategy: "jwt", maxAge: 60 * 60 * 24 * 30 },
   pages: { signIn: "/login" },
   trustHost: true,
@@ -75,7 +75,6 @@ export const {
       if (user) {
         token.id = user.id as string;
         token.isSuperuser = (user as { isSuperuser?: boolean }).isSuperuser ?? false;
-        // Resolve the user's first org as their active one
         const m = await db.query.orgMembers.findFirst({
           where: eq(orgMembers.userId, user.id as string),
         });
@@ -84,7 +83,6 @@ export const {
           token.activeOrgRole = m.role;
         }
       }
-      // Allow client-triggered org switch via session.update({ activeOrgId })
       if (trigger === "update" && session?.activeOrgId) {
         const m = await db.query.orgMembers.findFirst({
           where: (om, { and, eq }) =>
@@ -100,10 +98,11 @@ export const {
 
     async session({ session, token }) {
       if (token && session.user) {
-        session.user.id = token.id as string;
-        session.user.isSuperuser = (token.isSuperuser as boolean) ?? false;
-        session.user.activeOrgId = (token.activeOrgId as string | null) ?? null;
-        session.user.activeOrgRole = (token.activeOrgRole as string | null) ?? null;
+        const u = session.user as unknown as Record<string, unknown>;
+        u.id = (token.id as string | undefined) ?? token.sub;
+        u.isSuperuser = (token.isSuperuser as boolean) ?? false;
+        u.activeOrgId = (token.activeOrgId as string | null) ?? null;
+        u.activeOrgRole = (token.activeOrgRole as string | null) ?? null;
       }
       return session;
     },
