@@ -7,10 +7,6 @@
     {
       "path": "/api/cron/rotate-counters",
       "schedule": "5 0 * * *"
-    },
-    {
-      "path": "/api/cron/process-scheduled",
-      "schedule": "* * * * *"
     }
   ],
   "headers": [
