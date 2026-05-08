@@ -155,14 +155,16 @@ export async function runAgent(args: RunArgs): Promise<RunResult> {
     };
   }
 
-  // Aggregate tool calls across steps
-  const toolCalls = result.steps.flatMap((s) =>
-    s.toolCalls.map((tc) => ({
-      name: tc.toolName,
-      args: tc.args,
-      result: s.toolResults.find((tr) => tr.toolCallId === tc.toolCallId)?.result,
-    })),
-  );
+  // Aggregate tool calls across steps. The AI SDK's generic over `tools` makes
+  // `toolResults` narrow to `never[]` when types are erased, so we widen here.
+  const toolCalls = result.steps.flatMap((s) => {
+    const results = (s.toolResults ?? []) as Array<{ toolCallId: string; result: unknown }>;
+    return s.toolCalls.map((tc) => ({
+      name: tc.toolName as string,
+      args: tc.args as unknown,
+      result: results.find((tr) => tr.toolCallId === tc.toolCallId)?.result,
+    }));
+  });
 
   const tokensIn = result.usage.promptTokens ?? 0;
   const tokensOut = result.usage.completionTokens ?? 0;
