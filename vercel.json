@@ -3,6 +3,11 @@
   "buildCommand": "next build",
   "framework": "nextjs",
   "regions": ["cdg1"],
+  "functions": {
+    "app/api/**/route.ts": {
+      "maxDuration": 60
+    }
+  },
   "rewrites": [
     { "source": "/", "destination": "/index.html" },
     { "source": "/agents", "destination": "/agents.html" },
