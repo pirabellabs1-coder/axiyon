@@ -250,7 +250,7 @@ function Tile({
   value,
   accent,
 }: {
-  icon: React.ComponentType<{ className?: string }>;
+  icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
   label: string;
   value: string;
   accent: string;
