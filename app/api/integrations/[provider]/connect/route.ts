@@ -1,3 +1,4 @@
+// REBUNDLE_2026_05_09 — force lambda rebuild after maxDuration global config
 /**
  * GET  /api/integrations/[provider]/connect
  *   → For OAuth providers : redirects to the authorize URL with signed state.

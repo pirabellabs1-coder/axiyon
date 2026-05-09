@@ -1,3 +1,4 @@
+// REBUNDLE_2026_05_09 — force lambda rebuild after maxDuration global config
 /**
  * Daily cron — resets per-agent `tasks_today` counters at 00:05 UTC.
  *

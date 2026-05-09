@@ -1,3 +1,4 @@
+// REBUNDLE_2026_05_09 — force lambda rebuild after maxDuration global config
 /** Persists a workflow run (called by the client-side runner). */
 import { NextResponse } from "next/server";
 import { z } from "zod";

@@ -1,3 +1,4 @@
+// REBUNDLE_2026_05_09 — force lambda rebuild after maxDuration global config
 /** DELETE /api/integrations/[id] — disconnect an integration. */
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";

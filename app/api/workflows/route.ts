@@ -1,3 +1,4 @@
+// REBUNDLE_2026_05_09 — force lambda rebuild after maxDuration global config
 /**
  * GET  /api/workflows           — list current org's workflows (latest version per slug)
  * POST /api/workflows           — create or version a workflow

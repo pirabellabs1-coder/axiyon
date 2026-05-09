@@ -1,3 +1,4 @@
+// REBUNDLE_2026_05_09 — force lambda rebuild after maxDuration global config
 /**
  * Persists the result of a Puter-driven client-side run as a Task row.
  * Cost is 0 (Puter is free for the platform).

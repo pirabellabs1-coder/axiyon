@@ -1,3 +1,4 @@
+// REBUNDLE_2026_05_09 — force lambda rebuild after maxDuration global config
 /**
  * Per-minute cron — picks up workflows whose cron schedule matches now and
  * dispatches a run. Idempotent: a run is created at most once per minute per workflow.

@@ -1,3 +1,4 @@
+// REBUNDLE_2026_05_09 — force lambda rebuild after maxDuration global config
 /** POST /api/approvals/[id] — { decision: "approved" | "rejected", note?: string } */
 import { NextResponse } from "next/server";
 import { z } from "zod";
