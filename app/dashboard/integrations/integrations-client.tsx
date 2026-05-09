@@ -142,7 +142,7 @@ export function IntegrationsClient({
                 </a>
                 , déclarer cette URL de callback :{" "}
                 <code className="font-mono text-brand-blue-2 bg-bg-3 px-1.5 py-0.5 rounded text-[11px]">
-                  https://axiyon-nine.vercel.app/api/v1/integrations/{flashMissing}/callback
+                  {typeof window !== "undefined" ? window.location.origin : "https://ai.novakou.com"}/api/v1/integrations/{flashMissing}/callback
                 </code>
                 , puis ajouter les valeurs{" "}
                 {flashNeed?.split(",").map((k, i) => (
