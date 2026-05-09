@@ -30,7 +30,7 @@ const AGENTS: Record<
 type Tool = [string, string]; // [command, result]
 type Msg = {
   who: "user" | "agent";
-  agent?: keyof typeof AGENTS;
+  agent?: string;
   text: string;
   tools?: Tool[];
   time: string;
@@ -90,7 +90,7 @@ const SCRIPT: Msg[] = [
   },
 ];
 
-const ICONS = {
+const ICONS: Record<string, React.ComponentType<{ className?: string; strokeWidth?: number }>> = {
   Iris: Phone,
   Atlas: Briefcase,
   Sage: Headphones,
@@ -98,7 +98,7 @@ const ICONS = {
   Lumen: TrendingUp,
   Forge: Cog,
   Nova: UserSearch,
-} as const;
+};
 
 // ─── View ────────────────────────────────────────────────────────────
 
@@ -275,8 +275,9 @@ function Message({ msg, userName }: { msg: Msg; userName: string }) {
     );
   }
 
-  const a = AGENTS[msg.agent ?? "Iris"];
-  const Icon = ICONS[msg.agent ?? "Iris"];
+  const key = msg.agent ?? "Iris";
+  const a = AGENTS[key] ?? AGENTS.Iris;
+  const Icon = ICONS[key] ?? Phone;
   return (
     <div className="flex gap-3">
       <span
@@ -327,12 +328,12 @@ function AgentRow({
   status,
   detail,
 }: {
-  name: keyof typeof AGENTS;
+  name: string;
   status: "running" | "idle";
   detail: string;
 }) {
-  const a = AGENTS[name];
-  const Icon = ICONS[name];
+  const a = AGENTS[name] ?? AGENTS.Iris;
+  const Icon = ICONS[name] ?? Phone;
   return (
     <div className="rounded-md border border-line bg-bg-3 p-2.5">
       <div className="flex items-center gap-2 mb-1">
