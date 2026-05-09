@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import {
   CheckCircle2,
   XCircle,
@@ -45,14 +45,27 @@ const STATUS_COLOR: Record<string, string> = {
   error: "text-brand-red",
 };
 
-export function IntegrationsClient({ connected }: { connected: ConnectedIntegration[] }) {
+interface FlashState {
+  connected: string | null;
+  error: string | null;
+  provider: string | null;
+  missing: string | null;
+  need: string | null;
+}
+
+export function IntegrationsClient({
+  connected,
+  flash,
+}: {
+  connected: ConnectedIntegration[];
+  flash?: FlashState;
+}) {
   const router = useRouter();
-  const params = useSearchParams();
-  const flashConnected = params.get("connected");
-  const flashError = params.get("error");
-  const flashProvider = params.get("provider");
-  const flashMissing = params.get("missing");
-  const flashNeed = params.get("need");
+  const flashConnected = flash?.connected ?? null;
+  const flashError = flash?.error ?? null;
+  const flashProvider = flash?.provider ?? null;
+  const flashMissing = flash?.missing ?? null;
+  const flashNeed = flash?.need ?? null;
 
   const connectedMap = useMemo(() => {
     const map = new Map<string, ConnectedIntegration>();

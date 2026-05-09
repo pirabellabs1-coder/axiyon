@@ -5,11 +5,22 @@ import { IntegrationsClient } from "./integrations-client";
 
 export const dynamic = "force-dynamic";
 
-export default async function IntegrationsPage() {
+interface PageProps {
+  searchParams: Promise<{
+    connected?: string;
+    error?: string;
+    provider?: string;
+    missing?: string;
+    need?: string;
+  }>;
+}
+
+export default async function IntegrationsPage({ searchParams }: PageProps) {
   const session = await auth();
   if (!session?.user.activeOrgId) redirect("/login");
 
   const rows = await listOrgIntegrations(session.user.activeOrgId);
+  const sp = await searchParams;
 
   return (
     <IntegrationsClient
@@ -23,6 +34,13 @@ export default async function IntegrationsPage() {
         connectedAt: r.connectedAt?.toISOString?.() ?? new Date().toISOString(),
         lastUsedAt: r.lastUsedAt?.toISOString?.() ?? null,
       }))}
+      flash={{
+        connected: sp.connected ?? null,
+        error: sp.error ?? null,
+        provider: sp.provider ?? null,
+        missing: sp.missing ?? null,
+        need: sp.need ?? null,
+      }}
     />
   );
 }
