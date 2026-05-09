@@ -31,6 +31,29 @@ function shortHex(seed: string, n: number): string {
   return s.slice(0, n);
 }
 
+// HTML helpers used by fetch_url / web_search. Edge-safe (no node:html parsers).
+function stripTags(s: string): string {
+  return s.replace(/<[^>]+>/g, " ");
+}
+function decodeEntities(s: string): string {
+  return s
+    .replace(/&nbsp;/g, " ")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&apos;/g, "'")
+    .replace(/&#(\d+);/g, (_, n) => {
+      const code = parseInt(n, 10);
+      return code > 0 && code < 0x110000 ? String.fromCodePoint(code) : "";
+    })
+    .replace(/&#x([0-9a-f]+);/gi, (_, n) => {
+      const code = parseInt(n, 16);
+      return code > 0 && code < 0x110000 ? String.fromCodePoint(code) : "";
+    });
+}
+
 import { recallMemory, ingestMemory } from "@/lib/memory";
 
 // approvals + real-API implementations
@@ -912,6 +935,171 @@ export const tools = {
       };
     },
   }),
+  // ── WEB BROWSING ─────────────────────────────────────────────────
+
+  fetch_url: tool({
+    description:
+      "Visit a public URL and read its content. Returns title, cleaned text (truncated), meta description, and outbound links. Use this to research companies, people, articles, docs.",
+    parameters: z.object({
+      url: z.string().url(),
+      max_chars: z.number().int().min(500).max(16_000).default(8_000),
+      include_links: z.boolean().default(true),
+    }),
+    execute: async (args) => {
+      try {
+        const u = new URL(args.url);
+        if (u.protocol !== "http:" && u.protocol !== "https:") {
+          return { ok: false, error: "Only http(s) URLs are allowed." };
+        }
+        // Block obvious internal targets to avoid SSRF.
+        const host = u.hostname.toLowerCase();
+        if (
+          host === "localhost" ||
+          host.endsWith(".local") ||
+          host.startsWith("127.") ||
+          host.startsWith("10.") ||
+          host.startsWith("169.254.") ||
+          host === "metadata.google.internal" ||
+          host === "169.254.169.254"
+        ) {
+          return { ok: false, error: "Internal/loopback hosts are not reachable." };
+        }
+
+        const ctl = new AbortController();
+        const timer = setTimeout(() => ctl.abort(), 12_000);
+        let res: Response;
+        try {
+          res = await fetch(args.url, {
+            signal: ctl.signal,
+            redirect: "follow",
+            headers: {
+              "User-Agent": "AxionAgent/1.0 (+https://ai.novakou.com)",
+              Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.5",
+            },
+          });
+        } finally {
+          clearTimeout(timer);
+        }
+
+        const contentType = res.headers.get("content-type") ?? "";
+        if (!res.ok) {
+          return { ok: false, error: `HTTP ${res.status}`, status: res.status, url: res.url };
+        }
+
+        const raw = await res.text();
+        const html = raw.slice(0, 600_000); // safety cap on raw input
+
+        // Title.
+        const titleMatch = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+        const title = titleMatch ? decodeEntities(stripTags(titleMatch[1])).trim() : null;
+
+        // Meta description.
+        const descMatch =
+          html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']+)/i) ||
+          html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']description["']/i);
+        const description = descMatch ? decodeEntities(descMatch[1]).trim() : null;
+
+        // Cleaned body text — strip script/style/nav/header/footer first.
+        let body = html
+          .replace(/<script[\s\S]*?<\/script>/gi, " ")
+          .replace(/<style[\s\S]*?<\/style>/gi, " ")
+          .replace(/<noscript[\s\S]*?<\/noscript>/gi, " ")
+          .replace(/<svg[\s\S]*?<\/svg>/gi, " ");
+        body = stripTags(body);
+        body = decodeEntities(body)
+          .replace(/\s+/g, " ")
+          .replace(/\n{3,}/g, "\n\n")
+          .trim();
+        const text = body.slice(0, args.max_chars);
+
+        // Outbound links.
+        let links: Array<{ href: string; text: string }> = [];
+        if (args.include_links) {
+          const linkRe = /<a\b[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
+          const seen = new Set<string>();
+          let m: RegExpExecArray | null;
+          while ((m = linkRe.exec(html)) && links.length < 30) {
+            const href = m[1].trim();
+            if (!/^https?:\/\//i.test(href)) continue;
+            if (seen.has(href)) continue;
+            seen.add(href);
+            const lt = decodeEntities(stripTags(m[2])).replace(/\s+/g, " ").trim();
+            links.push({ href, text: lt.slice(0, 120) });
+          }
+        }
+
+        return {
+          ok: true,
+          url: res.url,
+          status: res.status,
+          contentType,
+          title,
+          description,
+          text,
+          truncated: body.length > args.max_chars,
+          textLength: body.length,
+          links,
+        };
+      } catch (e) {
+        return { ok: false, error: e instanceof Error ? e.message : String(e) };
+      }
+    },
+  }),
+
+  web_search: tool({
+    description:
+      "Search the public web (DuckDuckGo HTML endpoint). Returns top results as {title, url, snippet}. Pair with fetch_url to read promising pages.",
+    parameters: z.object({
+      query: z.string().min(2).max(300),
+      n: z.number().int().min(1).max(15).default(8),
+    }),
+    execute: async (args) => {
+      try {
+        const ctl = new AbortController();
+        const timer = setTimeout(() => ctl.abort(), 10_000);
+        let res: Response;
+        try {
+          res = await fetch(`https://duckduckgo.com/html/?q=${encodeURIComponent(args.query)}`, {
+            signal: ctl.signal,
+            headers: {
+              "User-Agent": "AxionAgent/1.0 (+https://ai.novakou.com)",
+              Accept: "text/html",
+            },
+          });
+        } finally {
+          clearTimeout(timer);
+        }
+        if (!res.ok) return { ok: false, error: `HTTP ${res.status}`, results: [] };
+        const html = await res.text();
+
+        const results: Array<{ title: string; url: string; snippet: string }> = [];
+        const blockRe =
+          /<a[^>]+class="result__a"[^>]+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>[\s\S]*?<a[^>]+class="result__snippet"[^>]*>([\s\S]*?)<\/a>/gi;
+        let m: RegExpExecArray | null;
+        while ((m = blockRe.exec(html)) && results.length < args.n) {
+          let url = m[1];
+          // DuckDuckGo wraps real URLs behind /l/?uddg=…
+          const ud = url.match(/uddg=([^&]+)/);
+          if (ud) {
+            try {
+              url = decodeURIComponent(ud[1]);
+            } catch {
+              /* keep */
+            }
+          }
+          if (!/^https?:\/\//i.test(url)) continue;
+          const title = decodeEntities(stripTags(m[2])).trim();
+          const snippet = decodeEntities(stripTags(m[3])).replace(/\s+/g, " ").trim().slice(0, 280);
+          results.push({ title, url, snippet });
+        }
+
+        return { ok: true, query: args.query, results };
+      } catch (e) {
+        return { ok: false, error: e instanceof Error ? e.message : String(e), results: [] };
+      }
+    },
+  }),
+
   // ── MULTI-AGENT HANDOFF ──────────────────────────────────────────
 
   agent_handoff: tool({

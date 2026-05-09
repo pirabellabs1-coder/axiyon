@@ -79,12 +79,16 @@ export async function runWithPuter(opts: PuterRunOptions): Promise<PuterRunResul
   // Wait for Puter to load (script may still be initializing on first paint).
   await waitForPuter();
 
-  // ALWAYS include agent_handoff so any agent can hand off to another, even
-  // if its enabledTools didn't list it (legacy agents created before handoff).
+  // Always-on tools. Every agent gets these regardless of its template's
+  // enabledTools list — they're the foundation of multi-agent autonomy and
+  // real-world research, so an agent created before they existed should still
+  // be able to use them.
   const enabledSet = new Set(
     opts.enabledTools.length ? opts.enabledTools : Object.keys(TOOL_SCHEMAS),
   );
   enabledSet.add("agent_handoff");
+  enabledSet.add("fetch_url");
+  enabledSet.add("web_search");
   const tools = Array.from(enabledSet)
     .map((name) => TOOL_SCHEMAS[name as ToolName])
     .filter(Boolean)
@@ -222,8 +226,28 @@ function buildUserMessage(objective: string, inputs: Record<string, unknown>): s
     parts.push(`\nInputs:\n${JSON.stringify(inputs, null, 2)}`);
   }
   parts.push(
-    "\nPlan briefly, call any tools you need, then respond with a clear final answer. " +
-      "If a step needs human approval (>5k EUR action, contract signature, mass email), STOP and request approval.",
+    [
+      "",
+      "Capabilities you ALWAYS have:",
+      "• `fetch_url(url)` — read any public webpage (company sites, articles, docs, profiles).",
+      "• `web_search(query)` — find candidate URLs, then `fetch_url` the promising ones.",
+      "• `agent_handoff(to_agent_name, action, context)` — when another teammate is better suited (e.g. you found leads → hand off to the CFO agent for margin qualification, then to Legal for the contract).",
+      "",
+      "How to research before answering:",
+      "1. If you don't know something specific (a company, a person, recent news) → `web_search` then `fetch_url` the top hits. Don't guess.",
+      "2. If the task spans expertises → finish your part, then `agent_handoff` to the right teammate with structured context.",
+      "",
+      "Output format (your final assistant message will be rendered as Markdown):",
+      "• Use real Markdown — **bold**, lists, headings (`##`), and proper tables when listing structured data:",
+      "  | Colonne | Colonne |",
+      "  | --- | --- |",
+      "  | valeur | valeur |",
+      "• Tables render with clean dividers; never describe table contents in prose when a table fits.",
+      "• Never include raw stars (`****`) as decoration. Don't put asterisks around section titles — use a `##` heading instead.",
+      "• Be concise. End with a clear next-step or recommendation.",
+      "",
+      "If a step needs human approval (>5k EUR action, contract signature, mass email, phone call), STOP and request approval.",
+    ].join("\n"),
   );
   return parts.join("\n");
 }

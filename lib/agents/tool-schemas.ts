@@ -180,6 +180,50 @@ export const TOOL_SCHEMAS: Record<string, ToolSchema> = {
       required: ["contract_text"],
     },
   },
+  fetch_url: {
+    name: "fetch_url",
+    description:
+      "Visit a public URL and read its content. Returns the cleaned page text (max 8 KB), title, " +
+      "outbound links and meta description. Use this whenever you need fresh information about a " +
+      "company, person, news article, documentation page, or product page. Pass the result to " +
+      "agent_handoff if a teammate needs to act on what you found.",
+    parameters: {
+      type: "object",
+      properties: {
+        url: {
+          type: "string",
+          description: "The URL to fetch. Must start with http:// or https://.",
+        },
+        max_chars: {
+          type: "integer",
+          minimum: 500,
+          maximum: 16000,
+          default: 8000,
+          description: "Truncate the extracted text to this many characters.",
+        },
+        include_links: {
+          type: "boolean",
+          default: true,
+          description: "Include outbound links in the result (capped at 30).",
+        },
+      },
+      required: ["url"],
+    },
+  },
+  web_search: {
+    name: "web_search",
+    description:
+      "Search the public web (DuckDuckGo). Returns a list of {title, url, snippet} results. Use " +
+      "this to discover candidate URLs that you can then visit with fetch_url.",
+    parameters: {
+      type: "object",
+      properties: {
+        query: { type: "string", description: "What to search for." },
+        n: { type: "integer", minimum: 1, maximum: 15, default: 8 },
+      },
+      required: ["query"],
+    },
+  },
   agent_handoff: {
     name: "agent_handoff",
     description:

@@ -17,6 +17,7 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Markdown } from "@/components/markdown";
 import { runWithPuter, isPuterAvailable } from "@/lib/agents/puter-runtime";
 
 interface Agent {
@@ -581,9 +582,7 @@ function Message({
         ) : null}
 
         {msg.content && (
-          <div className="text-sm text-ink leading-relaxed whitespace-pre-wrap">
-            {msg.content}
-          </div>
+          <Markdown content={msg.content} className="text-sm text-ink" />
         )}
 
         {hasError && (

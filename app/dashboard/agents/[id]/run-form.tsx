@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { Loader2, Sparkles, ChevronDown, ChevronUp, Wrench } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Markdown } from "@/components/markdown";
 import { runWithPuter } from "@/lib/agents/puter-runtime";
 import type { AgentTemplate } from "@/lib/agents/catalog";
 
@@ -173,8 +174,8 @@ export function RunForm({
       )}
 
       {text && (
-        <div className="rounded-md border border-line bg-bg-3 p-4 text-sm whitespace-pre-wrap leading-relaxed">
-          {text}
+        <div className="rounded-md border border-line bg-bg-3 p-4">
+          <Markdown content={text} />
         </div>
       )}
     </div>
