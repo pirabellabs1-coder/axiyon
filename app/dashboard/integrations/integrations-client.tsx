@@ -56,9 +56,11 @@ interface FlashState {
 export function IntegrationsClient({
   connected,
   flash,
+  isAdmin = false,
 }: {
   connected: ConnectedIntegration[];
   flash?: FlashState;
+  isAdmin?: boolean;
 }) {
   const router = useRouter();
   const flashConnected = flash?.connected ?? null;
@@ -116,27 +118,51 @@ export function IntegrationsClient({
       {flashMissing && (
         <FlashBanner
           variant="warning"
-          title={`OAuth ${flashMissing} pas encore configuré`}
+          title={
+            isAdmin
+              ? `${capitalize(flashMissing)} : configuration en attente`
+              : `${capitalize(flashMissing)} : pas encore activé`
+          }
           subtitle={
-            <span>
-              Pour connecter <strong className="capitalize">{flashMissing}</strong>, il faut
-              d'abord créer une app OAuth chez le fournisseur, puis ajouter{" "}
-              {flashNeed?.split(",").map((k, i) => (
-                <span key={k}>
-                  {i > 0 && " et "}
-                  <code className="font-mono text-brand-blue-2 bg-bg-3 px-1.5 py-0.5 rounded">
-                    {k}
-                  </code>
-                </span>
-              ))}{" "}
-              dans Vercel → Project axion-os → Settings → Environment Variables. URL de callback à
-              déclarer chez le provider :{" "}
-              <code className="font-mono text-brand-blue-2 bg-bg-3 px-1.5 py-0.5 rounded text-[11px]">
-                https://axiyon-nine.vercel.app/api/v1/integrations/{flashMissing}/callback
-              </code>
-              . Voir <code className="font-mono">docs/SETUP_OAUTH.md</code> pour le pas-à-pas
-              complet par provider.
-            </span>
+            isAdmin ? (
+              <span>
+                Cette intégration nécessite une configuration <strong>plateforme</strong> de votre
+                part — à faire <strong>une seule fois</strong>. Une fois en place, vous et tous
+                les membres de l'équipe pourrez vous connecter en un clic.
+                <br />
+                <br />
+                <strong>Étapes :</strong> créer une app OAuth chez{" "}
+                <a
+                  href={oauthSetupUrl(flashMissing)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-brand-blue-2 hover:underline capitalize"
+                >
+                  {flashMissing}
+                </a>
+                , déclarer cette URL de callback :{" "}
+                <code className="font-mono text-brand-blue-2 bg-bg-3 px-1.5 py-0.5 rounded text-[11px]">
+                  https://axiyon-nine.vercel.app/api/v1/integrations/{flashMissing}/callback
+                </code>
+                , puis ajouter les valeurs{" "}
+                {flashNeed?.split(",").map((k, i) => (
+                  <span key={k}>
+                    {i > 0 && " et "}
+                    <code className="font-mono text-brand-blue-2 bg-bg-3 px-1.5 py-0.5 rounded">
+                      {k}
+                    </code>
+                  </span>
+                ))}{" "}
+                dans <strong>Vercel → axion-os → Settings → Environment Variables</strong>.
+                Détails par provider dans <code className="font-mono">docs/SETUP_OAUTH.md</code>.
+              </span>
+            ) : (
+              <span>
+                L'intégration <strong className="capitalize">{flashMissing}</strong> n'est pas
+                encore activée pour votre organisation. Demandez à un administrateur de la
+                configurer — c'est rapide et ça ne se fait qu'une seule fois.
+              </span>
+            )
           }
           onClose={() => router.replace("/dashboard/integrations")}
         />
@@ -356,6 +382,25 @@ function CategoryButton({
       {label}
     </button>
   );
+}
+
+function capitalize(s: string): string {
+  return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+}
+
+const OAUTH_CONSOLES: Record<string, string> = {
+  google:    "https://console.cloud.google.com/apis/credentials",
+  microsoft: "https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade",
+  hubspot:   "https://app.hubspot.com/developer",
+  salesforce:"https://help.salesforce.com/s/articleView?id=sf.connected_app_create.htm",
+  slack:     "https://api.slack.com/apps",
+  github:    "https://github.com/settings/developers",
+  notion:    "https://www.notion.so/my-integrations",
+  linkedin:  "https://www.linkedin.com/developers/apps",
+};
+
+function oauthSetupUrl(slug: string): string {
+  return OAUTH_CONSOLES[slug] ?? "https://example.com";
 }
 
 function FlashBanner({

@@ -22,6 +22,10 @@ export default async function IntegrationsPage({ searchParams }: PageProps) {
   const rows = await listOrgIntegrations(session.user.activeOrgId);
   const sp = await searchParams;
 
+  const role = session.user.activeOrgRole ?? "viewer";
+  const isAdmin =
+    !!session.user.isSuperuser || ["owner", "admin"].includes(role);
+
   return (
     <IntegrationsClient
       connected={rows.map((r) => ({
@@ -41,6 +45,7 @@ export default async function IntegrationsPage({ searchParams }: PageProps) {
         missing: sp.missing ?? null,
         need: sp.need ?? null,
       }}
+      isAdmin={isAdmin}
     />
   );
 }
