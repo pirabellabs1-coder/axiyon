@@ -1,16 +1,8 @@
-// V1_FINAL — minimal top-level imports
-import { NextResponse } from "next/server";
+// V1_FINAL — edge runtime
 import { z } from "zod";
-
 import { auth } from "@/auth";
 
-// IMPORTANT: do NOT statically import @/lib/agents/runtime — it pulls the
-// `ai` SDK and the entire tools graph (~10MB), which co-bundles with sibling
-// routes (/api/agents, /api/agents/[id]) in the same lambda and blows past
-// the cold-start budget. Lazy-load only when this POST handler actually runs.
-export const maxDuration = 60; // seconds — Vercel function timeout
-export const dynamic = "force-dynamic";
-export const runtime = "nodejs";
+export const runtime = "edge";
 
 const Body = z.object({
   objective: z.string().min(1).max(8000),
@@ -22,10 +14,10 @@ export async function POST(
   ctx: { params: Promise<{ id: string }> },
 ) {
   const session = await auth();
-  if (!session?.user.activeOrgId)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!session?.user?.activeOrgId)
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
   if (!["operator", "builder", "admin", "owner"].includes(session.user.activeOrgRole ?? "")) {
-    return NextResponse.json({ error: "Need operator role" }, { status: 403 });
+    return Response.json({ error: "Need operator role" }, { status: 403 });
   }
 
   const { id } = await ctx.params;
@@ -33,7 +25,7 @@ export async function POST(
   try {
     body = Body.parse(await req.json());
   } catch {
-    return NextResponse.json({ error: "Invalid body" }, { status: 422 });
+    return Response.json({ error: "Invalid body" }, { status: 422 });
   }
 
   const { audit } = await import("@/lib/audit");
@@ -48,8 +40,6 @@ export async function POST(
   }).catch(() => undefined);
 
   try {
-    // Lazy import — keeps the heavy `ai` + tools graph out of the lambda
-    // cold-start path for sibling routes that share this bundle.
     const { runAgent } = await import("@/lib/agents/runtime");
     const result = await runAgent({
       agentId: id,
@@ -58,9 +48,9 @@ export async function POST(
       inputs: body.inputs,
       triggeredByUserId: session.user.id,
     });
-    return NextResponse.json(result);
+    return Response.json(result);
   } catch (e: unknown) {
-    return NextResponse.json(
+    return Response.json(
       { error: e instanceof Error ? e.message : "Run failed" },
       { status: 500 },
     );

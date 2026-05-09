@@ -1,9 +1,5 @@
-// V1_FINAL — lazy-load heavy modules
-import { NextResponse } from "next/server";
-
-export const dynamic = "force-dynamic";
-export const runtime = "nodejs";
-export const maxDuration = 30;
+// V1_FINAL — edge runtime
+export const runtime = "edge";
 
 export async function GET(
   req: Request,
@@ -12,9 +8,10 @@ export async function GET(
   const { provider: slug } = await ctx.params;
   const { getProvider } = await import("@/lib/integrations/providers");
   const provider = getProvider(slug);
+  const base = new URL(req.url);
   if (!provider || provider.flow.type !== "oauth2") {
-    return NextResponse.redirect(
-      new URL("/dashboard/integrations?error=unknown-provider", req.url),
+    return Response.redirect(
+      new URL("/dashboard/integrations?error=unknown-provider", base).toString(),
     );
   }
 
@@ -24,16 +21,16 @@ export async function GET(
   const errorParam = url.searchParams.get("error");
 
   if (errorParam) {
-    return NextResponse.redirect(
+    return Response.redirect(
       new URL(
         `/dashboard/integrations?error=${encodeURIComponent(errorParam)}&provider=${slug}`,
-        req.url,
-      ),
+        base,
+      ).toString(),
     );
   }
   if (!code || !state) {
-    return NextResponse.redirect(
-      new URL(`/dashboard/integrations?error=missing-params&provider=${slug}`, req.url),
+    return Response.redirect(
+      new URL(`/dashboard/integrations?error=missing-params&provider=${slug}`, base).toString(),
     );
   }
 
@@ -42,19 +39,21 @@ export async function GET(
   try {
     payload = verifyState(state);
   } catch {
-    return NextResponse.redirect(
-      new URL(`/dashboard/integrations?error=invalid-state&provider=${slug}`, req.url),
+    return Response.redirect(
+      new URL(`/dashboard/integrations?error=invalid-state&provider=${slug}`, base).toString(),
     );
   }
   if (payload.provider !== slug) {
-    return NextResponse.redirect(
-      new URL(`/dashboard/integrations?error=provider-mismatch`, req.url),
+    return Response.redirect(
+      new URL(`/dashboard/integrations?error=provider-mismatch`, base).toString(),
     );
   }
 
   try {
-    const { persistOauthConnection } = await import("@/lib/integrations/store");
-    const { audit } = await import("@/lib/audit");
+    const [{ persistOauthConnection }, { audit }] = await Promise.all([
+      import("@/lib/integrations/store"),
+      import("@/lib/audit"),
+    ]);
     const integ = await persistOauthConnection({
       orgId: payload.orgId,
       provider,
@@ -71,14 +70,14 @@ export async function GET(
     }).catch(() => undefined);
 
     const back = payload.returnTo ?? "/dashboard/integrations";
-    return NextResponse.redirect(new URL(`${back}?connected=${slug}`, req.url));
+    return Response.redirect(new URL(`${back}?connected=${slug}`, base).toString());
   } catch (e) {
     const msg = e instanceof Error ? e.message : "exchange-failed";
-    return NextResponse.redirect(
+    return Response.redirect(
       new URL(
         `/dashboard/integrations?error=${encodeURIComponent(msg)}&provider=${slug}`,
-        req.url,
-      ),
+        base,
+      ).toString(),
     );
   }
 }

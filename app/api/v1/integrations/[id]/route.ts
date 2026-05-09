@@ -1,10 +1,7 @@
-// V1_FINAL — lazy-load heavy modules
-import { NextResponse } from "next/server";
+// V1_FINAL — edge runtime
 import { auth } from "@/auth";
 
-export const dynamic = "force-dynamic";
-export const runtime = "nodejs";
-export const maxDuration = 30;
+export const runtime = "edge";
 
 export async function DELETE(
   _req: Request,
@@ -12,11 +9,13 @@ export async function DELETE(
 ) {
   const session = await auth();
   if (!session?.user?.activeOrgId)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await ctx.params;
-  const { disconnectIntegration } = await import("@/lib/integrations/store");
-  const { audit } = await import("@/lib/audit");
+  const [{ disconnectIntegration }, { audit }] = await Promise.all([
+    import("@/lib/integrations/store"),
+    import("@/lib/audit"),
+  ]);
   await disconnectIntegration(session.user.activeOrgId, id);
 
   await audit({
@@ -28,5 +27,5 @@ export async function DELETE(
     resourceId: id,
   }).catch(() => undefined);
 
-  return NextResponse.json({ ok: true });
+  return Response.json({ ok: true });
 }

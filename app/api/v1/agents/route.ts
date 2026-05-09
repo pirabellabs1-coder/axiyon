@@ -1,11 +1,8 @@
-// V1_FINAL — minimal top-level imports + lazy heavy deps
-import { NextResponse } from "next/server";
+// V1_FINAL — edge runtime
 import { z } from "zod";
 import { auth } from "@/auth";
 
-export const dynamic = "force-dynamic";
-export const runtime = "nodejs";
-export const maxDuration = 30;
+export const runtime = "edge";
 
 const Body = z.object({
   templateSlug: z.string().min(1).max(64),
@@ -19,7 +16,7 @@ const Body = z.object({
 export async function GET() {
   const session = await auth();
   if (!session?.user?.activeOrgId)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
 
   const [{ eq, sql }, dbMod] = await Promise.all([
     import("drizzle-orm"),
@@ -33,16 +30,16 @@ export async function GET() {
     .where(eq(agentInstances.orgId, session.user.activeOrgId))
     .orderBy(sql`${agentInstances.createdAt} DESC`);
 
-  return NextResponse.json(rows);
+  return Response.json(rows);
 }
 
 export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user?.activeOrgId)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
 
   if (!["builder", "admin", "owner"].includes(session.user.activeOrgRole ?? "")) {
-    return NextResponse.json(
+    return Response.json(
       { error: "Need builder role or higher to hire" },
       { status: 403 },
     );
@@ -52,7 +49,7 @@ export async function POST(req: Request) {
   try {
     body = Body.parse(await req.json());
   } catch {
-    return NextResponse.json({ error: "Invalid body" }, { status: 422 });
+    return Response.json({ error: "Invalid body" }, { status: 422 });
   }
 
   const [dbMod, catMod, audMod] = await Promise.all([
@@ -66,7 +63,7 @@ export async function POST(req: Request) {
 
   const tpl = getTemplate(body.templateSlug);
   if (!tpl) {
-    return NextResponse.json(
+    return Response.json(
       { error: `Unknown template: ${body.templateSlug}` },
       { status: 404 },
     );
@@ -95,5 +92,5 @@ export async function POST(req: Request) {
     payload: { template: body.templateSlug, name: body.name },
   });
 
-  return NextResponse.json(row, { status: 201 });
+  return Response.json(row, { status: 201 });
 }

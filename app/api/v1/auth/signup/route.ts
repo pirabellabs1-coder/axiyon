@@ -1,10 +1,7 @@
-// V1_FINAL — lazy imports to keep cold-start fast
-import { NextResponse } from "next/server";
+// V1_FINAL — edge runtime (bcryptjs is pure JS, drizzle+neon-http edge-safe)
 import { z } from "zod";
 
-export const dynamic = "force-dynamic";
-export const runtime = "nodejs";
-export const maxDuration = 30;
+export const runtime = "edge";
 
 const Body = z.object({
   email: z.string().email().toLowerCase(),
@@ -29,23 +26,23 @@ export async function POST(req: Request) {
   try {
     body = Body.parse(await req.json());
   } catch {
-    return NextResponse.json({ error: "Invalid body" }, { status: 422 });
+    return Response.json({ error: "Invalid body" }, { status: 422 });
   }
 
-  // Lazy-load heavy modules so cold-start of the route bundle stays light.
-  const [{ default: bcrypt }, { eq }, dbMod, { audit }] = await Promise.all([
+  const [{ default: bcrypt }, { eq }, dbMod, audMod] = await Promise.all([
     import("bcryptjs"),
     import("drizzle-orm"),
     import("@/lib/db"),
     import("@/lib/audit"),
   ]);
   const { db, users, orgs, orgMembers } = dbMod;
+  const { audit } = audMod;
 
   const existing = await db.query.users.findFirst({
     where: eq(users.email, body.email),
   });
   if (existing) {
-    return NextResponse.json({ error: "Email already in use" }, { status: 409 });
+    return Response.json({ error: "Email already in use" }, { status: 409 });
   }
 
   const passwordHash = await bcrypt.hash(body.password, 12);
@@ -86,7 +83,7 @@ export async function POST(req: Request) {
     resourceId: user.id,
   });
 
-  return NextResponse.json(
+  return Response.json(
     { id: user.id, email: user.email, orgId: org.id, slug: org.slug },
     { status: 201 },
   );
