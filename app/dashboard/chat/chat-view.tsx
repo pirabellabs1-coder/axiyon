@@ -110,13 +110,20 @@ export function ChatView({ userName }: { userName: string }) {
   // Reveal scripted messages progressively for the "live" feel.
   useEffect(() => {
     let i = 0;
+    let cancelled = false;
     const tick = () => {
-      if (i >= SCRIPT.length) return;
-      setShown((prev) => [...prev, SCRIPT[i]]);
+      if (cancelled || i >= SCRIPT.length) return;
+      const msg = SCRIPT[i]; // capture BEFORE incrementing
       i++;
+      if (!msg) return;
+      setShown((prev) => [...prev, msg]);
       setTimeout(tick, 1200 + Math.random() * 800);
     };
-    setTimeout(tick, 400);
+    const t = setTimeout(tick, 400);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
   }, []);
 
   useEffect(() => {
@@ -173,7 +180,7 @@ export function ChatView({ userName }: { userName: string }) {
 
           {/* Messages */}
           <div ref={messagesRef} className="flex-1 overflow-y-auto px-5 py-5 space-y-5">
-            {shown.map((m, i) => (
+            {shown.filter(Boolean).map((m, i) => (
               <Message key={i} msg={m} userName={userName} />
             ))}
           </div>
@@ -258,6 +265,7 @@ export function ChatView({ userName }: { userName: string }) {
 // ─── Subcomponents ────────────────────────────────────────────────────
 
 function Message({ msg, userName }: { msg: Msg; userName: string }) {
+  if (!msg) return null;
   if (msg.who === "user") {
     return (
       <div className="flex gap-3">
