@@ -82,28 +82,28 @@ export async function runWithPuter(opts: PuterRunOptions): Promise<PuterRunResul
   await waitForPuter();
 
   // Pull this agent's recent task history so it has working memory across
-  // turns. We squash the last 5 turns into the system prompt so the LLM
-  // doesn't redo work it already did. Best-effort: silent fail.
+  // turns. We squash the last 6 turns (3 user + 3 assistant) into the system
+  // prompt — enough for continuity, small enough to stay well under context.
+  // Best-effort: silent fail if the endpoint is unavailable.
   let memorySnippet = "";
   try {
     const r = await fetch(
-      `/api/v1/chat/history?agentId=${encodeURIComponent(opts.agentId)}&limit=10`,
+      `/api/v1/chat/history?agentId=${encodeURIComponent(opts.agentId)}&limit=6`,
       { cache: "no-store" },
     );
     if (r.ok) {
       const data = (await r.json()) as {
         turns: Array<{ role: "user" | "assistant"; content: string; createdAt: string }>;
       };
-      const recent = data.turns.slice(-10);
+      const recent = (data.turns ?? []).slice(-6);
       if (recent.length) {
         const lines = recent.map((t) => {
-          const text = t.content.replace(/\s+/g, " ").trim().slice(0, 240);
+          const text = t.content.replace(/\s+/g, " ").trim().slice(0, 200);
           return `[${t.role === "user" ? "USER" : "YOU"}] ${text}`;
         });
         memorySnippet =
-          "\n\n═══ Previous turns with this agent (working memory) ═══\n" +
-          lines.join("\n") +
-          "\n═══════════════════════════════════════════════════════\n";
+          "\n\nRecent turns with this user (continuity context):\n" +
+          lines.join("\n");
       }
     }
   } catch {
@@ -145,6 +145,11 @@ export async function runWithPuter(opts: PuterRunOptions): Promise<PuterRunResul
   const collectedToolCalls: PuterRunResult["toolCalls"] = [];
   let finalText = "";
   let step = 0;
+  // We allow ourselves at MOST one "you procrastinated, execute now" nudge
+  // per run. Beyond that we accept the model's plain answer rather than
+  // looping forever (which we did in 25d42f9 and broke replies entirely).
+  let executionNudgesUsed = 0;
+  const MAX_EXECUTION_NUDGES = 1;
   const model = opts.model ?? DEFAULT_MODEL;
 
   while (step < MAX_STEPS) {
@@ -173,34 +178,41 @@ export async function runWithPuter(opts: PuterRunOptions): Promise<PuterRunResul
     const toolCalls = message?.tool_calls ?? [];
     const assistantText = extractText(message?.content) || response?.text || "";
 
-    // No tool calls → maybe a final answer, but check for procrastination first.
+    // No tool calls → usually means the agent has its final answer.
     if (!toolCalls.length) {
       const trimmed = String(assistantText).trim();
-      // If the agent emitted a "I will / je vais / let me / I'm going to"
-      // promise-of-action without actually calling any tool yet AND we still
-      // have steps left, push back once and force execution.
+
+      // SAFETY GUARD: only nudge once per run, and only when the answer is
+      // clearly a "promise of future action" with NO substance. Generic
+      // French replies starting with "Je ..." are NOT procrastination.
       const hasNoToolHistory = collectedToolCalls.length === 0;
-      const looksLikePromise =
-        /\b(je vais|je vais commencer|je commence|let me|i will|i'll|i'm going to|i need to|i would|on va|d'abord)\b/i.test(
-          trimmed,
-        ) || /^(je \w+|d'abord|tout d'abord|commençons)/i.test(trimmed);
+      const isShort = trimmed.length < 320; // long answers are real answers
+      const PROCRASTINATION_RE =
+        /(?:^|\n)\s*(?:je vais (?:commencer par|d['e]abord|maintenant|imm[ée]diatement)\b|let me (?:start|begin|first|do that)\b|i'?ll (?:start|begin|first|do that|go ahead)\b|i'?m going to (?:start|begin)\b|d'abord, je vais\b|tout d'abord, je vais\b)/i;
+      const looksLikePurePromise =
+        isShort &&
+        PROCRASTINATION_RE.test(trimmed) &&
+        // and the answer doesn't already contain a result / recap
+        !/✅|✓|terminé|done|complete|résumé|recap|finalisé/i.test(trimmed);
+
       if (
         hasNoToolHistory &&
-        looksLikePromise &&
-        step < MAX_STEPS - 1 &&
-        trimmed.length > 0
+        looksLikePurePromise &&
+        executionNudgesUsed < MAX_EXECUTION_NUDGES &&
+        step < MAX_STEPS - 1
       ) {
-        // Keep the assistant's plan in the conversation so the model can build
-        // on it, then nudge with a user turn that requires immediate execution.
+        executionNudgesUsed += 1;
         messages.push({ role: "assistant", content: trimmed });
         messages.push({
           role: "user",
           content:
-            "Stop planning. Execute now: invoke the relevant tool(s) with concrete arguments. " +
-            "Do NOT describe what you're going to do — make the actual function call this turn.",
+            "Execute that intention now: call the tool you said you'd call, " +
+            "with concrete arguments. If you genuinely need a clarification, " +
+            "ask exactly one short question instead.",
         });
-        continue; // re-loop, model now knows it must call a tool
+        continue;
       }
+
       finalText = trimmed;
       if (opts.onText && finalText) opts.onText(finalText);
       break;
@@ -260,17 +272,6 @@ export async function runWithPuter(opts: PuterRunOptions): Promise<PuterRunResul
 
   if (step >= MAX_STEPS && !finalText) {
     finalText = `[Limite de ${MAX_STEPS} étapes atteinte sans réponse finale.]`;
-  }
-  // If the agent gave a final answer but never called a single tool while the
-  // user objective clearly demanded one, append a visible reminder so the user
-  // sees the model procrastinated. (Avoids the silent "I will…" failure mode.)
-  if (
-    finalText &&
-    collectedToolCalls.length === 0 &&
-    /\b(je vais|let me|i will|i'll)\b/i.test(finalText)
-  ) {
-    finalText +=
-      "\n\n⚠️ *Rapport interne : aucun outil n'a été appelé pendant ce tour.*";
   }
 
   // Persist the run as a Task so it shows up in /dashboard/tasks + audit.
