@@ -433,6 +433,28 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 .demo-banner a{color:var(--blue-2);text-decoration:underline;font-weight:500}
 .demo-banner button{margin-left:auto;color:var(--ink-3)}
 .demo-banner button:hover{color:var(--ink)}
+
+/* ===== MOBILE-FIRST OVERFLOW GUARDS ===== */
+html,body{max-width:100%;overflow-x:hidden}
+*,*::before,*::after{max-width:100%}
+img,video,iframe,svg{max-width:100%;height:auto}
+@media(max-width:720px){
+  .view{padding:14px !important}
+  .view-header{flex-direction:column !important;align-items:flex-start !important;gap:10px !important}
+  .view-title{font-size:18px !important}
+  .topbar-org{display:none}
+  .topbar-divider{display:none}
+  .kpi-row,.kpi-grid{grid-template-columns:1fr !important}
+  .integ-grid{grid-template-columns:1fr !important}
+  .panel{padding:14px !important}
+  .tbl{font-size:11px}
+  .tbl thead th,.tbl tbody td{padding:8px 6px !important}
+  /* Allow horizontal scroll on tables only (so contents stay readable) */
+  .panel > .tbl{display:block;overflow-x:auto;white-space:nowrap}
+  .settings-row{grid-template-columns:1fr !important;gap:4px !important}
+  .settings-label{font-size:11px;text-transform:uppercase;letter-spacing:.06em}
+}
+
 </style>
 </head>
 <body>

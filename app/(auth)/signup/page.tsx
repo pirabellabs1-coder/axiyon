@@ -1,13 +1,30 @@
 "use client";
 
 import { Suspense, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { signIn } from "next-auth/react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+
+const AUTH_BASE = "/api/v1/auth";
+
+async function loginCreds(email: string, password: string, callbackUrl: string) {
+  const c = await fetch(`${AUTH_BASE}/csrf`, { credentials: "include" });
+  const { csrfToken } = (await c.json()) as { csrfToken: string };
+  const body = new URLSearchParams({ email, password, csrfToken, callbackUrl });
+  await fetch(`${AUTH_BASE}/callback/credentials`, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: body.toString(),
+    credentials: "include",
+    redirect: "manual",
+  });
+  const sess = await fetch(`${AUTH_BASE}/session`, { credentials: "include" });
+  const data = (await sess.json().catch(() => null)) as { user?: { id: string } } | null;
+  return !!data?.user?.id;
+}
 
 export default function SignupPage() {
   return (
@@ -18,7 +35,6 @@ export default function SignupPage() {
 }
 
 function SignupForm() {
-  const router = useRouter();
   const search = useSearchParams();
   const callbackUrl = search.get("callbackUrl") ?? "/dashboard";
   const [error, setError] = useState<string | null>(null);
@@ -30,7 +46,7 @@ function SignupForm() {
     setError(null);
     const fd = new FormData(e.currentTarget);
     const payload = {
-      email: String(fd.get("email") ?? ""),
+      email: String(fd.get("email") ?? "").toLowerCase().trim(),
       name: String(fd.get("name") ?? ""),
       password: String(fd.get("password") ?? ""),
       orgName: String(fd.get("org") ?? "") || undefined,
@@ -49,18 +65,13 @@ function SignupForm() {
       return;
     }
 
-    // Auto-login
-    const result = await signIn("credentials", {
-      email: payload.email,
-      password: payload.password,
-      redirect: false,
-    });
-    if (result?.error) {
+    // Auto-login via direct fetch (signIn() of next-auth/react doesn't respect basePath).
+    const ok = await loginCreds(payload.email, payload.password, callbackUrl);
+    if (!ok) {
       setError("Compte créé. Connexion impossible — réessayez via /login.");
       setLoading(false);
       return;
     }
-    // Full reload so middleware picks up the freshly-set session cookie.
     window.location.assign(callbackUrl);
   }
 
