@@ -3,10 +3,15 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { auth } from "@/auth";
-import { runAgent } from "@/lib/agents/runtime";
 import { audit } from "@/lib/audit";
 
+// IMPORTANT: do NOT statically import @/lib/agents/runtime — it pulls the
+// `ai` SDK and the entire tools graph (~10MB), which co-bundles with sibling
+// routes (/api/agents, /api/agents/[id]) in the same lambda and blows past
+// the cold-start budget. Lazy-load only when this POST handler actually runs.
 export const maxDuration = 60; // seconds — Vercel function timeout
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 const Body = z.object({
   objective: z.string().min(1).max(8000),
@@ -43,6 +48,9 @@ export async function POST(
   }).catch(() => undefined);
 
   try {
+    // Lazy import — keeps the heavy `ai` + tools graph out of the lambda
+    // cold-start path for sibling routes that share this bundle.
+    const { runAgent } = await import("@/lib/agents/runtime");
     const result = await runAgent({
       agentId: id,
       orgId: session.user.activeOrgId,
