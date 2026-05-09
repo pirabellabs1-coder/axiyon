@@ -2,27 +2,16 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "marketing-site",
-      "runtimeExecutable": "python",
-      "runtimeArgs": ["-m", "http.server", "8080"],
-      "port": 8080
+      "name": "next-dev",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["next", "dev", "--turbo", "-p", "3000"],
+      "port": 3000
     },
     {
-      "name": "api-backend",
+      "name": "demo-static",
       "runtimeExecutable": "python",
-      "runtimeArgs": [
-        "-m",
-        "uvicorn",
-        "axion.main:app",
-        "--host",
-        "0.0.0.0",
-        "--port",
-        "8000",
-        "--reload",
-        "--app-dir",
-        "backend/src"
-      ],
-      "port": 8000
+      "runtimeArgs": ["-m", "http.server", "8080", "--directory", "public"],
+      "port": 8080
     }
   ]
 }

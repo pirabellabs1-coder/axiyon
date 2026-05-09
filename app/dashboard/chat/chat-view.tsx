@@ -374,166 +374,304 @@ export function ChatView({
         </span>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-4">
-        {/* Chat */}
-        <div className="rounded-xl border border-line bg-bg-2 overflow-hidden flex flex-col h-[calc(100vh-220px)]">
-          <div className="flex items-center gap-3 px-5 py-4 border-b border-line bg-bg-3/40">
-            <span
-              className={`size-8 rounded-md bg-gradient-to-br ${gradientFor(activeAgent?.templateSlug ?? "")} text-white flex items-center justify-center`}
-            >
-              <Icon className="size-4" strokeWidth={2} />
-            </span>
-            <div className="flex-1 min-w-0">
+      {/* Demo-parity layout — uses the verbatim class names from
+          public/dashboard.html so the React app matches the static mock. */}
+      <div className="chat-shell">
+        <div className="chat-main">
+          <div className="chat-header">
+            <div className="chat-agent-icon">
+              {agentsInPlay.length > 1
+                ? agentsInPlay.length
+                : (activeAgent?.name?.[0] ?? "A").toUpperCase()}
+            </div>
+            <div>
               {agentsInPlay.length > 1 ? (
                 <>
-                  <div className="font-medium text-sm">
+                  <div className="chat-agent-name">
                     Workflow · {agentsInPlay.map((a) => a.name).join(" → ")}
                   </div>
-                  <div className="text-[11px] font-mono text-ink-3">
-                    {agentsInPlay.length} agents en jeu
-                    {messages[0]?.at
-                      ? ` · démarré ${formatRelative(messages[0].at)}`
-                      : ""}
+                  <div className="chat-agent-meta">
+                    {agentsInPlay.length} agents
+                    {messages[0]?.at ? ` · démarré ${formatRelative(messages[0].at)}` : ""}
                   </div>
                 </>
               ) : (
                 <>
-                  <div className="font-medium text-sm">{activeAgent?.name}</div>
-                  <div className="text-[11px] font-mono text-ink-3">
-                    {activeAgent?.status}
+                  <div className="chat-agent-name">{activeAgent?.name}</div>
+                  <div className="chat-agent-meta">
+                    {CATALOG[activeAgent?.templateSlug ?? ""]?.role ?? activeAgent?.status}
                   </div>
                 </>
               )}
             </div>
             {(running || agentsInPlay.length > 1) && (
-              <span className="inline-flex items-center gap-1.5 text-[10px] font-mono text-brand-green">
-                <span className="size-1.5 rounded-full bg-brand-green shadow-[0_0_8px_rgba(52,211,153,.7)] animate-pulse" />
+              <div className="chat-status">
+                <div className="dot" />
                 LIVE
-              </span>
+              </div>
             )}
           </div>
 
-          <div ref={messagesRef} className="flex-1 overflow-y-auto px-5 py-5 space-y-5">
+          <div ref={messagesRef} className="chat-messages">
             {loadingHistory ? (
               <div className="text-center text-ink-3 text-xs font-mono py-12 animate-pulse">
                 Chargement de l&apos;historique…
               </div>
             ) : messages.length === 0 ? (
               <div className="text-center text-ink-3 text-sm py-12">
-                Donnez un objectif à <strong>{activeAgent?.name}</strong>. Il choisira ses
-                outils et vous tiendra au courant.
+                Donnez un objectif. Vos agents s&apos;organisent.
               </div>
             ) : (
               messages.map((m) => (
-                <Message
-                  key={m.id}
-                  msg={m}
-                  initials={headerInitials}
-                  userName={userName}
-                />
+                <DemoMessage key={m.id} msg={m} initials={headerInitials} userName={userName} />
               ))
             )}
           </div>
 
-          <form onSubmit={send} className="border-t border-line bg-bg-3/40 px-4 py-3 flex gap-2">
-            <input
+          <form onSubmit={send} className="chat-input">
+            <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder={
                 puterReady
-                  ? `Donnez un objectif à ${activeAgent?.name?.split(" ")[0] ?? "l'agent"}…`
+                  ? "Donnez un nouvel objectif à vos agents..."
                   : "Chargement du moteur LLM…"
               }
               disabled={running || !puterReady}
-              className="flex-1 bg-transparent border-0 outline-none text-sm placeholder:text-ink-3 disabled:opacity-50"
+              rows={1}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  // Submit the form
+                  e.currentTarget.form?.requestSubmit();
+                }
+              }}
             />
             <button
               type="submit"
+              className="chat-send"
               disabled={running || !puterReady || !input.trim()}
-              className="size-9 rounded-md bg-gradient-to-br from-[#5B6CFF] to-[#22D3EE] text-white shadow-[0_4px_16px_rgba(91,108,255,.4)] hover:opacity-90 transition-opacity flex items-center justify-center disabled:opacity-40"
               aria-label="Envoyer"
             >
-              <Send className="size-4" strokeWidth={2.2} />
+              →
             </button>
           </form>
         </div>
 
-        {/* Right sidebar — real-data context */}
-        <aside className="space-y-4">
-          <SidePanel title="Agents en jeu">
+        <div className="chat-side">
+          <div className="chat-side-section">
+            <h5>Agents en jeu</h5>
             {agentsInPlay.length === 0 ? (
-              <div className="text-[11px] text-ink-3">Aucun agent actif.</div>
+              <div className="chat-side-block" style={{ color: "#5A5A6E", fontSize: 11 }}>
+                Aucun agent actif.
+              </div>
             ) : (
               agentsInPlay.map((a) => {
-                const I = iconFor(a.templateSlug);
-                const isActive = a.id === activeAgent?.id;
+                const isActive = a.id === activeAgent?.id || running;
+                const cls = avatarClassFor(a.templateSlug, a.name);
+                const role = CATALOG[a.templateSlug]?.role ?? a.status;
                 return (
-                  <div key={a.id} className="rounded-md border border-line bg-bg-3 p-2.5">
-                    <div className="flex items-center gap-2 mb-1">
+                  <div key={a.id} className="chat-side-block">
+                    <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 6 }}>
+                      <div className={`msg-avatar ${cls}`} style={{ width: 24, height: 24, fontSize: 10 }}>
+                        {a.name[0]?.toUpperCase()}
+                      </div>
+                      <strong>{a.name}</strong>
                       <span
-                        className={`size-6 rounded bg-gradient-to-br ${gradientFor(a.templateSlug)} text-white flex items-center justify-center shrink-0`}
+                        style={{
+                          marginLeft: "auto",
+                          fontSize: 10,
+                          color: isActive ? "#34D399" : "#5A5A6E",
+                        }}
                       >
-                        <I className="size-3" strokeWidth={2} />
+                        {isActive ? "●" : "○"}
                       </span>
-                      <strong className="text-sm truncate">{a.name}</strong>
-                      <span
-                        className={`ml-auto size-2 rounded-full shrink-0 ${
-                          isActive
-                            ? "bg-brand-green shadow-[0_0_6px_rgba(52,211,153,.6)]"
-                            : "bg-ink-3"
-                        }`}
-                      />
                     </div>
-                    <div className="text-[11px] text-ink-2">{a.status}</div>
+                    <div style={{ fontSize: 11, color: "#9A9AAE" }}>{role}</div>
                   </div>
                 );
               })
             )}
-          </SidePanel>
+          </div>
 
-          <SidePanel title="Outils utilisés">
-            {toolCounts.length === 0 ? (
-              <div className="text-[11px] text-ink-3">
-                Aucun appel d&apos;outil dans cette conversation.
-              </div>
-            ) : (
-              toolCounts.map(([name, n]) => <KV key={name} k={name} v={String(n)} />)
-            )}
-          </SidePanel>
-
-          <SidePanel title="Budget consommé · ce mois">
-            <KV k="Tâches" v={`${orgStats.tasksUsed.toLocaleString("fr-FR")} / ${orgStats.tasksLimit.toLocaleString("fr-FR")}`} />
-            <KV
-              k="Coût"
-              v={`${orgStats.budgetUsedEur.toFixed(2).replace(".", ",")} € / ${orgStats.budgetLimitEur} €`}
-            />
-            <div className="mt-3 h-1 rounded-full bg-bg-3 overflow-hidden">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-[#5B6CFF] to-[#22D3EE]"
-                style={{ width: `${Math.max(budgetPct, tasksPct)}%` }}
-              />
+          <div className="chat-side-section">
+            <h5>Outils utilisés</h5>
+            <div className="chat-side-block">
+              {toolCounts.length === 0 ? (
+                <div style={{ color: "#5A5A6E", fontSize: 11 }}>
+                  Aucun appel d&apos;outil dans cette conversation.
+                </div>
+              ) : (
+                toolCounts.map(([name, n]) => (
+                  <div key={name} className="kv">
+                    <span className="k">{name}</span>
+                    <span className="v">{n}</span>
+                  </div>
+                ))
+              )}
             </div>
-          </SidePanel>
+          </div>
 
-          <SidePanel title="Approbations">
+          <div className="chat-side-section">
+            <h5>Budget consommé</h5>
+            <div className="chat-side-block">
+              <div className="kv">
+                <span className="k">Tâches</span>
+                <span className="v">
+                  {orgStats.tasksUsed.toLocaleString("fr-FR")} / {orgStats.tasksLimit.toLocaleString("fr-FR")}
+                </span>
+              </div>
+              <div className="kv">
+                <span className="k">Coût</span>
+                <span className="v">
+                  {orgStats.budgetUsedEur.toFixed(2).replace(".", ",")} € / {orgStats.budgetLimitEur} €
+                </span>
+              </div>
+              <div
+                style={{
+                  height: 4,
+                  background: "#13131C",
+                  borderRadius: 2,
+                  marginTop: 8,
+                  overflow: "hidden",
+                }}
+              >
+                <div
+                  style={{
+                    width: `${Math.max(budgetPct, tasksPct)}%`,
+                    height: "100%",
+                    background: "linear-gradient(135deg,#5B6CFF 0%,#22D3EE 100%)",
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="chat-side-section">
+            <h5>Approbations</h5>
             {orgStats.pendingApprovals === 0 ? (
-              <div className="text-[11px] text-ink-3">Aucune en attente.</div>
+              <div className="chat-side-block" style={{ color: "#5A5A6E", fontSize: 11 }}>
+                Aucune en attente.
+              </div>
             ) : (
               <a
                 href="/dashboard/approvals"
-                className="block rounded-md border border-brand-yellow/40 bg-brand-yellow/5 p-3 hover:bg-brand-yellow/10 transition-colors"
+                className="chat-side-block block"
+                style={{ borderColor: "#FCD34D", background: "rgba(252,211,77,.05)" }}
               >
-                <div className="flex items-center gap-2 text-[11px] font-mono text-brand-yellow">
-                  <AlertCircle className="size-3.5" />
-                  {orgStats.pendingApprovals} en attente
+                <div
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 500,
+                    color: "#FCD34D",
+                    marginBottom: 6,
+                  }}
+                >
+                  ⚠ {orgStats.pendingApprovals} en attente
                 </div>
-                <div className="text-xs text-ink-2 mt-1">
+                <div style={{ fontSize: 11, color: "#9A9AAE" }}>
                   Voir et trancher →
                 </div>
               </a>
             )}
-          </SidePanel>
-        </aside>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Picks the demo's CSS modifier class (.iris, .atlas, .codex…) for an agent.
+function avatarClassFor(slug: string, name: string): string {
+  const map: Record<string, string> = {
+    "sdr-outbound": "iris",
+    "cfo-assistant": "atlas",
+    "support-l2": "sage",
+    "legal-counsel": "codex",
+    "recruiter": "nova",
+    "devops": "forge",
+    "growth-marketer": "lumen",
+    "inbox-manager": "inbox",
+  };
+  if (map[slug]) return map[slug];
+  // Fallback: try to match on name first letter for stability.
+  const lname = (name ?? "").toLowerCase();
+  if (lname.startsWith("iris")) return "iris";
+  if (lname.startsWith("atlas")) return "atlas";
+  if (lname.startsWith("codex")) return "codex";
+  if (lname.startsWith("sage")) return "sage";
+  if (lname.startsWith("nova")) return "nova";
+  if (lname.startsWith("forge")) return "forge";
+  if (lname.startsWith("lumen")) return "lumen";
+  if (lname.startsWith("inbox")) return "inbox";
+  return "default";
+}
+
+function DemoMessage({
+  msg,
+  initials,
+  userName,
+}: {
+  msg: ChatMessage;
+  initials: string;
+  userName: string;
+}) {
+  const hasError = msg.content.startsWith("⚠");
+  if (msg.role === "user") {
+    return (
+      <div className="msg">
+        <div className="msg-avatar user">{initials}</div>
+        <div className="msg-body">
+          <div className="msg-name">
+            {userName}
+            {msg.at && <span className="msg-time">{formatTime(msg.at)}</span>}
+          </div>
+          <div className="msg-text muted">{msg.content}</div>
+        </div>
+      </div>
+    );
+  }
+  const cls = avatarClassFor(msg.agent?.templateSlug ?? "", msg.agent?.name ?? "");
+  const role = msg.agent?.templateSlug ? CATALOG[msg.agent.templateSlug]?.role : null;
+  return (
+    <div className="msg">
+      <div className={`msg-avatar ${cls}`}>
+        {(msg.agent?.name?.[0] ?? "A").toUpperCase()}
+      </div>
+      <div className="msg-body">
+        <div className="msg-name">
+          {msg.agent?.name ?? "Agent"}
+          {role && <span className="role">{role}</span>}
+          {msg.pending ? (
+            <span style={{ fontSize: 10, color: "#5A5A6E", animation: "msgIn 1s infinite" }}>
+              {msg.toolCalls?.length
+                ? `${msg.toolCalls.length} outil${msg.toolCalls.length > 1 ? "s" : ""} appelé${msg.toolCalls.length > 1 ? "s" : ""}…`
+                : "réfléchit…"}
+            </span>
+          ) : null}
+          {msg.at && <span className="msg-time">{formatTime(msg.at)}</span>}
+        </div>
+        {msg.content && <Markdown content={msg.content} className="msg-text" />}
+        {msg.toolCalls?.map((tc, i) => {
+          const argsLine = formatArgsLine(tc.args);
+          const resultSummary = summarizeResult(tc.result, tc.error);
+          return (
+            <div key={i} className="msg-tool">
+              <span className="tool-name">{tc.name}</span>
+              <span className="tool-arg">{argsLine}</span>
+              {resultSummary && (
+                <span className="tool-result" style={tc.error ? { color: "#F87171" } : undefined}>
+                  → {resultSummary}
+                </span>
+              )}
+            </div>
+          );
+        })}
+        {hasError && (
+          <div style={{ marginTop: 8, fontSize: 11, color: "#F87171" }}>
+            ⚠ Vérifiez que vous êtes signé in dans Puter (popup auto au premier appel).
+          </div>
+        )}
       </div>
     </div>
   );

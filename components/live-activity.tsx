@@ -12,18 +12,6 @@ export interface FeedItem {
   status?: string;
 }
 
-const TEMPLATE_GRADIENTS: Record<string, string> = {
-  "sdr-outbound":    "from-[#5B6CFF] to-[#22D3EE]",
-  "cfo-assistant":   "from-[#FF3D8E] to-[#5B6CFF]",
-  "support-l2":      "from-[#22D3EE] to-[#34D399]",
-  "legal-counsel":   "from-[#E8B86D] to-[#FF3D8E]",
-  "recruiter":       "from-[#FF3D8E] to-[#E8B86D]",
-  "devops":          "from-[#5A5A6E] to-[#7C8AFF]",
-  "growth-marketer": "from-[#34D399] to-[#22D3EE]",
-  "data-scientist":  "from-[#7C8AFF] to-[#FF3D8E]",
-  "ops-lead":        "from-[#5A5A6E] to-[#FF3D8E]",
-};
-
 export function LiveActivity({ initial }: { initial: FeedItem[] }) {
   const [items, setItems] = useState<FeedItem[]>(initial);
   const [error, setError] = useState<string | null>(null);
@@ -84,74 +72,55 @@ export function LiveActivity({ initial }: { initial: FeedItem[] }) {
   }
 
   return (
-    <ul className="space-y-3">
+    <div className="feed">
       {items.map((it) => {
-        const accent = it.agent
-          ? AGENT_COLORS[it.agent.slug] ?? "text-brand-blue-2"
-          : "text-ink-2";
+        const cls = it.agent ? FEED_AGENT_CLASS[it.agent.slug] ?? "default" : "default";
         return (
-          <li key={it.id} className="flex items-start gap-2.5 text-xs">
-            <ItemIcon item={it} />
-            <div className="flex-1 min-w-0">
-              <div className="text-ink-2 leading-snug">
-                {it.agent ? (
-                  <span className={`font-medium ${accent}`}>{it.agent.name}</span>
-                ) : null}
-                {it.agent ? " " : null}
-                <span className="text-ink-2">{verbForKind(it)}</span>{" "}
-                <span className="font-medium text-ink">{it.text}</span>
-              </div>
-              <div className="text-[10px] font-mono text-ink-3 mt-0.5">
-                il y a {relAge(new Date(it.at))}
-              </div>
+          <div key={it.id} className="feed-item">
+            <div className={`feed-icon ${cls}`}>
+              <FeedSvg item={it} />
             </div>
-          </li>
+            <div className="feed-content">
+              <div className="feed-line">
+                {it.agent ? <span className="agent">{it.agent.name}</span> : null}
+                {it.agent ? " " : null}
+                <span className="action">{verbForKind(it)}</span>{" "}
+                <strong>{it.text}</strong>
+              </div>
+              <div className="feed-time">il y a {relAge(new Date(it.at))}</div>
+            </div>
+          </div>
         );
       })}
       {error ? (
-        <li className="text-[10px] text-brand-red font-mono">⚠ {error}</li>
+        <div className="text-[10px] text-brand-red font-mono">⚠ {error}</div>
       ) : null}
-    </ul>
+    </div>
   );
 }
 
-// Per-template agent name colours used in the live feed (matches the gradient
-// used for their avatars). Falls back to brand-blue-2 if unknown.
-const AGENT_COLORS: Record<string, string> = {
-  "sdr-outbound": "text-brand-blue-2",
-  "cfo-assistant": "text-brand-magenta",
-  "support-l2": "text-brand-cyan",
-  "legal-counsel": "text-brand-yellow",
-  "recruiter": "text-brand-magenta",
-  "devops": "text-ink",
-  "growth-marketer": "text-brand-green",
-  "data-scientist": "text-brand-magenta",
-  "ops-lead": "text-ink-2",
-  "inbox-manager": "text-brand-cyan",
+// Map template slug → CSS modifier class for the feed-icon gradient.
+const FEED_AGENT_CLASS: Record<string, string> = {
+  "sdr-outbound": "iris",
+  "cfo-assistant": "atlas",
+  "support-l2": "sage",
+  "legal-counsel": "codex",
+  "recruiter": "nova",
+  "devops": "forge",
+  "growth-marketer": "lumen",
+  "inbox-manager": "inbox",
 };
 
-function ItemIcon({ item }: { item: FeedItem }) {
-  if (item.kind === "task" && item.agent) {
-    const grad =
-      TEMPLATE_GRADIENTS[item.agent.slug] ?? "from-[#5B6CFF] to-[#22D3EE]";
-    return (
-      <span
-        className={`size-7 rounded-md bg-gradient-to-br ${grad} text-white flex items-center justify-center shrink-0`}
-      >
-        <Bot className="size-3.5" strokeWidth={2} />
-      </span>
-    );
+function FeedSvg({ item }: { item: FeedItem }) {
+  // Pick an SVG path based on agent template (or a generic Activity icon for audit events).
+  if (item.kind === "audit") {
+    const txt = item.text.toLowerCase();
+    if (/handoff/.test(txt)) return <Workflow className="size-4" strokeWidth={2} />;
+    if (/approbation|approval/.test(txt)) return <ShieldCheck className="size-4" strokeWidth={2} />;
+    if (/int[ée]gration/.test(txt)) return <Plug className="size-4" strokeWidth={2} />;
+    return <Activity className="size-4" strokeWidth={2} />;
   }
-  // Audit / system events
-  const isApproval = /approval/.test(item.text.toLowerCase());
-  const isHandoff = /handoff/.test(item.text.toLowerCase());
-  const isIntegration = /int[ée]gration/.test(item.text.toLowerCase());
-  const Icon = isHandoff ? Workflow : isApproval ? ShieldCheck : isIntegration ? Plug : Activity;
-  return (
-    <span className="size-7 rounded-md bg-bg-3 border border-line text-ink-2 flex items-center justify-center shrink-0">
-      <Icon className="size-3.5" strokeWidth={2} />
-    </span>
-  );
+  return <Bot className="size-4" strokeWidth={2} />;
 }
 
 function verbForKind(it: FeedItem): string {

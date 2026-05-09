@@ -211,42 +211,32 @@ export default async function OverviewPage() {
         </div>
       </div>
 
-      {/* Top KPI grid — mirrors the demo: tâches accomplies, valeur générée
-          (pipeline + économies estimés), coût Axion, approbations en attente. */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <Kpi
-          label="Tâches accomplies (24h)"
-          value={formatNumber(tasks24h ?? 0)}
-          trend={tasks24h ? `+${tasks24h} aujourd'hui` : "Aucune tâche aujourd'hui"}
-          icon={CheckCircle2}
-          accent="text-brand-green"
-        />
-        <Kpi
-          label="Durée moyenne"
-          value={avgDuration ? `${(avgDuration / 1000).toFixed(1)} s` : "—"}
-          trend="par tâche"
-          icon={Clock}
-          accent="text-brand-magenta"
-        />
-        <Kpi
-          label="Coût Axion (ce mois)"
-          value={formatEur(totalCost ?? 0)}
-          trend={`${formatNumber(totalTasks ?? 0)} tâches au total`}
-          icon={Coins}
-          accent="text-brand-cyan"
-        />
-        <Kpi
-          label="Approbations en attente"
-          value={formatNumber(pendingApprovals ?? 0)}
-          trend={pendingApprovals && pendingApprovals > 0 ? "Action requise" : "Aucune en attente"}
-          icon={AlertCircle}
-          accent={
-            pendingApprovals && pendingApprovals > 0
-              ? "text-brand-yellow"
-              : "text-brand-green"
-          }
-          href={pendingApprovals && pendingApprovals > 0 ? "/dashboard/approvals" : undefined}
-        />
+      {/* KPI grid — uses the demo's `.kpi` / `.kpi-grid` classes verbatim. */}
+      <div className="kpi-grid">
+        <div className="kpi">
+          <div className="kpi-label">Tâches accomplies (24h)</div>
+          <div className="kpi-value">{formatNumber(tasks24h ?? 0)}</div>
+          <div className={`kpi-trend ${tasks24h && tasks24h > 0 ? "up" : ""}`}>
+            {tasks24h ? `▲ +${tasks24h} aujourd'hui` : "Aucune tâche aujourd'hui"}
+          </div>
+        </div>
+        <div className="kpi">
+          <div className="kpi-label">Durée moyenne</div>
+          <div className="kpi-value">{avgDuration ? `${(avgDuration / 1000).toFixed(1)} s` : "—"}</div>
+          <div className="kpi-trend">par tâche</div>
+        </div>
+        <div className="kpi">
+          <div className="kpi-label">Coût Axion (ce mois)</div>
+          <div className="kpi-value">{formatEur(totalCost ?? 0)}</div>
+          <div className="kpi-trend">{formatNumber(totalTasks ?? 0)} tâches au total</div>
+        </div>
+        <div className="kpi">
+          <div className="kpi-label">Approbations en attente</div>
+          <div className="kpi-value">{formatNumber(pendingApprovals ?? 0)}</div>
+          <div className={`kpi-trend ${pendingApprovals && pendingApprovals > 0 ? "down" : "up"}`}>
+            {pendingApprovals && pendingApprovals > 0 ? "→ action requise" : "aucune en attente"}
+          </div>
+        </div>
       </div>
 
       {agents.length === 0 ? (
@@ -269,104 +259,94 @@ export default async function OverviewPage() {
         </Card>
       ) : (
         <>
-          {/* 2-column layout: chart+top / activity feed */}
-          <div className="grid grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-3">
-            {/* Activity chart */}
-            <div className="space-y-3">
-              <Card>
-                <CardContent className="p-5 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="font-medium text-sm">Activité agents · 24 h</h3>
-                      <p className="text-xs text-ink-3 font-mono mt-0.5">
-                        Tâches par heure
-                      </p>
-                    </div>
-                    <span className="text-xs text-ink-3 font-mono">
-                      max {maxBucket}
-                    </span>
+          {/* dash-grid — same class names as the demo */}
+          <div className="dash-grid">
+            <div>
+              <div className="panel">
+                <div className="panel-head">
+                  <div>
+                    <div className="panel-title">Activité agents · 24h</div>
+                    <div className="panel-meta">Tâches/heure · UTC+1</div>
                   </div>
-                  <div className="flex items-end gap-1 h-32">
-                    {buckets.map((v, i) => {
-                      const heightPct = (v / maxBucket) * 100;
+                  <div className="panel-meta">max {maxBucket}</div>
+                </div>
+                <div className="chart">
+                  {buckets.map((v, i) => (
+                    <div
+                      key={i}
+                      className="chart-bar"
+                      style={{ height: `${Math.max(4, (v / maxBucket) * 100)}%` }}
+                      title={`${v} tâches il y a ${24 - i}h`}
+                    />
+                  ))}
+                </div>
+                <div className="chart-axis">
+                  <span>00h</span>
+                  <span>06h</span>
+                  <span>12h</span>
+                  <span>18h</span>
+                  <span>maintenant</span>
+                </div>
+              </div>
+
+              {topAgents.length > 0 && (
+                <div className="panel">
+                  <div className="panel-head">
+                    <div className="panel-title">Top agents par valeur générée (30j)</div>
+                  </div>
+                  <div className="space-y-0">
+                    {topAgents.map((row) => {
+                      const a = agentsById[row.agentId];
+                      const tpl = a ? getTemplate(a.templateSlug) : null;
                       return (
-                        <div
-                          key={i}
-                          className="flex-1 bg-grad rounded-sm relative group hover:opacity-80 transition-opacity"
-                          style={{ height: `${Math.max(4, heightPct)}%` }}
-                          title={`${v} tâches il y a ${24 - i}h`}
-                        />
+                        <Link
+                          key={row.agentId}
+                          href={`/dashboard/agents/${row.agentId}`}
+                          className="flex items-center gap-3 py-2.5 hover:bg-bg-3/40 rounded-md px-2 -mx-2 transition-colors"
+                        >
+                          <AgentIcon
+                            name={tpl?.icon ?? "Bot"}
+                            wrapperClassName="size-10"
+                            size={16}
+                          />
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium text-sm">
+                              <span className="text-brand-blue-2">{a?.name ?? "Agent"}</span>
+                              {tpl?.role ? (
+                                <span className="text-ink-2"> · {tpl.role}</span>
+                              ) : null}
+                            </div>
+                            <div className="text-[11px] text-ink-3 font-mono mt-0.5">
+                              {formatNumber(row.n)} tâche{row.n > 1 ? "s" : ""} livrée{row.n > 1 ? "s" : ""} · {formatEur(Number(row.cost ?? 0))}
+                            </div>
+                          </div>
+                          <div className="text-right shrink-0">
+                            <div className="text-[11px] text-brand-green font-mono inline-flex items-center gap-1">
+                              <TrendingUp className="size-3" />
+                              actif
+                            </div>
+                          </div>
+                        </Link>
                       );
                     })}
                   </div>
-                  <div className="flex justify-between text-[10px] text-ink-3 font-mono">
-                    <span>−24 h</span>
-                    <span>−12 h</span>
-                    <span>maintenant</span>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {topAgents.length > 0 && (
-                <Card>
-                  <CardContent className="p-5 space-y-3">
-                    <h3 className="font-medium text-sm">
-                      Top agents par activité · 30 j
-                    </h3>
-                    <div className="space-y-1">
-                      {topAgents.map((row) => {
-                        const a = agentsById[row.agentId];
-                        const tpl = a ? getTemplate(a.templateSlug) : null;
-                        return (
-                          <Link
-                            key={row.agentId}
-                            href={`/dashboard/agents/${row.agentId}`}
-                            className="flex items-center gap-3 py-2.5 hover:bg-bg-3/40 rounded-md px-2 -mx-2 transition-colors"
-                          >
-                            <AgentIcon
-                              name={tpl?.icon ?? "Bot"}
-                              wrapperClassName="size-10"
-                              size={16}
-                            />
-                            <div className="flex-1 min-w-0">
-                              <div className="font-medium text-sm">
-                                <span className="text-brand-blue-2">{a?.name ?? "Agent"}</span>
-                                {tpl?.role ? (
-                                  <span className="text-ink-2"> · {tpl.role}</span>
-                                ) : null}
-                              </div>
-                              <div className="text-[11px] text-ink-3 font-mono mt-0.5">
-                                {formatNumber(row.n)} tâche{row.n > 1 ? "s" : ""} livrée{row.n > 1 ? "s" : ""} · {formatEur(Number(row.cost ?? 0))}
-                              </div>
-                            </div>
-                            <div className="text-right shrink-0">
-                              <div className="text-[11px] text-brand-green font-mono inline-flex items-center gap-1">
-                                <TrendingUp className="size-3" />
-                                actif
-                              </div>
-                            </div>
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  </CardContent>
-                </Card>
+                </div>
               )}
             </div>
 
-            {/* Live activity feed */}
-            <Card>
-              <CardContent className="p-5 space-y-3">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-medium text-sm">Activité récente</h3>
-                  <span className="inline-flex items-center gap-1.5 text-[10px] font-mono text-brand-green">
-                    <span className="size-1.5 rounded-full bg-brand-green animate-pulse" />
+            {/* Live activity feed — uses .panel + .feed classes from the demo */}
+            <div>
+              <div className="panel">
+                <div className="panel-head">
+                  <div className="panel-title">Activité en direct</div>
+                  <div className="panel-meta flex items-center gap-1.5">
+                    <span className="size-1.5 rounded-full bg-brand-green shadow-[0_0_8px_#34D399]" />
                     LIVE
-                  </span>
+                  </div>
                 </div>
                 <LiveActivity initial={initialFeed} />
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
 
           {/* Agents grid */}
