@@ -84,35 +84,51 @@ export function LiveActivity({ initial }: { initial: FeedItem[] }) {
   }
 
   return (
-    <ul className="space-y-2">
-      {items.map((it) => (
-        <li
-          key={it.id}
-          className="flex items-start gap-2.5 text-xs py-2 border-b border-line last:border-0"
-        >
-          <ItemIcon item={it} />
-          <div className="flex-1 min-w-0">
-            <div className="text-ink-2">
-              {it.agent ? (
-                <>
-                  <span className="font-medium text-brand-blue-2">{it.agent.name}</span>{" "}
-                </>
-              ) : null}
-              <span className="text-ink-3">{verbForKind(it)}</span>
+    <ul className="space-y-3">
+      {items.map((it) => {
+        const accent = it.agent
+          ? AGENT_COLORS[it.agent.slug] ?? "text-brand-blue-2"
+          : "text-ink-2";
+        return (
+          <li key={it.id} className="flex items-start gap-2.5 text-xs">
+            <ItemIcon item={it} />
+            <div className="flex-1 min-w-0">
+              <div className="text-ink-2 leading-snug">
+                {it.agent ? (
+                  <span className={`font-medium ${accent}`}>{it.agent.name}</span>
+                ) : null}
+                {it.agent ? " " : null}
+                <span className="text-ink-2">{verbForKind(it)}</span>{" "}
+                <span className="font-medium text-ink">{it.text}</span>
+              </div>
+              <div className="text-[10px] font-mono text-ink-3 mt-0.5">
+                il y a {relAge(new Date(it.at))}
+              </div>
             </div>
-            <div className="text-ink truncate">{it.text}</div>
-          </div>
-          <span className="text-ink-3 text-[10px] font-mono shrink-0">
-            {relAge(new Date(it.at))}
-          </span>
-        </li>
-      ))}
+          </li>
+        );
+      })}
       {error ? (
         <li className="text-[10px] text-brand-red font-mono">⚠ {error}</li>
       ) : null}
     </ul>
   );
 }
+
+// Per-template agent name colours used in the live feed (matches the gradient
+// used for their avatars). Falls back to brand-blue-2 if unknown.
+const AGENT_COLORS: Record<string, string> = {
+  "sdr-outbound": "text-brand-blue-2",
+  "cfo-assistant": "text-brand-magenta",
+  "support-l2": "text-brand-cyan",
+  "legal-counsel": "text-brand-yellow",
+  "recruiter": "text-brand-magenta",
+  "devops": "text-ink",
+  "growth-marketer": "text-brand-green",
+  "data-scientist": "text-brand-magenta",
+  "ops-lead": "text-ink-2",
+  "inbox-manager": "text-brand-cyan",
+};
 
 function ItemIcon({ item }: { item: FeedItem }) {
   if (item.kind === "task" && item.agent) {

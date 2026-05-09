@@ -21,6 +21,8 @@ import {
   Network,
   Menu,
   X,
+  HelpCircle,
+  Search,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -57,9 +59,11 @@ const STORAGE_KEY = "axion.sidebar.collapsed";
 export function DashboardShell({
   children,
   user,
+  org,
 }: {
   children: React.ReactNode;
   user: { name?: string | null; email?: string | null; isSuperuser?: boolean };
+  org?: { name: string; env: string } | null;
 }) {
   const pathname = usePathname();
   const initials = (user.name ?? user.email ?? "?").slice(0, 2).toUpperCase();
@@ -131,8 +135,9 @@ export function DashboardShell({
         "grid-cols-[1fr]", // mobile: single col, sidebar is fixed overlay
       )}
     >
-      {/* Top bar */}
-      <header className="row-start-1 col-span-full border-b border-line bg-bg-2 flex items-center px-3 md:px-5 gap-2 md:gap-4">
+      {/* Top bar — matches the demo: hamburger + Axion + org breadcrumb +
+          search + actions (bell + help + sign-out + avatar). */}
+      <header className="row-start-1 col-span-full border-b border-line bg-bg-2 flex items-center px-3 md:px-5 gap-2 md:gap-3">
         {/* Mobile hamburger — toggles open/close */}
         <button
           onClick={() => setMobileOpen((o) => !o)}
@@ -151,7 +156,30 @@ export function DashboardShell({
           <Menu className="size-4" strokeWidth={2} />
         </button>
         <Logo />
-        <div className="flex-1" />
+
+        {/* Org breadcrumb (hidden on mobile to save room) */}
+        {org && (
+          <>
+            <div className="hidden md:block h-6 w-px bg-line mx-1" />
+            <div className="hidden md:flex items-center gap-2 text-sm">
+              <span className="size-4 rounded bg-gradient-to-br from-brand-magenta to-brand-blue" />
+              <span className="text-ink font-medium">{org.name}</span>
+              <span className="text-ink-3">›</span>
+              <span className="text-ink-2">{org.env}</span>
+            </div>
+          </>
+        )}
+
+        {/* Search bar — non-functional placeholder for now to mirror demo. */}
+        <div className="hidden lg:flex flex-1 max-w-md items-center gap-2 mx-2 rounded-md border border-line bg-bg-3/50 px-3 py-1.5 text-xs text-ink-3">
+          <Search className="size-3.5" />
+          <span className="flex-1 truncate">Rechercher agent, workflow, log…</span>
+          <span className="font-mono text-[10px] text-ink-3">⌘K</span>
+        </div>
+
+        <div className="flex-1 lg:hidden" />
+
+        {/* Right actions */}
         {user.isSuperuser && (
           <Link
             href="/admin"
@@ -160,6 +188,21 @@ export function DashboardShell({
             Admin
           </Link>
         )}
+        <Link
+          href="/dashboard/approvals"
+          className="text-ink-2 hover:text-ink p-2 rounded-md hover:bg-bg-3 transition-colors"
+          title="Notifications"
+          aria-label="Notifications"
+        >
+          <Bell className="size-4" strokeWidth={2} />
+        </Link>
+        <button
+          className="hidden sm:inline-flex text-ink-2 hover:text-ink p-2 rounded-md hover:bg-bg-3 transition-colors"
+          title="Aide"
+          aria-label="Aide"
+        >
+          <HelpCircle className="size-4" strokeWidth={2} />
+        </button>
         <button
           onClick={() => signOut({ callbackUrl: "/" })}
           className="text-ink-2 hover:text-ink p-2 rounded-md hover:bg-bg-3 transition-colors"
@@ -168,7 +211,7 @@ export function DashboardShell({
         >
           <LogOut className="size-4" />
         </button>
-        <div className="size-8 rounded-full bg-grad text-white text-xs font-semibold flex items-center justify-center">
+        <div className="size-8 rounded-full bg-grad text-white text-xs font-semibold flex items-center justify-center shrink-0">
           {initials}
         </div>
       </header>

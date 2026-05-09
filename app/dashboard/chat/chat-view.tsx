@@ -44,6 +44,8 @@ interface ChatMessage {
   agent?: { name: string; templateSlug: string };
   toolCalls?: ToolCall[];
   pending?: boolean;
+  /** ISO timestamp; rendered as HH:MM in the header. */
+  at?: string;
 }
 
 const TEMPLATE_GRADIENTS: Record<string, string> = {
@@ -174,6 +176,7 @@ export function ChatView({
       agent: { name: agent.name, templateSlug: agent.templateSlug },
       toolCalls: [],
       pending: true,
+      at: new Date().toISOString(),
     };
     setMessages((prev) => [...prev, assistantMsg]);
 
@@ -246,6 +249,7 @@ export function ChatView({
       id: crypto.randomUUID(),
       role: "user",
       content: input.trim(),
+      at: new Date().toISOString(),
     };
     setMessages((prev) => [...prev, userMsg]);
     const initialObjective = input.trim();
@@ -414,11 +418,33 @@ export function ChatView({
               <Icon className="size-4" strokeWidth={2} />
             </span>
             <div className="flex-1 min-w-0">
-              <div className="font-medium text-sm">{activeAgent?.name}</div>
-              <div className="text-[11px] font-mono text-ink-3">
-                {activeAgent?.status}
-              </div>
+              {agentsInPlay.length > 1 ? (
+                <>
+                  <div className="font-medium text-sm">
+                    Workflow · {agentsInPlay.map((a) => a.name).join(" → ")}
+                  </div>
+                  <div className="text-[11px] font-mono text-ink-3">
+                    {agentsInPlay.length} agents en jeu
+                    {messages[0]?.at
+                      ? ` · démarré ${formatRelative(messages[0].at)}`
+                      : ""}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="font-medium text-sm">{activeAgent?.name}</div>
+                  <div className="text-[11px] font-mono text-ink-3">
+                    {activeAgent?.status}
+                  </div>
+                </>
+              )}
             </div>
+            {(running || agentsInPlay.length > 1) && (
+              <span className="inline-flex items-center gap-1.5 text-[10px] font-mono text-brand-green">
+                <span className="size-1.5 rounded-full bg-brand-green shadow-[0_0_8px_rgba(52,211,153,.7)] animate-pulse" />
+                LIVE
+              </span>
+            )}
           </div>
 
           <div ref={messagesRef} className="flex-1 overflow-y-auto px-5 py-5 space-y-5">
@@ -573,6 +599,21 @@ function KV({ k, v }: { k: string; v: string }) {
   );
 }
 
+function formatTime(iso?: string): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+}
+
+function formatRelative(iso?: string): string {
+  if (!iso) return "";
+  const diffSec = Math.max(0, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
+  if (diffSec < 60) return `il y a ${diffSec}s`;
+  if (diffSec < 3600) return `il y a ${Math.floor(diffSec / 60)} min`;
+  if (diffSec < 86400) return `il y a ${Math.floor(diffSec / 3600)} h`;
+  return `il y a ${Math.floor(diffSec / 86400)} j`;
+}
+
 function Message({
   msg,
   initials,
@@ -589,7 +630,14 @@ function Message({
           {initials}
         </span>
         <div className="flex-1 min-w-0">
-          <div className="text-sm font-medium mb-1.5">{userName}</div>
+          <div className="flex items-center gap-2 mb-1.5">
+            <span className="text-sm font-medium">{userName}</span>
+            {msg.at && (
+              <span className="ml-auto text-[10px] font-mono text-ink-3 tabular-nums">
+                {formatTime(msg.at)}
+              </span>
+            )}
+          </div>
           <div className="text-sm text-ink leading-relaxed whitespace-pre-wrap">
             {msg.content}
           </div>
@@ -622,6 +670,11 @@ function Message({
                 : "réfléchit…"}
             </span>
           ) : null}
+          {msg.at && (
+            <span className="ml-auto text-[10px] font-mono text-ink-3 tabular-nums">
+              {formatTime(msg.at)}
+            </span>
+          )}
         </div>
 
         {msg.content && (
