@@ -52,6 +52,7 @@ export default async function OverviewPage() {
   periodStart.setHours(0, 0, 0, 0);
 
   const yesterday = new Date(Date.now() - 24 * 3600_000);
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 3600_000);
 
   const [{ totalTasks, totalCost, avgDuration }] = await db
     .select({
@@ -72,7 +73,7 @@ export default async function OverviewPage() {
     .from(approvals)
     .where(and(eq(approvals.orgId, orgId), eq(approvals.status, "pending")));
 
-  // Top spending agents
+  // Top agents by activity over the last 30 days (number of tasks delivered).
   const topAgents = await db
     .select({
       agentId: tasks.agentId,
@@ -80,10 +81,10 @@ export default async function OverviewPage() {
       n: count(tasks.id),
     })
     .from(tasks)
-    .where(and(eq(tasks.orgId, orgId), gte(tasks.createdAt, periodStart)))
+    .where(and(eq(tasks.orgId, orgId), gte(tasks.createdAt, thirtyDaysAgo)))
     .groupBy(tasks.agentId)
-    .orderBy(desc(sql`coalesce(sum(${tasks.costEur}),0)`))
-    .limit(4);
+    .orderBy(desc(count(tasks.id)))
+    .limit(5);
 
   // Tasks per hour for the last 24h
   const tasksByHour = await db
@@ -302,9 +303,9 @@ export default async function OverviewPage() {
                 <Card>
                   <CardContent className="p-5 space-y-3">
                     <h3 className="font-medium text-sm">
-                      Top agents par coût · ce mois
+                      Top agents par activité · 30 j
                     </h3>
-                    <div className="space-y-2">
+                    <div className="space-y-1">
                       {topAgents.map((row) => {
                         const a = agentsById[row.agentId];
                         const tpl = a ? getTemplate(a.templateSlug) : null;
@@ -312,27 +313,28 @@ export default async function OverviewPage() {
                           <Link
                             key={row.agentId}
                             href={`/dashboard/agents/${row.agentId}`}
-                            className="flex items-center gap-3 py-2 hover:bg-bg-3/40 rounded-md px-2 -mx-2 transition-colors"
+                            className="flex items-center gap-3 py-2.5 hover:bg-bg-3/40 rounded-md px-2 -mx-2 transition-colors"
                           >
                             <AgentIcon
                               name={tpl?.icon ?? "Bot"}
-                              wrapperClassName="size-9"
-                              size={14}
+                              wrapperClassName="size-10"
+                              size={16}
                             />
                             <div className="flex-1 min-w-0">
                               <div className="font-medium text-sm">
-                                {a?.name ?? "Agent"}
+                                <span className="text-brand-blue-2">{a?.name ?? "Agent"}</span>
+                                {tpl?.role ? (
+                                  <span className="text-ink-2"> · {tpl.role}</span>
+                                ) : null}
                               </div>
-                              <div className="text-[10px] text-ink-3 font-mono">
-                                {formatNumber(row.n)} tâches
+                              <div className="text-[11px] text-ink-3 font-mono mt-0.5">
+                                {formatNumber(row.n)} tâche{row.n > 1 ? "s" : ""} livrée{row.n > 1 ? "s" : ""} · {formatEur(Number(row.cost ?? 0))}
                               </div>
                             </div>
                             <div className="text-right shrink-0">
-                              <div className="font-mono text-sm tabular-nums">
-                                {formatEur(Number(row.cost ?? 0))}
-                              </div>
-                              <div className="text-[10px] text-brand-green font-mono inline-flex items-center gap-1">
-                                <TrendingUp className="size-3" /> actif
+                              <div className="text-[11px] text-brand-green font-mono inline-flex items-center gap-1">
+                                <TrendingUp className="size-3" />
+                                actif
                               </div>
                             </div>
                           </Link>

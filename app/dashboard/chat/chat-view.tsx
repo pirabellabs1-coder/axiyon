@@ -19,6 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Markdown } from "@/components/markdown";
 import { runWithPuter, isPuterAvailable } from "@/lib/agents/puter-runtime";
+import { CATALOG } from "@/lib/agents/catalog";
 
 interface Agent {
   id: string;
@@ -284,9 +285,9 @@ export function ChatView({
     <div className="space-y-4">
       <div className="flex items-end justify-between flex-wrap gap-2">
         <div>
-          <h1 className="text-3xl font-medium tracking-tight">Chat</h1>
+          <h1 className="text-3xl font-medium tracking-tight">Conversation avec vos agents</h1>
           <p className="text-ink-2 text-sm mt-1">
-            Donnez un objectif. L&apos;agent appelle ses outils en direct.
+            Donnez un objectif. Vos agents s&apos;organisent.
           </p>
         </div>
         <span
@@ -531,6 +532,7 @@ function Message({
     );
   }
   const Icon = iconFor(msg.agent?.templateSlug ?? "");
+  const role = msg.agent?.templateSlug ? CATALOG[msg.agent.templateSlug]?.role : null;
   const hasError = msg.content.startsWith("⚠");
   return (
     <div className="flex gap-3">
@@ -540,10 +542,15 @@ function Message({
         <Icon className="size-4" strokeWidth={2} />
       </span>
       <div className="flex-1 min-w-0">
-        <div className="text-sm font-medium mb-1.5">
-          {msg.agent?.name ?? "Agent"}
+        <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+          <span className="text-sm font-medium">{msg.agent?.name ?? "Agent"}</span>
+          {role && (
+            <span className="text-[10px] font-mono uppercase tracking-wider px-1.5 py-0.5 rounded border border-line bg-bg-3 text-ink-2">
+              {role}
+            </span>
+          )}
           {msg.pending ? (
-            <span className="ml-2 text-[10px] font-mono text-ink-3 animate-pulse">
+            <span className="text-[10px] font-mono text-ink-3 animate-pulse">
               {msg.toolCalls?.length
                 ? `${msg.toolCalls.length} outil${msg.toolCalls.length > 1 ? "s" : ""} appelé${msg.toolCalls.length > 1 ? "s" : ""}…`
                 : "réfléchit…"}
@@ -551,39 +558,17 @@ function Message({
           ) : null}
         </div>
 
+        {msg.content && (
+          <Markdown content={msg.content} className="text-sm text-ink mb-2" />
+        )}
+
         {msg.toolCalls && msg.toolCalls.length > 0 ? (
-          <div className="space-y-1.5 mb-3">
+          <div className="space-y-1.5 mt-2">
             {msg.toolCalls.map((tc, i) => (
-              <div
-                key={i}
-                className="rounded-md border border-line bg-bg-3 p-2.5 font-mono text-[11px] leading-relaxed"
-              >
-                <div className="flex items-center gap-1.5 text-brand-blue-2">
-                  <Wrench className="size-3" strokeWidth={2} />
-                  {tc.name}
-                  {tc.error ? (
-                    <span className="ml-auto text-brand-red text-[10px]">erreur</span>
-                  ) : tc.result !== undefined ? (
-                    <span className="ml-auto text-brand-green text-[10px]">ok</span>
-                  ) : (
-                    <span className="ml-auto text-ink-3 text-[10px]">en cours…</span>
-                  )}
-                </div>
-                {tc.error ? (
-                  <div className="text-brand-red mt-1 break-all">{tc.error}</div>
-                ) : tc.result !== undefined ? (
-                  <div className="text-ink-3 mt-1 truncate">
-                    {JSON.stringify(tc.result).slice(0, 200)}
-                  </div>
-                ) : null}
-              </div>
+              <ToolCallBlock key={i} tc={tc} />
             ))}
           </div>
         ) : null}
-
-        {msg.content && (
-          <Markdown content={msg.content} className="text-sm text-ink" />
-        )}
 
         {hasError && (
           <div className="mt-2 text-[11px] text-brand-red flex items-center gap-1.5">
@@ -594,4 +579,86 @@ function Message({
       </div>
     </div>
   );
+}
+
+// Tool call rendered as a green monospace block — matches the demo screenshot
+// styling: `tool.name(args)` on top in cyan, → result/summary in green below.
+function ToolCallBlock({ tc }: { tc: ToolCall }) {
+  const argsLine = formatArgsLine(tc.args);
+  const resultSummary = summarizeResult(tc.result, tc.error);
+  const status = tc.error ? "error" : tc.result !== undefined ? "ok" : "pending";
+
+  return (
+    <div className="rounded-md border border-line bg-[#0a0d12] px-3 py-2.5 font-mono text-[11.5px] leading-relaxed overflow-x-auto">
+      <div className="flex items-start gap-1.5">
+        <Wrench className="size-3 mt-0.5 text-brand-cyan shrink-0" strokeWidth={2} />
+        <div className="flex-1 min-w-0">
+          <div className="text-brand-cyan whitespace-pre-wrap break-all">
+            <span className="text-brand-blue-2">{tc.name}</span>
+            <span className="text-ink-2">{argsLine}</span>
+          </div>
+          {resultSummary && (
+            <div
+              className={
+                "mt-0.5 whitespace-pre-wrap break-all " +
+                (status === "error" ? "text-brand-red" : "text-brand-green")
+              }
+            >
+              → {resultSummary}
+            </div>
+          )}
+        </div>
+        {status === "pending" && (
+          <span className="text-[10px] text-ink-3 shrink-0 animate-pulse">…</span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function formatArgsLine(args: unknown): string {
+  if (!args || typeof args !== "object") return "()";
+  const entries = Object.entries(args as Record<string, unknown>);
+  if (!entries.length) return "()";
+  const parts = entries.slice(0, 4).map(([k, v]) => {
+    let s: string;
+    if (typeof v === "string") s = `"${v.length > 60 ? v.slice(0, 60) + "…" : v}"`;
+    else if (typeof v === "number" || typeof v === "boolean") s = String(v);
+    else if (Array.isArray(v)) s = `[${v.length}]`;
+    else s = `{…}`;
+    return `${k}=${s}`;
+  });
+  if (entries.length > 4) parts.push("…");
+  return `(${parts.join(", ")})`;
+}
+
+function summarizeResult(result: unknown, error: string | undefined): string {
+  if (error) return error.length > 200 ? error.slice(0, 200) + "…" : error;
+  if (result === undefined || result === null) return "";
+  if (typeof result === "string") return result.length > 200 ? result.slice(0, 200) + "…" : result;
+  if (typeof result !== "object") return String(result);
+  const r = result as Record<string, unknown>;
+  // Common result shapes — pick the most informative summary.
+  if (typeof r.title === "string") return String(r.title);
+  if (Array.isArray(r.results)) return `${r.results.length} résultats`;
+  if (Array.isArray(r.leads)) return `${r.leads.length} leads trouvés`;
+  if (Array.isArray(r.candidates)) return `${r.candidates.length} candidats`;
+  if (Array.isArray(r.events)) return `${r.events.length} évènements`;
+  if (Array.isArray(r.charges)) return `${r.charges.length} paiements`;
+  if (Array.isArray(r.messages)) return `${r.messages.length} messages`;
+  if (Array.isArray(r.hits)) return `${r.hits.length} résultats`;
+  if (typeof r.text === "string") {
+    return r.text.length > 200 ? r.text.slice(0, 200) + "…" : r.text;
+  }
+  if (typeof r.handed_off === "boolean") {
+    return r.handed_off
+      ? `relais → ${String(r.target_agent_name ?? "agent")}`
+      : `relais refusé : ${String(r.error ?? "?")}`;
+  }
+  if (typeof r.delivered === "boolean") return r.delivered ? "envoyé ✓" : "non envoyé";
+  if (typeof r.confirmed === "boolean") return r.confirmed ? "réservé ✓" : "non confirmé";
+  if (typeof r.ok === "boolean") return r.ok ? "ok" : `erreur : ${String(r.error ?? "?")}`;
+  // Fallback — show keys, not [object Object].
+  const keys = Object.keys(r).slice(0, 4);
+  return `{ ${keys.join(", ")}${Object.keys(r).length > 4 ? ", …" : ""} }`;
 }
