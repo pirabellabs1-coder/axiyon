@@ -42,13 +42,26 @@ export async function POST(
   }
 
   try {
-    // Drizzle session passed for tools that need org-scoped queries (kb.search).
+    // Tools read orgId from a module-level singleton (set per request because
+    // AI SDK's tool() helper doesn't have a context channel). We MUST set it
+    // here so real API calls (Gmail send, Calendar book, etc) get the right
+    // org's encrypted tokens. Cleared in finally to avoid cross-request bleed.
     const { db } = await import("@/lib/db");
-    const result = await tool.execute(body.args ?? {}, {
+    const { setToolOrgContext } = await import("@/lib/agents/tools");
+    setToolOrgContext({
       orgId: session.user.activeOrgId,
-      session: db,
+      agentId: "chat-runtime",
+      taskId: crypto.randomUUID(),
     });
-    return NextResponse.json(result);
+    try {
+      const result = await tool.execute(body.args ?? {}, {
+        orgId: session.user.activeOrgId,
+        session: db,
+      });
+      return NextResponse.json(result);
+    } finally {
+      setToolOrgContext(null);
+    }
   } catch (e) {
     return NextResponse.json(
       { error: e instanceof Error ? e.message : String(e) },

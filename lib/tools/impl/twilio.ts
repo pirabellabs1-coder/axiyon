@@ -1,8 +1,8 @@
-/** Twilio — real phone calls + SMS. */
+/** Twilio — real phone calls + SMS. Edge-safe (uses btoa, no Buffer). */
 import { getApiKeyFields } from "@/lib/integrations/store";
 
 function basicAuth(sid: string, token: string): string {
-  return "Basic " + Buffer.from(`${sid}:${token}`).toString("base64");
+  return "Basic " + btoa(`${sid}:${token}`);
 }
 
 export async function twilioCall(

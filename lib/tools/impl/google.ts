@@ -1,7 +1,19 @@
 /**
  * Google (Gmail + Calendar) — real API calls when the org has the integration.
+ * Edge-safe: uses TextEncoder + btoa, no Buffer.
  */
 import { getActiveIntegration } from "@/lib/integrations/store";
+
+// Edge-safe base64 (handles UTF-8 correctly).
+function b64(s: string): string {
+  const bytes = new TextEncoder().encode(s);
+  let bin = "";
+  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin);
+}
+function b64url(s: string): string {
+  return b64(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
 
 export async function gmailSend(
   orgId: string,
@@ -15,7 +27,7 @@ export async function gmailSend(
     `To: ${args.to}`,
     args.cc ? `Cc: ${args.cc}` : "",
     args.bcc ? `Bcc: ${args.bcc}` : "",
-    `Subject: =?UTF-8?B?${Buffer.from(args.subject).toString("base64")}?=`,
+    `Subject: =?UTF-8?B?${b64(args.subject)}?=`,
     "Content-Type: text/plain; charset=UTF-8",
     "MIME-Version: 1.0",
     "",
@@ -24,11 +36,7 @@ export async function gmailSend(
     .filter(Boolean)
     .join("\r\n");
 
-  const raw = Buffer.from(headers)
-    .toString("base64")
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/, "");
+  const raw = b64url(headers);
 
   const r = await fetch("https://gmail.googleapis.com/gmail/v1/users/me/messages/send", {
     method: "POST",
