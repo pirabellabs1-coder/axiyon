@@ -9,10 +9,10 @@
  * it can't be hit by anonymous traffic.
  */
 import { NextResponse } from "next/server";
-import { Pool } from "@neondatabase/serverless";
 
 export const maxDuration = 60;
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 
 const SQL = `
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -287,10 +287,11 @@ export async function POST(req: Request) {
   const url = process.env.POSTGRES_URL ?? process.env.DATABASE_URL;
   if (!url) return new NextResponse("No POSTGRES_URL", { status: 500 });
 
+  // Lazy-import Pool to keep module-load light on cold starts.
+  const { Pool } = await import("@neondatabase/serverless");
   const pool = new Pool({ connectionString: url });
   try {
     await pool.query(SQL);
-    // sanity-check
     const r = await pool.query(
       "SELECT table_name FROM information_schema.tables WHERE table_schema='public' ORDER BY table_name",
     );

@@ -1,25 +1,22 @@
-// V1_FINAL 1778289461 — production endpoint
-/** DELETE /api/integrations/[id] — disconnect an integration. */
+// V1_FINAL — lazy-load heavy modules
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { audit } from "@/lib/audit";
-import { disconnectIntegration } from "@/lib/integrations/store";
-
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
-export const maxDuration = 60;
-
+export const maxDuration = 30;
 
 export async function DELETE(
   _req: Request,
   ctx: { params: Promise<{ id: string }> },
 ) {
   const session = await auth();
-  if (!session?.user.activeOrgId)
+  if (!session?.user?.activeOrgId)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { id } = await ctx.params;
+  const { disconnectIntegration } = await import("@/lib/integrations/store");
+  const { audit } = await import("@/lib/audit");
   await disconnectIntegration(session.user.activeOrgId, id);
 
   await audit({

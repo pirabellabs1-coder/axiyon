@@ -1,30 +1,21 @@
-// V1_FINAL 1778289461 — production endpoint
-/**
- * GET /api/integrations/[provider]/callback
- *
- * OAuth redirect target. Exchanges the code for tokens, stores them encrypted,
- * then redirects the user back to the original `return_to`.
- */
+// V1_FINAL — lazy-load heavy modules
 import { NextResponse } from "next/server";
-import { audit } from "@/lib/audit";
-import { verifyState } from "@/lib/integrations/oauth";
-import { getProvider } from "@/lib/integrations/providers";
-import { persistOauthConnection } from "@/lib/integrations/store";
-
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
-export const maxDuration = 60;
-
+export const maxDuration = 30;
 
 export async function GET(
   req: Request,
   ctx: { params: Promise<{ provider: string }> },
 ) {
   const { provider: slug } = await ctx.params;
+  const { getProvider } = await import("@/lib/integrations/providers");
   const provider = getProvider(slug);
   if (!provider || provider.flow.type !== "oauth2") {
-    return NextResponse.redirect(new URL("/dashboard/integrations?error=unknown-provider", req.url));
+    return NextResponse.redirect(
+      new URL("/dashboard/integrations?error=unknown-provider", req.url),
+    );
   }
 
   const url = new URL(req.url);
@@ -46,6 +37,7 @@ export async function GET(
     );
   }
 
+  const { verifyState } = await import("@/lib/integrations/oauth");
   let payload;
   try {
     payload = verifyState(state);
@@ -61,12 +53,13 @@ export async function GET(
   }
 
   try {
+    const { persistOauthConnection } = await import("@/lib/integrations/store");
+    const { audit } = await import("@/lib/audit");
     const integ = await persistOauthConnection({
       orgId: payload.orgId,
       provider,
       code,
     });
-
     await audit({
       orgId: payload.orgId,
       actorType: "user",

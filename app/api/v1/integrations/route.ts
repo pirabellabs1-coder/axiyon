@@ -1,4 +1,4 @@
-// V1_FINAL_MIN diagnostic — minified to isolate hang cause
+// V1_FINAL — lazy-load heavy store module
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 
@@ -11,5 +11,18 @@ export async function GET() {
   if (!session?.user?.activeOrgId) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  return NextResponse.json({ ok: true, orgId: session.user.activeOrgId, integrations: [] });
+  const { listOrgIntegrations } = await import("@/lib/integrations/store");
+  const rows = await listOrgIntegrations(session.user.activeOrgId);
+  return NextResponse.json(
+    rows.map((r) => ({
+      id: r.id,
+      provider: r.provider,
+      accountEmail: r.accountEmail,
+      accountName: r.accountName,
+      status: r.status,
+      scopes: r.scopes,
+      connectedAt: r.connectedAt,
+      lastUsedAt: r.lastUsedAt,
+    })),
+  );
 }

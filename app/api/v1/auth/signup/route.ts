@@ -1,16 +1,10 @@
-// V1_FINAL 1778289461 — production endpoint
+// V1_FINAL — lazy imports to keep cold-start fast
 import { NextResponse } from "next/server";
-import bcrypt from "bcryptjs";
 import { z } from "zod";
-import { eq } from "drizzle-orm";
-
-import { db, users, orgs, orgMembers } from "@/lib/db";
-import { audit } from "@/lib/audit";
-
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
-export const maxDuration = 60;
+export const maxDuration = 30;
 
 const Body = z.object({
   email: z.string().email().toLowerCase(),
@@ -20,21 +14,32 @@ const Body = z.object({
 });
 
 function slugify(s: string): string {
-  return s
-    .toLowerCase()
-    .replace(/[^\w\s-]/g, "")
-    .replace(/[\s_-]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 60) || "org";
+  return (
+    s
+      .toLowerCase()
+      .replace(/[^\w\s-]/g, "")
+      .replace(/[\s_-]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 60) || "org"
+  );
 }
 
 export async function POST(req: Request) {
   let body: z.infer<typeof Body>;
   try {
     body = Body.parse(await req.json());
-  } catch (e) {
+  } catch {
     return NextResponse.json({ error: "Invalid body" }, { status: 422 });
   }
+
+  // Lazy-load heavy modules so cold-start of the route bundle stays light.
+  const [{ default: bcrypt }, { eq }, dbMod, { audit }] = await Promise.all([
+    import("bcryptjs"),
+    import("drizzle-orm"),
+    import("@/lib/db"),
+    import("@/lib/audit"),
+  ]);
+  const { db, users, orgs, orgMembers } = dbMod;
 
   const existing = await db.query.users.findFirst({
     where: eq(users.email, body.email),
@@ -47,7 +52,6 @@ export async function POST(req: Request) {
   const isSuperuser =
     body.email === (process.env.SUPER_ADMIN_EMAIL ?? "").toLowerCase();
 
-  // Create user
   const [user] = await db
     .insert(users)
     .values({
@@ -58,12 +62,10 @@ export async function POST(req: Request) {
     })
     .returning();
 
-  // Create org with unique slug
   const baseName = body.orgName ?? `${body.name.split(" ")[0]}'s workspace`;
   const baseSlug = slugify(baseName);
   let slug = baseSlug;
   let n = 1;
-  // eslint-disable-next-line no-constant-condition
   while (true) {
     const collision = await db.query.orgs.findFirst({ where: eq(orgs.slug, slug) });
     if (!collision) break;
