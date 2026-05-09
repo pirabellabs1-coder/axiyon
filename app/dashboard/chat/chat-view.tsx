@@ -374,41 +374,7 @@ export function ChatView({
         </span>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr_280px] gap-4">
-        {/* Agent picker */}
-        <aside className="space-y-2">
-          <div className="text-[11px] font-mono uppercase tracking-wider text-ink-3 px-2 mb-2">
-            Vos agents
-          </div>
-          {agents.map((a) => {
-            const I = iconFor(a.templateSlug);
-            const active = a.id === activeAgent?.id;
-            return (
-              <button
-                key={a.id}
-                onClick={() => setActiveAgent(a)}
-                className={`w-full text-left rounded-lg border p-3 transition-colors ${
-                  active
-                    ? "border-brand-blue/50 bg-bg-3"
-                    : "border-line bg-bg-2 hover:border-line-2"
-                }`}
-              >
-                <div className="flex items-center gap-2.5">
-                  <span
-                    className={`size-8 rounded-md bg-gradient-to-br ${gradientFor(a.templateSlug)} text-white flex items-center justify-center shrink-0`}
-                  >
-                    <I className="size-4" strokeWidth={2} />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="text-sm font-medium truncate">{a.name}</div>
-                    <div className="text-[10px] font-mono text-ink-3">{a.status}</div>
-                  </div>
-                </div>
-              </button>
-            );
-          })}
-        </aside>
-
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-4">
         {/* Chat */}
         <div className="rounded-xl border border-line bg-bg-2 overflow-hidden flex flex-col h-[calc(100vh-220px)]">
           <div className="flex items-center gap-3 px-5 py-4 border-b border-line bg-bg-3/40">
