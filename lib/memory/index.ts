@@ -5,7 +5,6 @@
  * otherwise (so dev environments without API keys still work).
  */
 import { eq, and, sql } from "drizzle-orm";
-import { createHash } from "node:crypto";
 import { embed as aiEmbed, embedMany } from "ai";
 import { openai } from "@ai-sdk/openai";
 
@@ -13,14 +12,20 @@ import { db, memoryEntries, type MemoryEntry } from "@/lib/db";
 
 const EMBED_DIM = 1536;
 
-function hashEmbed(text: string): number[] {
+// Edge-safe deterministic embedding fallback. Repeatedly digests SHA-256
+// using Web Crypto, then unpacks each 4-byte chunk as a [-1,1] float.
+async function hashEmbed(text: string): Promise<number[]> {
   const out: number[] = [];
-  let buf = createHash("sha256").update(text).digest();
+  let buf = new Uint8Array(
+    await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text)),
+  );
   while (out.length < EMBED_DIM) {
     for (let i = 0; i + 4 <= buf.length && out.length < EMBED_DIM; i += 4) {
-      out.push(buf.readUInt32BE(i) / 2 ** 32 * 2 - 1);
+      const u32 =
+        ((buf[i] << 24) | (buf[i + 1] << 16) | (buf[i + 2] << 8) | buf[i + 3]) >>> 0;
+      out.push((u32 / 2 ** 32) * 2 - 1);
     }
-    buf = createHash("sha256").update(buf).digest();
+    buf = new Uint8Array(await crypto.subtle.digest("SHA-256", buf));
   }
   return out;
 }

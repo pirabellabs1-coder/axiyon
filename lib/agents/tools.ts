@@ -10,7 +10,26 @@
  */
 import { tool } from "ai";
 import { z } from "zod";
-import { createHash } from "node:crypto";
+// Deterministic non-crypto hash (xfnv1a) — edge-safe replacement for
+// createHash that we used for preview seeds. Not security-sensitive.
+function xfnv1a(seed: string): number {
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < seed.length; i++) {
+    h ^= seed.charCodeAt(i);
+    h = Math.imul(h, 16777619) >>> 0;
+  }
+  return h;
+}
+function shortHex(seed: string, n: number): string {
+  let s = "";
+  let x = seed;
+  while (s.length < n) {
+    const h = xfnv1a(x);
+    s += h.toString(16).padStart(8, "0");
+    x = h.toString();
+  }
+  return s.slice(0, n);
+}
 
 import { recallMemory, ingestMemory } from "@/lib/memory";
 
@@ -57,8 +76,7 @@ import { apolloSearchPeople, apolloEnrichPerson } from "@/lib/tools/impl/apollo"
 // ─── Helpers ─────────────────────────────────────────────────────
 
 function seededInt(seed: string, max: number): number {
-  const h = createHash("sha256").update(seed).digest();
-  return h.readUInt32BE(0) % max;
+  return xfnv1a(seed) % max;
 }
 
 // ─── ToolContext ─────────────────────────────────────────────────
@@ -118,7 +136,7 @@ export const tools = {
         delivered: false,
         mode: "preview",
         note: "Aucun fournisseur email connecté. Connectez Google, Microsoft 365 ou SendGrid dans /dashboard/integrations.",
-        message_id: `preview-${createHash("sha1").update(args.to + args.subject).digest("hex").slice(0, 12)}`,
+        message_id: `preview-${shortHex(args.to + args.subject, 12)}`,
       };
     },
   }),
