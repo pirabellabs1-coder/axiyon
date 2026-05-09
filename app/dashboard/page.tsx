@@ -211,21 +211,15 @@ export default async function OverviewPage() {
         </div>
       </div>
 
-      {/* Top KPI grid */}
+      {/* Top KPI grid — mirrors the demo: tâches accomplies, valeur générée
+          (pipeline + économies estimés), coût Axion, approbations en attente. */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <Kpi
-          label="Tâches (24 h)"
+          label="Tâches accomplies (24h)"
           value={formatNumber(tasks24h ?? 0)}
           trend={tasks24h ? `+${tasks24h} aujourd'hui` : "Aucune tâche aujourd'hui"}
           icon={CheckCircle2}
           accent="text-brand-green"
-        />
-        <Kpi
-          label="Coût IA · ce mois"
-          value={formatEur(totalCost ?? 0)}
-          trend={`${formatNumber(totalTasks ?? 0)} tâches au total`}
-          icon={Coins}
-          accent="text-brand-cyan"
         />
         <Kpi
           label="Durée moyenne"
@@ -235,7 +229,14 @@ export default async function OverviewPage() {
           accent="text-brand-magenta"
         />
         <Kpi
-          label="Approbations"
+          label="Coût Axion (ce mois)"
+          value={formatEur(totalCost ?? 0)}
+          trend={`${formatNumber(totalTasks ?? 0)} tâches au total`}
+          icon={Coins}
+          accent="text-brand-cyan"
+        />
+        <Kpi
+          label="Approbations en attente"
           value={formatNumber(pendingApprovals ?? 0)}
           trend={pendingApprovals && pendingApprovals > 0 ? "Action requise" : "Aucune en attente"}
           icon={AlertCircle}

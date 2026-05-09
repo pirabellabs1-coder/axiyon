@@ -160,38 +160,31 @@ export function ChatView({
     if (el) el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
   }, [messages]);
 
-  async function send(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    if (!input.trim() || !activeAgent || running) return;
-
-    const userMsg: ChatMessage = {
-      id: crypto.randomUUID(),
-      role: "user",
-      content: input.trim(),
-    };
+  // Run a single agent in the current thread. Returns the agent_handoff
+  // tool call result, if any, so the caller can chain to the target agent.
+  async function runAgentInThread(
+    agent: Agent,
+    objective: string,
+  ): Promise<{ handoffTo?: { id: string; name: string }; action?: string } | null> {
     const assistantId = crypto.randomUUID();
     const assistantMsg: ChatMessage = {
       id: assistantId,
       role: "assistant",
       content: "",
-      agent: { name: activeAgent.name, templateSlug: activeAgent.templateSlug },
+      agent: { name: agent.name, templateSlug: agent.templateSlug },
       toolCalls: [],
       pending: true,
     };
-
-    setMessages((prev) => [...prev, userMsg, assistantMsg]);
-    const objective = input.trim();
-    setInput("");
-    setRunning(true);
+    setMessages((prev) => [...prev, assistantMsg]);
 
     try {
       const result = await runWithPuter({
-        agentId: activeAgent.id,
-        templateSlug: activeAgent.templateSlug,
+        agentId: agent.id,
+        templateSlug: agent.templateSlug,
         systemPrompt:
-          activeAgent.systemPrompt ??
+          agent.systemPrompt ??
           "Tu es un agent autonome qui exécute des objectifs en appelant les outils mis à ta disposition. Sois concis et actionnable.",
-        enabledTools: activeAgent.enabledTools ?? [],
+        enabledTools: agent.enabledTools ?? [],
         connectedProviders,
         objective,
         onToolCall: (call) => {
@@ -212,6 +205,26 @@ export function ChatView({
             : m,
         ),
       );
+
+      // Detect a successful agent_handoff in the trace.
+      for (const tc of result.toolCalls) {
+        if (tc.name !== "agent_handoff") continue;
+        const r = tc.result as
+          | {
+              handed_off?: boolean;
+              target_agent_id?: string;
+              target_agent_name?: string;
+              action?: string;
+            }
+          | undefined;
+        if (r?.handed_off && r.target_agent_id && r.target_agent_name) {
+          return {
+            handoffTo: { id: r.target_agent_id, name: r.target_agent_name },
+            action: r.action,
+          };
+        }
+      }
+      return null;
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Erreur Puter";
       setMessages((prev) =>
@@ -221,6 +234,48 @@ export function ChatView({
             : m,
         ),
       );
+      return null;
+    }
+  }
+
+  async function send(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!input.trim() || !activeAgent || running) return;
+
+    const userMsg: ChatMessage = {
+      id: crypto.randomUUID(),
+      role: "user",
+      content: input.trim(),
+    };
+    setMessages((prev) => [...prev, userMsg]);
+    const initialObjective = input.trim();
+    setInput("");
+    setRunning(true);
+
+    try {
+      // Multi-agent loop: run the active agent, and if it hands off to a
+      // teammate, automatically pick up the handoff in the same thread.
+      // Caps at 5 hops to avoid infinite ping-pong.
+      let currentAgent: Agent = activeAgent;
+      let currentObjective = initialObjective;
+      const MAX_HOPS = 5;
+      const visited = new Set<string>();
+
+      for (let hop = 0; hop < MAX_HOPS; hop++) {
+        if (visited.has(currentAgent.id)) break; // anti-cycle
+        visited.add(currentAgent.id);
+
+        const handoff = await runAgentInThread(currentAgent, currentObjective);
+        if (!handoff?.handoffTo) break;
+
+        const target = agents.find((a) => a.id === handoff.handoffTo!.id);
+        if (!target) break;
+
+        currentAgent = target;
+        currentObjective =
+          handoff.action ??
+          `${currentAgent.name}, prends le relais sur cet objectif initial : "${initialObjective}".`;
+      }
     } finally {
       setRunning(false);
     }
@@ -244,12 +299,19 @@ export function ChatView({
       .slice(0, 6);
   }, [messages]);
 
-  // Agents currently in play = picked + any whose tool was just used.
+  // Agents in play = every agent that produced a message in this thread,
+  // plus the currently selected one. Mirrors the demo's "Agents en jeu" panel.
   const agentsInPlay = useMemo(() => {
     const ids = new Set<string>();
     if (activeAgent) ids.add(activeAgent.id);
-    return agents.filter((a) => ids.has(a.id) || a.status === "running");
-  }, [agents, activeAgent]);
+    for (const m of messages) {
+      if (m.role === "assistant" && m.agent) {
+        const found = agents.find((a) => a.name === m.agent!.name);
+        if (found) ids.add(found.id);
+      }
+    }
+    return agents.filter((a) => ids.has(a.id));
+  }, [agents, activeAgent, messages]);
 
   const budgetPct = Math.min(
     100,
