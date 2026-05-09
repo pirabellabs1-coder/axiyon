@@ -1,9 +1,8 @@
 /**
- * /api/v1/agents — fresh-path mirror of /api/agents because the original
- * path's lambda binding is permanently stuck (returns HTTP 000 / 30s timeout
- * on every request despite source rewrites, force-new redeploys, project
- * rename, and rebundle markers). Dashboard fetches will be repointed here.
+ * /api/v1/agents — exact replica of working /api/diag/agents-clone, just at a
+ * production path that the dashboard frontend can use.
  */
+import { NextResponse } from "next/server";
 import { eq, sql } from "drizzle-orm";
 import { z } from "zod";
 
@@ -14,7 +13,9 @@ import { getTemplate } from "@/lib/agents/catalog";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
-export const maxDuration = 60;
+export const maxDuration = 30;
+
+const _kept = { eq, sql, z, audit, getTemplate, agentInstances };
 
 const Body = z.object({
   templateSlug: z.string().min(1).max(64),
@@ -25,43 +26,49 @@ const Body = z.object({
   budgetPerDayEur: z.number().int().min(0).max(100_000).default(10),
 });
 
-function json(body: unknown, status = 200): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { "content-type": "application/json" },
-  });
-}
-
-export async function GET(): Promise<Response> {
+export async function GET() {
+  const t0 = Date.now();
   const session = await auth();
-  if (!session?.user?.activeOrgId) return json({ error: "Unauthorized" }, 401);
-
+  if (!session?.user?.activeOrgId) {
+    return NextResponse.json(
+      { error: "Unauthorized", took_ms: Date.now() - t0, _has: Object.keys(_kept) },
+      { status: 401 },
+    );
+  }
   const rows = await db
     .select()
     .from(agentInstances)
     .where(eq(agentInstances.orgId, session.user.activeOrgId))
     .orderBy(sql`${agentInstances.createdAt} DESC`);
-
-  return json(rows);
+  return NextResponse.json({ rows, took_ms: Date.now() - t0 });
 }
 
-export async function POST(req: Request): Promise<Response> {
+export async function POST(req: Request) {
   const session = await auth();
-  if (!session?.user?.activeOrgId) return json({ error: "Unauthorized" }, 401);
+  if (!session?.user?.activeOrgId)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   if (!["builder", "admin", "owner"].includes(session.user.activeOrgRole ?? "")) {
-    return json({ error: "Need builder role or higher to hire" }, 403);
+    return NextResponse.json(
+      { error: "Need builder role or higher to hire" },
+      { status: 403 },
+    );
   }
 
   let body: z.infer<typeof Body>;
   try {
     body = Body.parse(await req.json());
   } catch {
-    return json({ error: "Invalid body" }, 422);
+    return NextResponse.json({ error: "Invalid body" }, { status: 422 });
   }
 
   const tpl = getTemplate(body.templateSlug);
-  if (!tpl) return json({ error: `Unknown template: ${body.templateSlug}` }, 404);
+  if (!tpl) {
+    return NextResponse.json(
+      { error: `Unknown template: ${body.templateSlug}` },
+      { status: 404 },
+    );
+  }
 
   const [row] = await db
     .insert(agentInstances)
@@ -86,5 +93,5 @@ export async function POST(req: Request): Promise<Response> {
     payload: { template: body.templateSlug, name: body.name },
   });
 
-  return json(row, 201);
+  return NextResponse.json(row, { status: 201 });
 }
