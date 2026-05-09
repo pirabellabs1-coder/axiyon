@@ -5,7 +5,7 @@ Axion utilise OAuth 2.0 pour connecter Gmail, Microsoft 365, Google Calendar, Hu
 ## URL de callback à configurer chez chaque fournisseur
 
 ```
-https://axiyon-nine.vercel.app/api/v1/integrations/{provider}/callback
+https://ai.novakou.com/api/v1/integrations/{provider}/callback
 ```
 
 Remplace `{provider}` par le slug du provider (`google`, `microsoft`, `hubspot`, `slack`, `github`, `notion`, `linkedin`, `salesforce`).
@@ -38,7 +38,7 @@ Pour les API key providers (Twilio, Stripe, SendGrid, Apollo) : la console te de
 5. Application type : **Web application**
 6. Authorized redirect URI :
    ```
-   https://axiyon-nine.vercel.app/api/v1/integrations/google/callback
+   https://ai.novakou.com/api/v1/integrations/google/callback
    ```
 7. Copie `Client ID` et `Client Secret` → Vercel env
 
@@ -51,7 +51,7 @@ Pour les API key providers (Twilio, Stripe, SendGrid, Apollo) : la console te de
 3. Supported account types : **Accounts in any organizational directory and personal accounts**
 4. Redirect URI (Web) :
    ```
-   https://axiyon-nine.vercel.app/api/v1/integrations/microsoft/callback
+   https://ai.novakou.com/api/v1/integrations/microsoft/callback
    ```
 5. API permissions → Microsoft Graph → Delegated :
    - `Mail.Send`, `Mail.Read`
@@ -69,7 +69,7 @@ Pour les API key providers (Twilio, Stripe, SendGrid, Apollo) : la console te de
 1. https://app.hubspot.com/developer → Manage apps → Create app
 2. Auth → Redirect URL :
    ```
-   https://axiyon-nine.vercel.app/api/v1/integrations/hubspot/callback
+   https://ai.novakou.com/api/v1/integrations/hubspot/callback
    ```
 3. Scopes : `crm.objects.contacts.read/write`, `crm.objects.deals.read/write`, `crm.objects.companies.read/write`
 4. App info → Client ID / Client Secret → Vercel env
@@ -81,7 +81,7 @@ Pour les API key providers (Twilio, Stripe, SendGrid, Apollo) : la console te de
 1. https://api.slack.com/apps → Create New App → From scratch
 2. OAuth & Permissions → Redirect URLs :
    ```
-   https://axiyon-nine.vercel.app/api/v1/integrations/slack/callback
+   https://ai.novakou.com/api/v1/integrations/slack/callback
    ```
 3. Bot Token Scopes : `chat:write`, `channels:read`, `groups:read`, `im:write`, `users:read`
 4. Basic Information → Client ID / Client Secret → Vercel env
@@ -93,10 +93,10 @@ Pour les API key providers (Twilio, Stripe, SendGrid, Apollo) : la console te de
 
 1. https://github.com/settings/developers → OAuth Apps → New OAuth App
 2. Application name : Axion
-3. Homepage URL : `https://axiyon-nine.vercel.app`
+3. Homepage URL : `https://ai.novakou.com`
 4. Authorization callback URL :
    ```
-   https://axiyon-nine.vercel.app/api/v1/integrations/github/callback
+   https://ai.novakou.com/api/v1/integrations/github/callback
    ```
 5. Generate a new client secret → Client ID + secret → Vercel env
 
@@ -107,7 +107,7 @@ Pour les API key providers (Twilio, Stripe, SendGrid, Apollo) : la console te de
 1. https://www.notion.so/my-integrations → New integration → Public OAuth integration
 2. OAuth Domain & URIs → Redirect URIs :
    ```
-   https://axiyon-nine.vercel.app/api/v1/integrations/notion/callback
+   https://ai.novakou.com/api/v1/integrations/notion/callback
    ```
 3. Capabilities : Read content, Update content, Insert content
 4. OAuth client ID + secret → Vercel env
@@ -119,7 +119,7 @@ Pour les API key providers (Twilio, Stripe, SendGrid, Apollo) : la console te de
 1. https://www.linkedin.com/developers/apps → Create app
 2. Auth tab → OAuth 2.0 settings → Authorized redirect URLs :
    ```
-   https://axiyon-nine.vercel.app/api/v1/integrations/linkedin/callback
+   https://ai.novakou.com/api/v1/integrations/linkedin/callback
    ```
 3. Products → request `Sign In with LinkedIn` + `Marketing Developer Platform`
 4. Auth → Application credentials → Client ID + secret → Vercel env
