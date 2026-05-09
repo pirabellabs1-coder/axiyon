@@ -53,23 +53,43 @@ export const {
         password: { label: "Password", type: "password" },
       },
       async authorize(raw) {
-        const parsed = credentialsSchema.safeParse(raw);
-        if (!parsed.success) return null;
-
-        const user = await db.query.users.findFirst({
-          where: eq(users.email, parsed.data.email),
-        });
-        if (!user || !user.passwordHash || !user.isActive) return null;
-
-        const ok = await bcrypt.compare(parsed.data.password, user.passwordHash);
-        if (!ok) return null;
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          isSuperuser: user.isSuperuser,
-        };
+        try {
+          const parsed = credentialsSchema.safeParse(raw);
+          if (!parsed.success) {
+            console.warn("[auth.authorize] schema parse fail:", parsed.error.message);
+            return null;
+          }
+          const email = parsed.data.email.toLowerCase();
+          const user = await db.query.users.findFirst({
+            where: eq(users.email, email),
+          });
+          if (!user) {
+            console.warn("[auth.authorize] user not found:", email);
+            return null;
+          }
+          if (!user.passwordHash) {
+            console.warn("[auth.authorize] user has no passwordHash:", email);
+            return null;
+          }
+          if (!user.isActive) {
+            console.warn("[auth.authorize] user not active:", email);
+            return null;
+          }
+          const ok = await bcrypt.compare(parsed.data.password, user.passwordHash);
+          if (!ok) {
+            console.warn("[auth.authorize] bad password:", email);
+            return null;
+          }
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            isSuperuser: user.isSuperuser,
+          };
+        } catch (e) {
+          console.error("[auth.authorize] threw:", e);
+          return null;
+        }
       },
     }),
   ],
