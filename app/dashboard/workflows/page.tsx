@@ -63,9 +63,14 @@ export default async function WorkflowsPage() {
           {wfs.map((w) => (
             <Card key={w.id} className="p-5 hover:border-line-2 transition-colors">
               <div className="flex items-start justify-between gap-4 flex-wrap">
-                <div className="flex-1 min-w-0">
+                <Link
+                  href={`/dashboard/workflows/${w.slug}`}
+                  className="flex-1 min-w-0 group"
+                >
                   <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-medium">{w.name}</h3>
+                    <h3 className="font-medium group-hover:text-brand-blue-2 transition-colors">
+                      {w.name}
+                    </h3>
                     <span
                       className={`text-[10px] uppercase tracking-wider font-mono px-2 py-0.5 rounded border ${
                         w.status === "published"
@@ -85,9 +90,11 @@ export default async function WorkflowsPage() {
                     <span>v{w.version}</span>
                     {w.scheduleCron ? <span>cron: {w.scheduleCron}</span> : null}
                   </div>
-                </div>
-                <Button variant="ghost" size="sm">
-                  <Play className="size-3.5" /> Exécuter
+                </Link>
+                <Button variant="ghost" size="sm" asChild>
+                  <Link href={`/dashboard/workflows/${w.slug}`}>
+                    <Play className="size-3.5" /> Exécuter
+                  </Link>
                 </Button>
               </div>
             </Card>
