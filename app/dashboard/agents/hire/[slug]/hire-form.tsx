@@ -17,7 +17,7 @@ export function HireForm({ template }: { template: AgentTemplate }) {
     setLoading(true);
     setError(null);
     const fd = new FormData(e.currentTarget);
-    const r = await fetch("/api/agents", {
+    const r = await fetch("/api/v1/agents", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

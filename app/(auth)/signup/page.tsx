@@ -36,7 +36,7 @@ function SignupForm() {
       orgName: String(fd.get("org") ?? "") || undefined,
     };
 
-    const r = await fetch("/api/auth/signup", {
+    const r = await fetch("/api/v1/auth/signup", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),

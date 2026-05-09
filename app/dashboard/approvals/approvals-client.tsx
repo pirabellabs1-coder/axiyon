@@ -65,7 +65,7 @@ export function ApprovalsClient({ items }: { items: ApprovalItem[] }) {
   async function respond(id: string, decision: "approved" | "rejected") {
     setBusy(id);
     try {
-      await fetch(`/api/approvals/${id}`, {
+      await fetch(`/api/v1/approvals/${id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ decision }),

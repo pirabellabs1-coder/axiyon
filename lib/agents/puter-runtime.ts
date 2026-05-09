@@ -130,7 +130,7 @@ export async function runWithPuter(opts: PuterRunOptions): Promise<PuterRunResul
       let toolResult: unknown = null;
       let toolError: string | undefined;
       try {
-        const r = await fetch(`/api/tools/${encodeURIComponent(tc.function.name)}`, {
+        const r = await fetch(`/api/v1/tools/${encodeURIComponent(tc.function.name)}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ args: parsedArgs }),
@@ -159,7 +159,7 @@ export async function runWithPuter(opts: PuterRunOptions): Promise<PuterRunResul
 
   // Persist the run as a Task so it shows up in /dashboard/tasks + audit.
   try {
-    await fetch(`/api/agents/${opts.agentId}/result`, {
+    await fetch(`/api/v1/agents/${opts.agentId}/result`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

@@ -48,7 +48,7 @@ export function TeamClient({
     setInviting(true);
     setError(null);
     const fd = new FormData(e.currentTarget);
-    const r = await fetch("/api/team/invite", {
+    const r = await fetch("/api/v1/team/invite", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -68,7 +68,7 @@ export function TeamClient({
   }
 
   async function onChangeRole(memberId: string, role: string) {
-    const r = await fetch(`/api/team/${memberId}`, {
+    const r = await fetch(`/api/v1/team/${memberId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ role }),
@@ -79,7 +79,7 @@ export function TeamClient({
 
   async function onRemove(memberId: string) {
     if (!confirm("Retirer ce membre de l'organisation ?")) return;
-    await fetch(`/api/team/${memberId}`, { method: "DELETE" });
+    await fetch(`/api/v1/team/${memberId}`, { method: "DELETE" });
     router.refresh();
   }
 

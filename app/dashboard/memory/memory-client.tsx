@@ -53,7 +53,7 @@ export function MemoryClient({ entries }: { entries: MemoryItem[] }) {
     e.preventDefault();
     setAdding(true);
     const fd = new FormData(e.currentTarget);
-    await fetch("/api/memory", {
+    await fetch("/api/v1/memory", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -69,7 +69,7 @@ export function MemoryClient({ entries }: { entries: MemoryItem[] }) {
 
   async function deleteEntry(id: string) {
     if (!confirm("Supprimer cette entrée mémoire ?")) return;
-    await fetch(`/api/memory/${id}`, { method: "DELETE" });
+    await fetch(`/api/v1/memory/${id}`, { method: "DELETE" });
     router.refresh();
   }
 

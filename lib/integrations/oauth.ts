@@ -57,7 +57,7 @@ export function getRedirectUri(provider: string): string {
     process.env.NEXT_PUBLIC_APP_URL ??
     process.env.AUTH_URL ??
     (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
-  return `${base.replace(/\/$/, "")}/api/integrations/${provider}/callback`;
+  return `${base.replace(/\/$/, "")}/api/v1/integrations/${provider}/callback`;
 }
 
 export function buildAuthorizeUrl(

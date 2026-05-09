@@ -50,7 +50,7 @@ export function WorkflowsClient({ hiredAgents }: { hiredAgents: AgentLite[] }) {
 
   useEffect(() => {
     let alive = true;
-    fetch("/api/workflows")
+    fetch("/api/v1/workflows")
       .then((r) => r.json())
       .then((data) => {
         if (!alive) return;
@@ -176,7 +176,7 @@ function WorkflowDetail({
   const [history, setHistory] = useState<unknown[]>([]);
 
   useEffect(() => {
-    fetch(`/api/workflows/${workflow.slug}/runs`)
+    fetch(`/api/v1/workflows/${workflow.slug}/runs`)
       .then((r) => r.json())
       .then((data) => Array.isArray(data) && setHistory(data))
       .catch(() => undefined);

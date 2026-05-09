@@ -40,6 +40,10 @@ export const {
   session: { strategy: "jwt", maxAge: 60 * 60 * 24 * 30 },
   pages: { signIn: "/login" },
   trustHost: true,
+  // Move handlers off the hung /api/auth/* path tree onto a fresh basePath.
+  // The Vercel function bindings for /api/auth/* on this project are stuck
+  // returning HTTP 000 timeouts; /api/v1/auth/* gets clean lambda IDs.
+  basePath: "/api/v1/auth",
 
   providers: [
     Credentials({

@@ -15,6 +15,7 @@ export const authConfig = {
   session: { strategy: "jwt", maxAge: 60 * 60 * 24 * 30 },
   pages: { signIn: "/login" },
   trustHost: true,
+  basePath: "/api/v1/auth",
   providers: [],
   callbacks: {
     async session({ session, token }) {

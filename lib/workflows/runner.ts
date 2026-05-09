@@ -123,7 +123,7 @@ export async function runWorkflow(
   const finishedAt = new Date().toISOString();
 
   // Persist the run
-  await fetch(`/api/workflows/${encodeURIComponent(slug)}/runs`, {
+  await fetch(`/api/v1/workflows/${encodeURIComponent(slug)}/runs`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({

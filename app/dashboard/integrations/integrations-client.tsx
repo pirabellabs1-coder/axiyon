@@ -222,7 +222,7 @@ export function IntegrationsClient({ connected }: { connected: ConnectedIntegrat
                       className="flex-1"
                       onClick={async () => {
                         if (!confirm(`Déconnecter ${p.name} ?`)) return;
-                        await fetch(`/api/integrations/${conn.id}`, { method: "DELETE" });
+                        await fetch(`/api/v1/integrations/${conn.id}`, { method: "DELETE" });
                         router.refresh();
                       }}
                     >
@@ -236,7 +236,7 @@ export function IntegrationsClient({ connected }: { connected: ConnectedIntegrat
                       className="flex-1"
                       onClick={() => {
                         if (p.flow.type === "oauth2") {
-                          window.location.href = `/api/integrations/${p.slug}/connect`;
+                          window.location.href = `/api/v1/integrations/${p.slug}/connect`;
                         } else {
                           setActiveProvider(p);
                         }
@@ -380,7 +380,7 @@ function ApiKeyDialog({
     e.preventDefault();
     setSubmitting(true);
     setError(null);
-    const r = await fetch(`/api/integrations/${provider.slug}/connect`, {
+    const r = await fetch(`/api/v1/integrations/${provider.slug}/connect`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ fields }),
