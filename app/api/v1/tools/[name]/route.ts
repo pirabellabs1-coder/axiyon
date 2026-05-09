@@ -26,7 +26,11 @@ export async function POST(
     return NextResponse.json({ error: `Unknown tool: ${name}` }, { status: 404 });
   }
 
-  let body: { args?: Record<string, unknown> };
+  let body: {
+    args?: Record<string, unknown>;
+    agentId?: string;
+    templateSlug?: string;
+  };
   try {
     body = await req.json();
   } catch {
@@ -46,11 +50,31 @@ export async function POST(
     // AI SDK's tool() helper doesn't have a context channel). We MUST set it
     // here so real API calls (Gmail send, Calendar book, etc) get the right
     // org's encrypted tokens. Cleared in finally to avoid cross-request bleed.
-    const { db } = await import("@/lib/db");
+    const { db, agentInstances } = await import("@/lib/db");
     const { setToolOrgContext } = await import("@/lib/agents/tools");
+    const { eq, and } = await import("drizzle-orm");
+
+    // Validate that any agentId passed actually belongs to this org. If not,
+    // fall back to a generic "chat-runtime" id rather than risk leaking another
+    // org's agent reference through the audit chain.
+    let resolvedAgentId = "chat-runtime";
+    if (body.agentId && typeof body.agentId === "string") {
+      const owned = await db
+        .select({ id: agentInstances.id })
+        .from(agentInstances)
+        .where(
+          and(
+            eq(agentInstances.id, body.agentId),
+            eq(agentInstances.orgId, session.user.activeOrgId),
+          ),
+        )
+        .limit(1);
+      if (owned[0]) resolvedAgentId = owned[0].id;
+    }
+
     setToolOrgContext({
       orgId: session.user.activeOrgId,
-      agentId: "chat-runtime",
+      agentId: resolvedAgentId,
       taskId: crypto.randomUUID(),
     });
     try {

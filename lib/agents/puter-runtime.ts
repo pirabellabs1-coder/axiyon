@@ -170,7 +170,14 @@ export async function runWithPuter(opts: PuterRunOptions): Promise<PuterRunResul
         const r = await fetch(`/api/v1/tools/${encodeURIComponent(tc.function.name)}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ args: parsedArgs }),
+          body: JSON.stringify({
+            args: parsedArgs,
+            // Forwarded so /api/v1/tools/[name] can attribute approval requests
+            // and audit entries to the actual recruited agent (not a generic
+            // "chat-runtime" placeholder).
+            agentId: opts.agentId,
+            templateSlug: opts.templateSlug,
+          }),
         });
         if (!r.ok) throw new Error(`HTTP ${r.status}: ${await r.text()}`);
         toolResult = await r.json();

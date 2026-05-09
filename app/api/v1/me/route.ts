@@ -50,17 +50,23 @@ export async function PATCH(req: Request) {
   }
 
   if (body.newPassword) {
-    if (!body.currentPassword) {
-      return Response.json(
-        { error: "Mot de passe actuel requis pour changer le mot de passe" },
-        { status: 422 },
-      );
+    if (!user.passwordHash) {
+      // Account has no local password (e.g. OAuth-only). Set the new one
+      // without comparing — first time the user adds a local credential.
+      updates.passwordHash = await bcrypt.hash(body.newPassword, 12);
+    } else {
+      if (!body.currentPassword) {
+        return Response.json(
+          { error: "Mot de passe actuel requis pour changer le mot de passe" },
+          { status: 422 },
+        );
+      }
+      const ok = await bcrypt.compare(body.currentPassword, user.passwordHash);
+      if (!ok) {
+        return Response.json({ error: "Mot de passe actuel incorrect" }, { status: 401 });
+      }
+      updates.passwordHash = await bcrypt.hash(body.newPassword, 12);
     }
-    const ok = await bcrypt.compare(body.currentPassword, user.passwordHash);
-    if (!ok) {
-      return Response.json({ error: "Mot de passe actuel incorrect" }, { status: 401 });
-    }
-    updates.passwordHash = await bcrypt.hash(body.newPassword, 12);
   }
 
   if (Object.keys(updates).length === 1) {

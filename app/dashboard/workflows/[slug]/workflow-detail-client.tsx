@@ -64,11 +64,16 @@ export function WorkflowDetailClient({
           setStepStates((prev) => ({ ...prev, [stepId]: { status: "running", partialText: "" } }));
         },
         onStepProgress: (stepId, partial) => {
-          if (partial.text) {
+          const chunk = partial.text;
+          if (typeof chunk === "string" && chunk.length > 0) {
             setStepStates((prev) => {
               const cur = prev[stepId];
-              const text = cur.status === "running" ? cur.partialText + partial.text : partial.text;
-              return { ...prev, [stepId]: { status: "running", partialText: text } };
+              const next: StepState = {
+                status: "running",
+                partialText:
+                  cur && cur.status === "running" ? cur.partialText + chunk : chunk,
+              };
+              return { ...prev, [stepId]: next };
             });
           }
         },
