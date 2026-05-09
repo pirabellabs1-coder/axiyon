@@ -98,7 +98,8 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 }
 .sidebar-link:hover{background:var(--bg-3);color:var(--ink)}
 .sidebar-link.active{background:var(--bg-3);color:var(--ink)}
-.sidebar-link .icon{width:16px;flex-shrink:0;text-align:center}
+.sidebar-link .icon{width:16px;height:16px;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:currentColor}
+.sidebar-link .icon svg{width:16px;height:16px;display:block;stroke:currentColor;fill:none}
 .sidebar-link .badge{
   margin-left:auto;font-size:10px;padding:1px 6px;
   border-radius:10px;background:var(--blue);color:#fff;
@@ -227,18 +228,27 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 }
 
 /* live feed */
-.feed{display:flex;flex-direction:column;gap:0;max-height:400px;overflow-y:auto}
+.feed{display:flex;flex-direction:column;gap:0;max-height:520px;overflow-y:auto}
+.feed-item.new{animation:feedSlideIn .35s ease-out}
+@keyframes feedSlideIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
 .feed-item{
   display:flex;gap:12px;padding:10px 0;
   border-bottom:1px solid var(--line);
 }
 .feed-item:last-child{border-bottom:none}
 .feed-icon{
-  width:28px;height:28px;border-radius:7px;flex-shrink:0;
-  background:var(--bg-3);
+  width:32px;height:32px;border-radius:8px;flex-shrink:0;
   display:flex;align-items:center;justify-content:center;
-  font-size:13px;
+  color:#fff;
 }
+.feed-icon svg{width:16px;height:16px;stroke-width:2;stroke:currentColor;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.feed-icon.iris{background:linear-gradient(135deg,#5B6CFF,#22D3EE)}
+.feed-icon.atlas{background:linear-gradient(135deg,#FF3D8E,#5B6CFF)}
+.feed-icon.sage{background:linear-gradient(135deg,#22D3EE,#34D399)}
+.feed-icon.codex{background:linear-gradient(135deg,#E8B86D,#FF3D8E)}
+.feed-icon.forge{background:linear-gradient(135deg,#5A5A6E,#7C8AFF)}
+.feed-icon.lumen{background:linear-gradient(135deg,#34D399,#22D3EE)}
+.feed-icon.nova{background:linear-gradient(135deg,#FF3D8E,#E8B86D)}
 .feed-content{flex:1;min-width:0}
 .feed-line{font-size:13px;line-height:1.45}
 .feed-line .agent{color:var(--blue-2);font-weight:500}
@@ -265,7 +275,15 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 .agent-status.idle{background:var(--ink-3);box-shadow:none}
 .agent-status.error{background:var(--red);box-shadow:0 0 8px var(--red)}
 .agent-row .agent-name{font-weight:500;display:flex;align-items:center;gap:8px}
-.agent-icon{width:28px;height:28px;border-radius:7px;background:var(--bg-3);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:13px}
+.agent-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0}
+.agent-icon svg{width:16px;height:16px;stroke-width:2;stroke:currentColor;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.agent-icon.iris{background:linear-gradient(135deg,#5B6CFF,#22D3EE)}
+.agent-icon.atlas{background:linear-gradient(135deg,#FF3D8E,#5B6CFF)}
+.agent-icon.sage{background:linear-gradient(135deg,#22D3EE,#34D399)}
+.agent-icon.codex{background:linear-gradient(135deg,#E8B86D,#FF3D8E)}
+.agent-icon.nova{background:linear-gradient(135deg,#FF3D8E,#E8B86D)}
+.agent-icon.forge{background:linear-gradient(135deg,#5A5A6E,#7C8AFF)}
+.agent-icon.lumen{background:linear-gradient(135deg,#34D399,#22D3EE)}
 .agent-row .meta{color:var(--ink-2);font-family:'JetBrains Mono',monospace;font-size:12px}
 .agent-row .health{font-family:'JetBrains Mono',monospace;font-size:12px}
 .health.good{color:var(--green)}.health.warn{color:var(--yellow)}.health.bad{color:var(--red)}
@@ -492,30 +510,30 @@ img,video,iframe,svg{max-width:100%;height:auto}
 
   <div class="sidebar-backdrop" id="sbBackdrop"></div>
   <div class="sidebar" id="sidebar">
-    <button class="sidebar-link active" data-view="overview"><span class="icon">◇</span> Overview</button>
-    <button class="sidebar-link" data-view="chat"><span class="icon">◊</span> Chat avec un agent <span class="badge">NEW</span></button>
-    <button class="sidebar-link" data-view="agents"><span class="icon">○</span> Agents <span class="dot"></span></button>
-    <button class="sidebar-link" data-view="workflows"><span class="icon">⌘</span> Workflows</button>
+    <button class="sidebar-link active" data-view="overview"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 22 12 12 22 2 12"/></svg></span> Overview</button>
+    <button class="sidebar-link" data-view="chat"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span> Chat avec un agent <span class="badge">NEW</span></button>
+    <button class="sidebar-link" data-view="agents"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"/><path d="M5.5 21a6.5 6.5 0 0 1 13 0"/></svg></span> Agents <span class="dot"></span></button>
+    <button class="sidebar-link" data-view="workflows"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V6a3 3 0 0 1 6 0v12a3 3 0 0 0 6 0v-3M9 6h12a3 3 0 0 1 0 6H6a3 3 0 0 1 0-6z"/></svg></span> Workflows</button>
 
     <div class="sidebar-section">Données</div>
-    <button class="sidebar-link" data-view="memory"><span class="icon">▤</span> Mémoire</button>
-    <button class="sidebar-link" data-view="integrations"><span class="icon">⌬</span> Intégrations</button>
-    <button class="sidebar-link" data-view="kg"><span class="icon">⊞</span> Knowledge graph</button>
+    <button class="sidebar-link" data-view="memory"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a4 4 0 0 1-4 4H7l-4 4V5a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/><path d="M7 10h10M7 14h7"/></svg></span> Mémoire</button>
+    <button class="sidebar-link" data-view="integrations"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17l6-6 4 4 6-6"/><circle cx="4" cy="17" r="1.5"/><circle cx="10" cy="11" r="1.5"/><circle cx="14" cy="15" r="1.5"/><circle cx="20" cy="9" r="1.5"/></svg></span> Intégrations</button>
+    <button class="sidebar-link" data-view="kg"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="12" cy="3" r="2"/><circle cx="12" cy="21" r="2"/><circle cx="3" cy="12" r="2"/><circle cx="21" cy="12" r="2"/><line x1="12" y1="5" x2="12" y2="9"/><line x1="12" y1="15" x2="12" y2="19"/><line x1="5" y1="12" x2="9" y2="12"/><line x1="15" y1="12" x2="19" y2="12"/></svg></span> Knowledge graph</button>
 
     <div class="sidebar-section">Opérations</div>
-    <button class="sidebar-link" data-view="logs"><span class="icon">≡</span> Logs & traces</button>
-    <button class="sidebar-link" data-view="approvals"><span class="icon">⌥</span> Approbations <span class="badge">3</span></button>
-    <button class="sidebar-link" data-view="replay"><span class="icon">⏷</span> Replay</button>
+    <button class="sidebar-link" data-view="logs"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></span> Logs & traces</button>
+    <button class="sidebar-link" data-view="approvals"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span> Approbations <span class="badge">3</span></button>
+    <button class="sidebar-link" data-view="replay"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg></span> Replay</button>
 
     <div class="sidebar-section">Gouvernance</div>
-    <button class="sidebar-link" data-view="permissions"><span class="icon">▣</span> Permissions</button>
-    <button class="sidebar-link" data-view="budgets"><span class="icon">€</span> Budgets</button>
-    <button class="sidebar-link" data-view="audit"><span class="icon">⛬</span> Audit</button>
+    <button class="sidebar-link" data-view="permissions"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span> Permissions</button>
+    <button class="sidebar-link" data-view="budgets"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 7c-1.5-2-4-3-6.5-3C7 4 4 7.5 4 12s3 8 7.5 8c2.5 0 5-1 6.5-3"/><line x1="2" y1="10" x2="14" y2="10"/><line x1="2" y1="14" x2="14" y2="14"/></svg></span> Budgets</button>
+    <button class="sidebar-link" data-view="audit"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span> Audit</button>
 
     <div class="sidebar-section">Compte</div>
-    <button class="sidebar-link" data-view="team"><span class="icon">▦</span> Équipe</button>
-    <button class="sidebar-link" data-view="billing"><span class="icon">▢</span> Facturation</button>
-    <button class="sidebar-link" data-view="settings"><span class="icon">⊠</span> Paramètres</button>
+    <button class="sidebar-link" data-view="team"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span> Équipe</button>
+    <button class="sidebar-link" data-view="billing"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></span> Facturation</button>
+    <button class="sidebar-link" data-view="settings"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span> Paramètres</button>
   </div>
 
   <div class="main">
@@ -583,19 +601,19 @@ img,video,iframe,svg{max-width:100%;height:auto}
             </div>
             <div style="display:flex;flex-direction:column;gap:10px">
               <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)">
-                <div style="display:flex;align-items:center;gap:10px"><div class="agent-icon">📞</div><div><div style="font-weight:500">Iris · SDR</div><div style="font-size:11px;color:var(--ink-3);font-family:'JetBrains Mono',monospace">340 leads / sem</div></div></div>
+                <div style="display:flex;align-items:center;gap:10px"><div class="agent-icon iris"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></div><div><div style="font-weight:500">Iris · SDR</div><div style="font-size:11px;color:var(--ink-3);font-family:'JetBrains Mono',monospace">340 leads / sem</div></div></div>
                 <div style="text-align:right"><div style="font-weight:500;font-family:'JetBrains Mono',monospace">+ 1 247 800 €</div><div style="font-size:11px;color:var(--green)">▲ pipeline</div></div>
               </div>
               <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)">
-                <div style="display:flex;align-items:center;gap:10px"><div class="agent-icon">💼</div><div><div style="font-weight:500">Atlas · CFO</div><div style="font-size:11px;color:var(--ink-3);font-family:'JetBrains Mono',monospace">clôture mensuelle 11h</div></div></div>
+                <div style="display:flex;align-items:center;gap:10px"><div class="agent-icon atlas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></div><div><div style="font-weight:500">Atlas · CFO</div><div style="font-size:11px;color:var(--ink-3);font-family:'JetBrains Mono',monospace">clôture mensuelle 11h</div></div></div>
                 <div style="text-align:right"><div style="font-weight:500;font-family:'JetBrains Mono',monospace">+ 384 200 €</div><div style="font-size:11px;color:var(--green)">▲ économies</div></div>
               </div>
               <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)">
-                <div style="display:flex;align-items:center;gap:10px"><div class="agent-icon">🎧</div><div><div style="font-weight:500">Sage · Support</div><div style="font-size:11px;color:var(--ink-3);font-family:'JetBrains Mono',monospace">1 247 tickets / 24h</div></div></div>
+                <div style="display:flex;align-items:center;gap:10px"><div class="agent-icon sage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg></div><div><div style="font-weight:500">Sage · Support</div><div style="font-size:11px;color:var(--ink-3);font-family:'JetBrains Mono',monospace">1 247 tickets / 24h</div></div></div>
                 <div style="text-align:right"><div style="font-weight:500;font-family:'JetBrains Mono',monospace">+ 187 600 €</div><div style="font-size:11px;color:var(--green)">▲ rétention</div></div>
               </div>
               <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0">
-                <div style="display:flex;align-items:center;gap:10px"><div class="agent-icon">⚖️</div><div><div style="font-weight:500">Codex · Juriste</div><div style="font-size:11px;color:var(--ink-3);font-family:'JetBrains Mono',monospace">312 contrats relus</div></div></div>
+                <div style="display:flex;align-items:center;gap:10px"><div class="agent-icon codex"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1zM2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1zM7 21h10M12 3v18M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg></div><div><div style="font-weight:500">Codex · Juriste</div><div style="font-size:11px;color:var(--ink-3);font-family:'JetBrains Mono',monospace">312 contrats relus</div></div></div>
                 <div style="text-align:right"><div style="font-weight:500;font-family:'JetBrains Mono',monospace">+ 142 800 €</div><div style="font-size:11px;color:var(--green)">▲ économies</div></div>
               </div>
             </div>
@@ -608,16 +626,7 @@ img,video,iframe,svg{max-width:100%;height:auto}
               <div class="panel-title">Activité en direct</div>
               <div class="panel-meta" style="display:flex;align-items:center;gap:6px"><div style="width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green)"></div> LIVE</div>
             </div>
-            <div class="feed" id="feed">
-              <div class="feed-item"><div class="feed-icon">📞</div><div class="feed-content"><div class="feed-line"><span class="agent">Iris</span> <span class="action">a booké une démo avec</span> <strong>Stripe</strong> <span class="action">pour mardi 10h</span></div><div class="feed-time">il y a 12s</div></div></div>
-              <div class="feed-item"><div class="feed-icon">💼</div><div class="feed-content"><div class="feed-line"><span class="agent">Atlas</span> <span class="action">a clôturé le mois</span> <strong>avril 2026</strong> <span class="action">· revue prête</span></div><div class="feed-time">il y a 4 min</div></div></div>
-              <div class="feed-item"><div class="feed-icon">🎧</div><div class="feed-content"><div class="feed-line"><span class="agent">Sage</span> <span class="action">a résolu un ticket P1 chez</span> <strong>Veepee</strong></div><div class="feed-time">il y a 6 min</div></div></div>
-              <div class="feed-item"><div class="feed-icon">⚖️</div><div class="feed-content"><div class="feed-line"><span class="agent">Codex</span> <span class="action">demande une approbation</span> · <strong>contrat 240 k€</strong></div><div class="feed-time">il y a 18 min</div></div></div>
-              <div class="feed-item"><div class="feed-icon">🧬</div><div class="feed-content"><div class="feed-line"><span class="agent">Nova</span> <span class="action">a sourcé</span> <strong>14 candidats</strong> <span class="action">VP Engineering</span></div><div class="feed-time">il y a 23 min</div></div></div>
-              <div class="feed-item"><div class="feed-icon">⚙️</div><div class="feed-content"><div class="feed-line"><span class="agent">Forge</span> <span class="action">a déployé</span> <strong>v2.84.1</strong> <span class="action">en production</span></div><div class="feed-time">il y a 31 min</div></div></div>
-              <div class="feed-item"><div class="feed-icon">📈</div><div class="feed-content"><div class="feed-line"><span class="agent">Lumen</span> <span class="action">a lancé l'A/B test</span> <strong>landing-v3</strong></div><div class="feed-time">il y a 47 min</div></div></div>
-              <div class="feed-item"><div class="feed-icon">📞</div><div class="feed-content"><div class="feed-line"><span class="agent">Iris</span> <span class="action">a qualifié</span> <strong>84 prospects</strong></div><div class="feed-time">il y a 1h</div></div></div>
-            </div>
+            <div class="feed" id="feed"></div>
           </div>
         </div>
 
@@ -724,7 +733,7 @@ img,video,iframe,svg{max-width:100%;height:auto}
         </div>
         <div class="agent-row">
           <div class="agent-status"></div>
-          <div class="agent-name"><div class="agent-icon">📞</div>Iris · SDR Outbound</div>
+          <div class="agent-name"><div class="agent-icon iris"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></div>Iris · SDR Outbound</div>
           <div class="meta">340 / 500</div>
           <div class="health good">98% ● excellente</div>
           <div class="meta">299 €</div>
@@ -732,7 +741,7 @@ img,video,iframe,svg{max-width:100%;height:auto}
         </div>
         <div class="agent-row">
           <div class="agent-status"></div>
-          <div class="agent-name"><div class="agent-icon">💼</div>Atlas · CFO Adjoint</div>
+          <div class="agent-name"><div class="agent-icon atlas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></div>Atlas · CFO Adjoint</div>
           <div class="meta">42 / 50</div>
           <div class="health good">100% ● parfaite</div>
           <div class="meta">899 €</div>
@@ -740,7 +749,7 @@ img,video,iframe,svg{max-width:100%;height:auto}
         </div>
         <div class="agent-row">
           <div class="agent-status"></div>
-          <div class="agent-name"><div class="agent-icon">🎧</div>Sage · Support N2</div>
+          <div class="agent-name"><div class="agent-icon sage"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg></div>Sage · Support N2</div>
           <div class="meta">1 247 / 1 500</div>
           <div class="health good">96% ● excellente</div>
           <div class="meta">399 €</div>
@@ -748,7 +757,7 @@ img,video,iframe,svg{max-width:100%;height:auto}
         </div>
         <div class="agent-row">
           <div class="agent-status"></div>
-          <div class="agent-name"><div class="agent-icon">⚖️</div>Codex · Juriste</div>
+          <div class="agent-name"><div class="agent-icon codex"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1zM2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1zM7 21h10M12 3v18M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg></div>Codex · Juriste</div>
           <div class="meta">23 / 40</div>
           <div class="health warn">87% ⚠ une approbation due</div>
           <div class="meta">599 €</div>
@@ -756,7 +765,7 @@ img,video,iframe,svg{max-width:100%;height:auto}
         </div>
         <div class="agent-row">
           <div class="agent-status"></div>
-          <div class="agent-name"><div class="agent-icon">🧬</div>Nova · Recruteuse</div>
+          <div class="agent-name"><div class="agent-icon nova"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>Nova · Recruteuse</div>
           <div class="meta">38 / 60</div>
           <div class="health good">94% ● bonne</div>
           <div class="meta">399 €</div>
@@ -764,7 +773,7 @@ img,video,iframe,svg{max-width:100%;height:auto}
         </div>
         <div class="agent-row">
           <div class="agent-status"></div>
-          <div class="agent-name"><div class="agent-icon">⚙️</div>Forge · DevOps</div>
+          <div class="agent-name"><div class="agent-icon forge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div>Forge · DevOps</div>
           <div class="meta">187 / 200</div>
           <div class="health good">100% ● parfaite</div>
           <div class="meta">599 €</div>
@@ -772,7 +781,7 @@ img,video,iframe,svg{max-width:100%;height:auto}
         </div>
         <div class="agent-row">
           <div class="agent-status"></div>
-          <div class="agent-name"><div class="agent-icon">📈</div>Lumen · Growth</div>
+          <div class="agent-name"><div class="agent-icon lumen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg></div>Lumen · Growth</div>
           <div class="meta">62 / 80</div>
           <div class="health good">95% ● bonne</div>
           <div class="meta">599 €</div>
@@ -1320,6 +1329,86 @@ heights.forEach((h,i)=>{
   setTimeout(()=>bar.style.height=h+'%',60*i);
   chart.appendChild(bar);
 });
+
+// ─── LIVE feed (cycling) ────────────────────────────────────
+const FEED_ICONS = {
+  // Lucide-style minimal SVG paths
+  phone: '<svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>',
+  briefcase: '<svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>',
+  headphones: '<svg viewBox="0 0 24 24"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>',
+  scale: '<svg viewBox="0 0 24 24"><path d="M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1zM2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1zM7 21h10M12 3v18M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2"/></svg>',
+  cog: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>',
+  trendingup: '<svg viewBox="0 0 24 24"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>',
+  users: '<svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+  shield: '<svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+};
+
+const FEED_TEMPLATES = [
+  { agent:'Iris', icon:'phone', cls:'iris',   line: a=>`<span class="agent">Iris</span> <span class="action">a qualifié</span> <strong>${a.n} nouveaux prospects</strong>`, args:()=>({n:Math.floor(3+Math.random()*15)}) },
+  { agent:'Iris', icon:'phone', cls:'iris',   line: a=>`<span class="agent">Iris</span> <span class="action">a booké une démo avec</span> <strong>${a.co}</strong>`, args:()=>({co:pick(['Stripe','Notion','Linear','Algolia','Doctolib','BlaBlaCar'])}) },
+  { agent:'Atlas', icon:'briefcase', cls:'atlas', line: a=>`<span class="agent">Atlas</span> <span class="action">a clôturé le mois</span> <strong>${a.m} 2026</strong>`, args:()=>({m:pick(['mars','avril','mai'])}) },
+  { agent:'Atlas', icon:'briefcase', cls:'atlas', line: a=>`<span class="agent">Atlas</span> <span class="action">a validé une marge brute de</span> <strong>${a.k} k€</strong>`, args:()=>({k:Math.floor(80+Math.random()*40)}) },
+  { agent:'Sage',  icon:'headphones', cls:'sage', line: a=>`<span class="agent">Sage</span> <span class="action">a résolu un ticket P${a.p} chez</span> <strong>${a.co}</strong>`, args:()=>({p:pick([1,2]),co:pick(['Aircall','Veepee','Mirakl','Spendesk','Qonto'])}) },
+  { agent:'Sage',  icon:'headphones', cls:'sage', line: a=>`<span class="agent">Sage</span> <span class="action">a traité</span> <strong>${a.n} tickets</strong> <span class="action">en 24h</span>`, args:()=>({n:Math.floor(800+Math.random()*500)}) },
+  { agent:'Codex', icon:'scale', cls:'codex',    line: a=>`<span class="agent">Codex</span> <span class="action">a relu le contrat</span> <strong>${a.co}</strong>`, args:()=>({co:pick(['MSA Stripe','DPA Notion','NDA Linear','SOW Mirakl'])}) },
+  { agent:'Codex', icon:'scale', cls:'codex',    line: a=>`<span class="agent">Codex</span> <span class="action">demande une approbation</span> · <strong>contrat ${a.k} k€</strong>`, args:()=>({k:pick([180,240,320,420])}) },
+  { agent:'Forge', icon:'cog', cls:'forge',      line: a=>`<span class="agent">Forge</span> <span class="action">a déployé</span> <strong>un hotfix en ${a.t} min</strong>`, args:()=>({t:pick([1,2,3])}) },
+  { agent:'Forge', icon:'cog', cls:'forge',      line: a=>`<span class="agent">Forge</span> <span class="action">a corrigé</span> <strong>${a.n} alertes Sentry</strong>`, args:()=>({n:Math.floor(3+Math.random()*8)}) },
+  { agent:'Lumen', icon:'trendingup', cls:'lumen', line: a=>`<span class="agent">Lumen</span> <span class="action">a réduit le CPC de</span> <strong>−${a.pct}% sur Google Ads</strong>`, args:()=>({pct:Math.floor(8+Math.random()*15)}) },
+  { agent:'Lumen', icon:'trendingup', cls:'lumen', line: a=>`<span class="agent">Lumen</span> <span class="action">a lancé l'A/B test</span> <strong>${a.test}</strong>`, args:()=>({test:pick(['landing-v3','onboarding-v7','pricing-flip','hero-cta-2'])}) },
+  { agent:'Nova',  icon:'users', cls:'nova',     line: a=>`<span class="agent">Nova</span> <span class="action">a sourcé</span> <strong>${a.n} candidats</strong> <span class="action">${a.role}</span>`, args:()=>({n:Math.floor(8+Math.random()*20),role:pick(['VP Engineering','Senior Data Scientist','Head of Sales','SRE'])}) },
+];
+
+function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+const feed = document.getElementById('feed');
+const TIME_STEPS = ["à l'instant","il y a 12s","il y a 32s","il y a 1 min","il y a 2 min","il y a 4 min","il y a 6 min","il y a 12 min","il y a 18 min","il y a 24 min","il y a 38 min","il y a 47 min","il y a 1h"];
+
+function feedItemHTML(t){
+  const args = t.args();
+  return `<div class="feed-icon ${t.cls}">${FEED_ICONS[t.icon]||''}</div><div class="feed-content"><div class="feed-line">${t.line(args)}</div><div class="feed-time">à l'instant</div></div>`;
+}
+
+function ageFeed(){
+  // Bump every existing item's timestamp one step back
+  const items = feed.querySelectorAll('.feed-item');
+  items.forEach((el,i)=>{
+    const t = el.querySelector('.feed-time');
+    if(!t) return;
+    const next = TIME_STEPS[Math.min(i+1, TIME_STEPS.length-1)];
+    t.textContent = next;
+    el.classList.remove('new');
+  });
+}
+
+function pushFeedItem(){
+  const tpl = FEED_TEMPLATES[Math.floor(Math.random()*FEED_TEMPLATES.length)];
+  ageFeed();
+  const div = document.createElement('div');
+  div.className = 'feed-item new';
+  div.innerHTML = feedItemHTML(tpl);
+  feed.insertBefore(div, feed.firstChild);
+  // cap to 14 items
+  while (feed.children.length > 14) feed.removeChild(feed.lastChild);
+}
+
+// Seed with 8 items at varied timestamps
+if (feed) {
+  for (let i=0;i<8;i++){
+    const tpl = FEED_TEMPLATES[Math.floor(Math.random()*FEED_TEMPLATES.length)];
+    const div = document.createElement('div');
+    div.className = 'feed-item';
+    div.innerHTML = feedItemHTML(tpl);
+    div.querySelector('.feed-time').textContent = TIME_STEPS[i];
+    feed.appendChild(div);
+  }
+  // Drop a new item every 3-6s
+  function loop(){
+    pushFeedItem();
+    setTimeout(loop, 3000 + Math.random()*3000);
+  }
+  setTimeout(loop, 2200);
+}
 
 // chat scripted demo
 const cm=document.getElementById('chat-messages');
