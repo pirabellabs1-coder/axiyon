@@ -47,6 +47,11 @@ export default async function OverviewPage() {
     .orderBy(sql`${agentInstances.createdAt} DESC`)
     .limit(8);
 
+  const [{ totalAgents }] = await db
+    .select({ totalAgents: count(agentInstances.id) })
+    .from(agentInstances)
+    .where(eq(agentInstances.orgId, orgId));
+
   const periodStart = new Date();
   periodStart.setDate(1);
   periodStart.setHours(0, 0, 0, 0);
@@ -184,10 +189,12 @@ export default async function OverviewPage() {
       <div className="flex items-start justify-between flex-wrap gap-4">
         <div>
           <h1 className="text-3xl font-medium tracking-tight">
-            Bonjour, {session.user.name ?? session.user.email}
+            Bonjour, {(session.user.name ?? session.user.email ?? "vous").split(" ")[0]} 👋
           </h1>
           <p className="text-ink-2 mt-1.5">
-            {org?.name} · plan {org?.tier} · {formatNumber(org?.taskQuotaMonthly ?? 0)} tâches/mois inclus
+            {totalAgents > 0
+              ? `Voici ce que vos ${formatNumber(totalAgents)} agent${totalAgents > 1 ? "s" : ""} ont fait pendant que vous dormiez.`
+              : "Recrutez votre premier agent pour démarrer."}
           </p>
         </div>
         <div className="flex gap-2">

@@ -89,10 +89,13 @@ export function ChatView({
   userName,
   agents,
   orgStats,
+  connectedProviders = [],
 }: {
   userName: string;
   agents: Agent[];
   orgStats: OrgStats;
+  /** Slugs of providers the org has connected, e.g. ["google", "slack"]. */
+  connectedProviders?: string[];
 }) {
   const [activeAgent, setActiveAgent] = useState<Agent | null>(agents[0] ?? null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -189,6 +192,7 @@ export function ChatView({
           activeAgent.systemPrompt ??
           "Tu es un agent autonome qui exécute des objectifs en appelant les outils mis à ta disposition. Sois concis et actionnable.",
         enabledTools: activeAgent.enabledTools ?? [],
+        connectedProviders,
         objective,
         onToolCall: (call) => {
           setMessages((prev) =>

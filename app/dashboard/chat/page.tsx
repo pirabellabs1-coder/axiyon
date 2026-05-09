@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { and, count, eq, gte, sql, sum } from "drizzle-orm";
 import { auth } from "@/auth";
-import { agentInstances, approvals, db, orgs, tasks } from "@/lib/db";
+import { agentInstances, approvals, db, integrations, orgs, tasks } from "@/lib/db";
 import { ChatView } from "./chat-view";
 
 export const dynamic = "force-dynamic";
@@ -15,33 +15,44 @@ export default async function ChatPage() {
   monthStart.setDate(1);
   monthStart.setHours(0, 0, 0, 0);
 
-  const [allAgents, [orgRow], [costRow], [tasksRow], [pendingRow]] = await Promise.all([
-    db
-      .select({
-        id: agentInstances.id,
-        name: agentInstances.name,
-        templateSlug: agentInstances.templateSlug,
-        status: agentInstances.status,
-        enabledTools: agentInstances.enabledTools,
-        customPrompt: agentInstances.customPrompt,
-      })
-      .from(agentInstances)
-      .where(eq(agentInstances.orgId, orgId))
-      .orderBy(sql`${agentInstances.createdAt} DESC`),
-    db.select().from(orgs).where(eq(orgs.id, orgId)).limit(1),
-    db
-      .select({ cost: sum(tasks.costEur).mapWith(Number) })
-      .from(tasks)
-      .where(and(eq(tasks.orgId, orgId), gte(tasks.createdAt, monthStart))),
-    db
-      .select({ n: count(tasks.id) })
-      .from(tasks)
-      .where(and(eq(tasks.orgId, orgId), gte(tasks.createdAt, monthStart))),
-    db
-      .select({ n: count(approvals.id) })
-      .from(approvals)
-      .where(and(eq(approvals.orgId, orgId), eq(approvals.status, "pending"))),
-  ]);
+  const [allAgents, [orgRow], [costRow], [tasksRow], [pendingRow], integRows] =
+    await Promise.all([
+      db
+        .select({
+          id: agentInstances.id,
+          name: agentInstances.name,
+          templateSlug: agentInstances.templateSlug,
+          status: agentInstances.status,
+          enabledTools: agentInstances.enabledTools,
+          customPrompt: agentInstances.customPrompt,
+        })
+        .from(agentInstances)
+        .where(eq(agentInstances.orgId, orgId))
+        .orderBy(sql`${agentInstances.createdAt} DESC`),
+      db.select().from(orgs).where(eq(orgs.id, orgId)).limit(1),
+      db
+        .select({ cost: sum(tasks.costEur).mapWith(Number) })
+        .from(tasks)
+        .where(and(eq(tasks.orgId, orgId), gte(tasks.createdAt, monthStart))),
+      db
+        .select({ n: count(tasks.id) })
+        .from(tasks)
+        .where(and(eq(tasks.orgId, orgId), gte(tasks.createdAt, monthStart))),
+      db
+        .select({ n: count(approvals.id) })
+        .from(approvals)
+        .where(and(eq(approvals.orgId, orgId), eq(approvals.status, "pending"))),
+      db
+        .select({ provider: integrations.provider })
+        .from(integrations)
+        .where(
+          and(eq(integrations.orgId, orgId), eq(integrations.status, "connected")),
+        ),
+    ]);
+
+  const connectedProviders = Array.from(
+    new Set(integRows.map((r) => r.provider)),
+  ).sort();
 
   return (
     <ChatView
@@ -54,6 +65,7 @@ export default async function ChatPage() {
         enabledTools: (a.enabledTools as string[] | null) ?? [],
         systemPrompt: a.customPrompt ?? undefined,
       }))}
+      connectedProviders={connectedProviders}
       orgStats={{
         budgetUsedEur: Number(costRow?.cost ?? 0),
         budgetLimitEur: Number(orgRow?.budgetEurMonthly ?? 50),

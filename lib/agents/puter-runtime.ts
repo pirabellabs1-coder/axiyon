@@ -20,6 +20,8 @@ export interface PuterRunOptions {
   templateSlug: string;
   systemPrompt: string;
   enabledTools: string[];
+  /** Slugs of providers the org has connected (e.g. ["google", "slack"]). */
+  connectedProviders?: string[];
   objective: string;
   inputs?: Record<string, unknown>;
   model?: string;
@@ -101,7 +103,11 @@ export async function runWithPuter(opts: PuterRunOptions): Promise<PuterRunResul
       },
     }));
 
-  const userMsg = buildUserMessage(opts.objective, opts.inputs ?? {});
+  const userMsg = buildUserMessage(
+    opts.objective,
+    opts.inputs ?? {},
+    opts.connectedProviders ?? [],
+  );
   const messages: ChatMsg[] = [
     { role: "system", content: opts.systemPrompt },
     { role: "user", content: userMsg },
@@ -227,11 +233,46 @@ export async function runWithPuter(opts: PuterRunOptions): Promise<PuterRunResul
   };
 }
 
-function buildUserMessage(objective: string, inputs: Record<string, unknown>): string {
+function buildUserMessage(
+  objective: string,
+  inputs: Record<string, unknown>,
+  connectedProviders: string[],
+): string {
   const parts = [`Objective:\n${objective}`];
   if (Object.keys(inputs).length) {
     parts.push(`\nInputs:\n${JSON.stringify(inputs, null, 2)}`);
   }
+
+  // Map provider slugs → which tools become "real" vs preview.
+  const PROVIDER_CAPABILITIES: Record<string, string> = {
+    google: "Gmail (`send_email`, `search_emails`) + Google Calendar (`book_meeting`, `list_calendar_events`)",
+    microsoft: "Outlook (`send_email`, `search_emails`) + MS Calendar + Teams (`teams_post`)",
+    sendgrid: "SendGrid (`send_email` fallback)",
+    twilio: "Twilio voice + SMS (`make_phone_call`, `send_sms`, `list_phone_numbers`)",
+    hubspot: "HubSpot CRM (`crm_create_contact`, `crm_search_contact`, `crm_create_deal`, `crm_create_note`)",
+    salesforce: "Salesforce (`crm_create_contact`, `crm_search_contact`, `crm_create_deal`)",
+    slack: "Slack (`slack_post`, `slack_list_channels`, `slack_dm`)",
+    github: "GitHub (`github_create_issue`, `github_list_prs`, `github_dispatch_workflow`)",
+    notion: "Notion (`notion_create_page`, `notion_search`)",
+    stripe: "Stripe (`stripe_create_customer`, `stripe_create_invoice`, `stripe_list_charges`, `fetch_revenue`)",
+    apollo: "Apollo.io (`search_leads`, `enrich_lead`, `search_candidates`)",
+  };
+  const liveProviderLines = connectedProviders
+    .map((p) => PROVIDER_CAPABILITIES[p])
+    .filter(Boolean)
+    .map((line) => `• ${line}`);
+
+  const integrationsBlock = liveProviderLines.length
+    ? [
+        "",
+        "✅ Real integrations connected for this org — when you call these tools they make REAL API calls (not previews):",
+        ...liveProviderLines,
+      ]
+    : [
+        "",
+        "ℹ️  No third-party integration connected yet. The tools still work in preview mode (returning structured demo data) but no real email / message / payment will be sent. If you need real delivery, tell the user to connect the relevant provider in /dashboard/integrations.",
+      ];
+
   parts.push(
     [
       "",
@@ -239,10 +280,13 @@ function buildUserMessage(objective: string, inputs: Record<string, unknown>): s
       "• `fetch_url(url)` — read any public webpage (company sites, articles, docs, profiles).",
       "• `web_search(query)` — find candidate URLs, then `fetch_url` the promising ones.",
       "• `agent_handoff(to_agent_name, action, context)` — when another teammate is better suited (e.g. you found leads → hand off to the CFO agent for margin qualification, then to Legal for the contract).",
+      "• `search_kb(query)` and `ingest_to_kb(content, kind)` — read/write the org's persistent memory.",
+      ...integrationsBlock,
       "",
       "How to research before answering:",
       "1. If you don't know something specific (a company, a person, recent news) → `web_search` then `fetch_url` the top hits. Don't guess.",
       "2. If the task spans expertises → finish your part, then `agent_handoff` to the right teammate with structured context.",
+      "3. NEVER claim a tool is unavailable. The full toolbox above is loaded for this run — just call it.",
       "",
       "Output format (your final assistant message will be rendered as Markdown):",
       "• Use real Markdown — **bold**, lists, headings (`##`), and proper tables when listing structured data:",
