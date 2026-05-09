@@ -1,108 +1,81 @@
 import { redirect } from "next/navigation";
+import { count, eq, sql } from "drizzle-orm";
 import { auth } from "@/auth";
-import { Card, CardContent } from "@/components/ui/card";
+import { db, memoryEntries } from "@/lib/db";
+import { Card } from "@/components/ui/card";
+import { Network } from "lucide-react";
 
 export const dynamic = "force-dynamic";
-
-const TOP_ENTITIES = [
-  { name: "Stripe",                   type: "company",  refs: 847, agents: ["Iris", "Atlas", "Codex", "Sage"], age: "il y a 12 min" },
-  { name: "Sarah Chen",               type: "contact",  refs: 284, agents: ["Iris", "Sage"],                    age: "il y a 2h" },
-  { name: "Margin threshold v2",      type: "policy",   refs: 211, agents: ["Atlas", "Codex"],                  age: "il y a 1j" },
-  { name: "EU GDPR template DPA",     type: "document", refs: 189, agents: ["Codex", "Sage"],                   age: "il y a 3j" },
-  { name: "VP Data ICP 2026",         type: "segment",  refs: 168, agents: ["Iris", "Atlas", "Lumen"],          age: "il y a 4j" },
-];
 
 export default async function KnowledgeGraphPage() {
   const session = await auth();
   if (!session?.user.activeOrgId) redirect("/login");
+  const orgId = session.user.activeOrgId;
+
+  // The KG is materialised from memory entries metadata (entities + refs).
+  // For now we count distinct sources (proxy for entities) and the row count.
+  const [entitiesRow, totalRow] = await Promise.all([
+    db
+      .select({
+        n: sql<number>`COUNT(DISTINCT ${memoryEntries.source})::int`,
+      })
+      .from(memoryEntries)
+      .where(eq(memoryEntries.orgId, orgId)),
+    db
+      .select({ n: count() })
+      .from(memoryEntries)
+      .where(eq(memoryEntries.orgId, orgId)),
+  ]);
+  const entityCount = Number(entitiesRow[0]?.n ?? 0);
+  const totalRefs = Number(totalRow[0]?.n ?? 0);
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-medium tracking-tight">Knowledge graph</h1>
-        <p className="text-ink-2 text-sm mt-1">Entités · relations · contexte partagé entre agents</p>
+        <p className="text-ink-2 text-sm mt-1">
+          Entités · relations · contexte partagé entre agents
+        </p>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <Kpi label="Entités" value="12 488" trend="+ 412 / 7j" trendUp />
-        <Kpi label="Relations" value="38 102" trend="+ 1 247" trendUp />
-        <Kpi label="Confiance moyenne" value="0,88" trend="+ 0,02" trendUp />
-        <Kpi label="Doublons résolus" value="218" trend="auto-merge" />
+        <Kpi label="Entités" value={entityCount.toLocaleString("fr-FR")} />
+        <Kpi label="Références" value={totalRefs.toLocaleString("fr-FR")} />
+        <Kpi label="Confiance moyenne" value={entityCount > 0 ? "—" : "—"} sub="bientôt" />
+        <Kpi label="Doublons résolus" value="0" sub="auto-merge" />
       </div>
 
-      <Card className="p-0 overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-line">
-          <div className="text-sm font-medium">Top entités · valeur traversale</div>
-          <div className="text-[11px] font-mono text-ink-3">Référencées par ≥ 4 agents</div>
-        </div>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-line bg-bg-3/40">
-                  <Th>Entité</Th>
-                  <Th>Type</Th>
-                  <Th className="text-right">Refs</Th>
-                  <Th>Agents</Th>
-                  <Th className="text-right pr-6">Dernière mise à jour</Th>
-                </tr>
-              </thead>
-              <tbody>
-                {TOP_ENTITIES.map((e) => (
-                  <tr
-                    key={e.name}
-                    className="border-b border-line last:border-0 hover:bg-bg-3/40 transition-colors"
-                  >
-                    <td className="px-5 py-3.5 font-medium text-sm">{e.name}</td>
-                    <td className="px-5 py-3.5 text-sm text-ink-2">{e.type}</td>
-                    <td className="px-5 py-3.5 text-right font-mono text-sm text-ink tabular-nums">
-                      {e.refs.toLocaleString("fr-FR")}
-                    </td>
-                    <td className="px-5 py-3.5 text-sm text-ink-2">{e.agents.join(" · ")}</td>
-                    <td className="px-5 py-3.5 text-right text-xs text-ink-3 pr-6">{e.age}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </CardContent>
+      <Card className="p-12 text-center">
+        <Network className="size-12 text-ink-3 mx-auto mb-3" strokeWidth={1.5} />
+        <h3 className="text-lg font-medium mb-1">
+          {entityCount === 0
+            ? "Aucune entité encore"
+            : `${entityCount} entités identifiées`}
+        </h3>
+        <p className="text-ink-2 text-sm max-w-md mx-auto">
+          Le knowledge graph se construit automatiquement quand vos agents
+          travaillent — chaque entreprise mentionnée, chaque contact contacté, chaque
+          contrat signé devient un nœud avec ses relations.
+        </p>
       </Card>
     </div>
-  );
-}
-
-function Th({ children, className }: { children: React.ReactNode; className?: string }) {
-  return (
-    <th
-      className={`text-left text-[11px] uppercase tracking-wider font-mono text-ink-2 px-5 py-3 ${
-        className ?? ""
-      }`}
-    >
-      {children}
-    </th>
   );
 }
 
 function Kpi({
   label,
   value,
-  trend,
-  trendUp,
+  sub,
 }: {
   label: string;
   value: string;
-  trend?: string;
-  trendUp?: boolean;
+  sub?: string;
 }) {
   return (
     <div className="rounded-xl border border-line bg-bg-2 px-5 py-4">
       <div className="text-xs text-ink-2 mb-1">{label}</div>
       <div className="text-2xl font-medium tracking-tight">{value}</div>
-      {trend ? (
-        <div className={`text-[11px] font-mono mt-1.5 ${trendUp ? "text-brand-green" : "text-ink-3"}`}>
-          {trend}
-        </div>
-      ) : null}
+      {sub ? <div className="text-[11px] font-mono mt-1.5 text-ink-3">{sub}</div> : null}
     </div>
   );
 }

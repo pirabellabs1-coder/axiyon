@@ -1,21 +1,12 @@
 import { redirect } from "next/navigation";
-import { desc, eq } from "drizzle-orm";
+import { count, desc, eq } from "drizzle-orm";
 import { auth } from "@/auth";
 import { db, memoryEntries } from "@/lib/db";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Download, Upload } from "lucide-react";
+import { Brain, Download, Upload } from "lucide-react";
 
 export const dynamic = "force-dynamic";
-
-const DEMO_ENTRIES = [
-  { kind: "semantic",    source: "notion://playbook-sales-2026", summary: "ICP segmentation v3 — VP Data, Series B+, EU/UK", importance: 0.94, age: "il y a 2h" },
-  { kind: "episodic",    source: "iris.task#8841",                summary: "Stripe deal · margin 92k€ · contract sent",      importance: 0.89, age: "il y a 4h" },
-  { kind: "procedural",  source: "workflow://deal-flow",          summary: "Iris→Atlas→Iris→Codex pattern (taux 11,8%)",     importance: 0.86, age: "il y a 6h" },
-  { kind: "semantic",    source: "upload://q1-board-deck.pdf",    summary: "Board deck Q1 2026 · objectifs ARR 12M€",        importance: 0.82, age: "il y a 1j" },
-  { kind: "client",      source: "salesforce://acc/notion",       summary: "Notion · ARR 180k€ · interlocuteur Sarah Chen",   importance: 0.78, age: "il y a 1j" },
-  { kind: "episodic",    source: "atlas.task#8839",               summary: "67/184 leads passent threshold marge 80k€",      importance: 0.71, age: "il y a 1j" },
-];
 
 const KIND_PILL: Record<string, string> = {
   semantic:   "bg-brand-blue/10 text-brand-blue-2 border-brand-blue/30",
@@ -38,31 +29,23 @@ export default async function MemoryPage() {
   if (!session?.user.activeOrgId) redirect("/login");
   const orgId = session.user.activeOrgId;
 
-  const real = await db
-    .select()
-    .from(memoryEntries)
-    .where(eq(memoryEntries.orgId, orgId))
-    .orderBy(desc(memoryEntries.createdAt))
-    .limit(20);
+  const [entries, totalRow] = await Promise.all([
+    db
+      .select()
+      .from(memoryEntries)
+      .where(eq(memoryEntries.orgId, orgId))
+      .orderBy(desc(memoryEntries.importance), desc(memoryEntries.createdAt))
+      .limit(20),
+    db
+      .select({ n: count() })
+      .from(memoryEntries)
+      .where(eq(memoryEntries.orgId, orgId)),
+  ]);
+  const total = totalRow[0]?.n ?? 0;
 
-  const useReal = real.length > 0;
-  const entries = useReal
-    ? real.map((e) => ({
-        kind: e.kind,
-        source: e.source ?? "—",
-        summary: e.summary ?? e.content.slice(0, 80),
-        importance: Number(e.importance ?? 0.5),
-        age: relAge(e.createdAt),
-      }))
-    : DEMO_ENTRIES;
-
-  // KPIs — match the demo numbers when no real data, else compute from real.
-  const total = useReal ? real.length : 38_472;
-  const docCount = useReal
-    ? real.filter((e) => /upload:|notion:|drive:/.test(e.source ?? "")).length
-    : 1_247;
-  const tokenCount = useReal ? Math.round(total * 297) : 11_400_000;
-  const recall = useReal ? 92.0 : 94.2;
+  const docCount = entries.filter((e) =>
+    /upload:|notion:|drive:|s3:/.test(e.source ?? ""),
+  ).length;
 
   return (
     <div className="space-y-6">
@@ -70,11 +53,11 @@ export default async function MemoryPage() {
         <div>
           <h1 className="text-3xl font-medium tracking-tight">Mémoire</h1>
           <p className="text-ink-2 text-sm mt-1">
-            Mémoire long-terme des agents · sémantique, épisodique, procédurale
+            Mémoire long-terme de vos agents · sémantique, épisodique, procédurale
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="ghost">
+          <Button variant="ghost" disabled={total === 0}>
             <Download className="size-4" /> Exporter (JSON)
           </Button>
           <Button variant="glow">
@@ -84,61 +67,78 @@ export default async function MemoryPage() {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <KpiTile label="Entrées" value={total.toLocaleString("fr-FR")} trend={`+ ${useReal ? Math.round(total * 0.03) : 1248} / 7j`} trendUp />
-        <KpiTile label="Documents" value={docCount.toLocaleString("fr-FR")} trend={`+ ${useReal ? Math.max(0, Math.round(docCount * 0.03)) : 38} / 7j`} trendUp />
-        <KpiTile label="Embedding tokens" value={formatBig(tokenCount)} trend="stable" />
-        <KpiTile label="Recall@10" value={`${recall.toFixed(1).replace(".", ",")} %`} trend="+ 2,1 pts" trendUp />
+        <KpiTile label="Entrées" value={total.toLocaleString("fr-FR")} />
+        <KpiTile label="Documents" value={docCount.toLocaleString("fr-FR")} />
+        <KpiTile label="Embedding tokens" value={total > 0 ? `~${formatBig(total * 297)}` : "—"} />
+        <KpiTile label="Recall@10" value={total > 10 ? "—" : "—"} sub="bientôt" />
       </div>
 
-      <Card className="p-0 overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-line">
-          <div className="text-sm font-medium">Entrées récentes</div>
-          <div className="text-[11px] font-mono text-ink-3">Top par importance · 30j</div>
-        </div>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-line bg-bg-3/40">
-                  <Th>Type</Th>
-                  <Th>Source</Th>
-                  <Th>Résumé</Th>
-                  <Th className="text-right">Importance</Th>
-                  <Th className="text-right pr-6">Date</Th>
-                </tr>
-              </thead>
-              <tbody>
-                {entries.map((e, i) => (
-                  <tr
-                    key={i}
-                    className="border-b border-line last:border-0 hover:bg-bg-3/40 transition-colors"
-                  >
-                    <td className="px-5 py-3.5">
-                      <span
-                        className={`inline-block text-[11px] font-medium px-2 py-0.5 rounded-full border ${
-                          KIND_PILL[e.kind] ?? KIND_PILL.semantic
-                        }`}
-                      >
-                        {KIND_LABEL[e.kind] ?? e.kind}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3.5 font-mono text-[11px] text-ink-2 max-w-[280px] truncate">
-                      {e.source}
-                    </td>
-                    <td className="px-5 py-3.5 text-sm text-ink-2">{e.summary}</td>
-                    <td className="px-5 py-3.5 text-right font-mono text-sm text-ink tabular-nums">
-                      {e.importance.toFixed(2).replace(".", ",")}
-                    </td>
-                    <td className="px-5 py-3.5 text-right text-xs text-ink-3 pr-6">
-                      {e.age}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      {entries.length === 0 ? (
+        <Card className="p-12 text-center">
+          <Brain className="size-12 text-ink-3 mx-auto mb-3" strokeWidth={1.5} />
+          <h3 className="text-lg font-medium mb-1">Aucune mémoire pour l&apos;instant</h3>
+          <p className="text-ink-2 text-sm max-w-md mx-auto mb-6">
+            Vos agents construiront automatiquement leur mémoire en travaillant. Vous
+            pouvez aussi ingérer manuellement des documents (playbooks, rapports, etc.) pour
+            qu&apos;ils s&apos;en servent comme contexte.
+          </p>
+          <Button variant="glow">
+            <Upload className="size-4" /> Ingérer mon premier document
+          </Button>
+        </Card>
+      ) : (
+        <Card className="p-0 overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-line">
+            <div className="text-sm font-medium">Entrées récentes</div>
+            <div className="text-[11px] font-mono text-ink-3">Top par importance</div>
           </div>
-        </CardContent>
-      </Card>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-line bg-bg-3/40">
+                    <Th>Type</Th>
+                    <Th>Source</Th>
+                    <Th>Résumé</Th>
+                    <Th className="text-right">Importance</Th>
+                    <Th className="text-right pr-6">Date</Th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {entries.map((e) => (
+                    <tr
+                      key={e.id}
+                      className="border-b border-line last:border-0 hover:bg-bg-3/40 transition-colors"
+                    >
+                      <td className="px-5 py-3.5">
+                        <span
+                          className={`inline-block text-[11px] font-medium px-2 py-0.5 rounded-full border ${
+                            KIND_PILL[e.kind] ?? KIND_PILL.semantic
+                          }`}
+                        >
+                          {KIND_LABEL[e.kind] ?? e.kind}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3.5 font-mono text-[11px] text-ink-2 max-w-[280px] truncate">
+                        {e.source ?? "—"}
+                      </td>
+                      <td className="px-5 py-3.5 text-sm text-ink-2 max-w-[420px] truncate">
+                        {e.summary ?? e.content.slice(0, 80)}
+                      </td>
+                      <td className="px-5 py-3.5 text-right font-mono text-sm text-ink tabular-nums">
+                        {Number(e.importance ?? 0.5).toFixed(2).replace(".", ",")}
+                      </td>
+                      <td className="px-5 py-3.5 text-right text-xs text-ink-3 pr-6">
+                        {relAge(e.createdAt)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
@@ -158,27 +158,17 @@ function Th({ children, className }: { children: React.ReactNode; className?: st
 function KpiTile({
   label,
   value,
-  trend,
-  trendUp,
+  sub,
 }: {
   label: string;
   value: string;
-  trend?: string;
-  trendUp?: boolean;
+  sub?: string;
 }) {
   return (
     <div className="rounded-xl border border-line bg-bg-2 px-5 py-4">
       <div className="text-xs text-ink-2 mb-1">{label}</div>
       <div className="text-2xl font-medium tracking-tight">{value}</div>
-      {trend ? (
-        <div
-          className={`text-[11px] font-mono mt-1.5 ${
-            trendUp ? "text-brand-green" : "text-ink-3"
-          }`}
-        >
-          {trend}
-        </div>
-      ) : null}
+      {sub ? <div className="text-[11px] font-mono mt-1.5 text-ink-3">{sub}</div> : null}
     </div>
   );
 }
@@ -192,6 +182,7 @@ function formatBig(n: number): string {
 function relAge(d: Date): string {
   const ms = Date.now() - d.getTime();
   const min = Math.round(ms / 60_000);
+  if (min < 1) return "à l'instant";
   if (min < 60) return `il y a ${min} min`;
   const h = Math.round(min / 60);
   if (h < 24) return `il y a ${h}h`;
