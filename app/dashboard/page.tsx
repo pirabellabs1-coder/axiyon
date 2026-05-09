@@ -135,43 +135,44 @@ export default async function OverviewPage() {
 
   // Build the initial unified feed items (server-rendered for SEO/no-JS),
   // then the LiveActivity client component takes over polling.
-  const initialFeed: FeedItem[] = [
-    ...recent.map((t) => ({
-      id: `t:${t.id}`,
-      kind: "task" as const,
-      at: t.createdAt.toISOString(),
-      text: t.objective.slice(0, 200),
-      agent: t.agentName ? { name: t.agentName, slug: t.agentSlug ?? "" } : undefined,
-      status: t.status,
-    })),
-    ...recentAudit
-      .map((a) => {
-        const p = (a.payload as Record<string, unknown>) ?? {};
-        let summary: string | null = null;
-        switch (a.action) {
-          case "agent.handoff":
-            summary = `Handoff vers ${String(p.to_agent ?? "agent")} : ${String(p.action ?? "").slice(0, 120)}`;
-            break;
-          case "approval.requested":
-            summary = `Approbation demandée : ${String(p.summary ?? p.actionType ?? "action")}`;
-            break;
-          case "approval.approved":
-            summary = `Approbation accordée : ${String(p.actionType ?? "action")}`;
-          case "integration.connect":
-            summary = `Intégration ${String(p.provider ?? "")} connectée`;
-            break;
-        }
-        return summary
-          ? {
-              id: `a:${a.id}`,
-              kind: "audit" as const,
-              at: a.createdAt.toISOString(),
-              text: summary,
-            }
-          : null;
-      })
-      .filter((x): x is FeedItem => x !== null),
-  ]
+  const taskItems: FeedItem[] = recent.map((t) => ({
+    id: `t:${t.id}`,
+    kind: "task",
+    at: t.createdAt.toISOString(),
+    text: t.objective.slice(0, 200),
+    agent: t.agentName ? { name: t.agentName, slug: t.agentSlug ?? "" } : undefined,
+    status: t.status,
+  }));
+
+  const auditItems: FeedItem[] = [];
+  for (const a of recentAudit) {
+    const p = (a.payload as Record<string, unknown>) ?? {};
+    let summary: string | null = null;
+    switch (a.action) {
+      case "agent.handoff":
+        summary = `Handoff vers ${String(p.to_agent ?? "agent")} : ${String(p.action ?? "").slice(0, 120)}`;
+        break;
+      case "approval.requested":
+        summary = `Approbation demandée : ${String(p.summary ?? p.actionType ?? "action")}`;
+        break;
+      case "approval.approved":
+        summary = `Approbation accordée : ${String(p.actionType ?? "action")}`;
+        break;
+      case "integration.connect":
+        summary = `Intégration ${String(p.provider ?? "")} connectée`;
+        break;
+    }
+    if (summary) {
+      auditItems.push({
+        id: `a:${a.id}`,
+        kind: "audit",
+        at: a.createdAt.toISOString(),
+        text: summary,
+      });
+    }
+  }
+
+  const initialFeed: FeedItem[] = [...taskItems, ...auditItems]
     .sort((a, b) => b.at.localeCompare(a.at))
     .slice(0, 12);
 
