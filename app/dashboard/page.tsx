@@ -19,6 +19,7 @@ import { auth } from "@/auth";
 import {
   agentInstances,
   approvals,
+  auditLogs,
   db,
   orgs,
   tasks,
@@ -27,8 +28,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardTitle } from "@/components/ui/card";
 import { TEMPLATES, getTemplate } from "@/lib/agents/catalog";
-import { formatEur, formatNumber, relativeTime } from "@/lib/utils";
+import { formatEur, formatNumber } from "@/lib/utils";
 import { AgentIcon } from "@/components/agent-icon";
+import { LiveActivity, type FeedItem } from "@/components/live-activity";
 
 export const dynamic = "force-dynamic";
 
@@ -104,11 +106,74 @@ export default async function OverviewPage() {
   const maxBucket = Math.max(1, ...buckets);
 
   const recent = await db
-    .select()
+    .select({
+      id: tasks.id,
+      agentId: tasks.agentId,
+      agentName: agentInstances.name,
+      agentSlug: agentInstances.templateSlug,
+      objective: tasks.objective,
+      status: tasks.status,
+      createdAt: tasks.createdAt,
+    })
     .from(tasks)
+    .leftJoin(agentInstances, eq(agentInstances.id, tasks.agentId))
     .where(eq(tasks.orgId, orgId))
     .orderBy(sql`${tasks.createdAt} DESC`)
     .limit(8);
+
+  const recentAudit = await db
+    .select({
+      id: auditLogs.id,
+      action: auditLogs.action,
+      payload: auditLogs.payload,
+      createdAt: auditLogs.createdAt,
+    })
+    .from(auditLogs)
+    .where(eq(auditLogs.orgId, orgId))
+    .orderBy(sql`${auditLogs.createdAt} DESC`)
+    .limit(8);
+
+  // Build the initial unified feed items (server-rendered for SEO/no-JS),
+  // then the LiveActivity client component takes over polling.
+  const initialFeed: FeedItem[] = [
+    ...recent.map((t) => ({
+      id: `t:${t.id}`,
+      kind: "task" as const,
+      at: t.createdAt.toISOString(),
+      text: t.objective.slice(0, 200),
+      agent: t.agentName ? { name: t.agentName, slug: t.agentSlug ?? "" } : undefined,
+      status: t.status,
+    })),
+    ...recentAudit
+      .map((a) => {
+        const p = (a.payload as Record<string, unknown>) ?? {};
+        let summary: string | null = null;
+        switch (a.action) {
+          case "agent.handoff":
+            summary = `Handoff vers ${String(p.to_agent ?? "agent")} : ${String(p.action ?? "").slice(0, 120)}`;
+            break;
+          case "approval.requested":
+            summary = `Approbation demandée : ${String(p.summary ?? p.actionType ?? "action")}`;
+            break;
+          case "approval.approved":
+            summary = `Approbation accordée : ${String(p.actionType ?? "action")}`;
+          case "integration.connect":
+            summary = `Intégration ${String(p.provider ?? "")} connectée`;
+            break;
+        }
+        return summary
+          ? {
+              id: `a:${a.id}`,
+              kind: "audit" as const,
+              at: a.createdAt.toISOString(),
+              text: summary,
+            }
+          : null;
+      })
+      .filter((x): x is FeedItem => x !== null),
+  ]
+    .sort((a, b) => b.at.localeCompare(a.at))
+    .slice(0, 12);
 
   const agentsById = Object.fromEntries(agents.map((a) => [a.id, a]));
 
@@ -288,51 +353,7 @@ export default async function OverviewPage() {
                     LIVE
                   </span>
                 </div>
-                {recent.length === 0 ? (
-                  <p className="text-sm text-ink-3 text-center py-8">
-                    Aucune activité récente.
-                  </p>
-                ) : (
-                  <ul className="space-y-2">
-                    {recent.map((t) => {
-                      const a = agentsById[t.agentId];
-                      const tpl = a ? getTemplate(a.templateSlug) : null;
-                      return (
-                        <li
-                          key={t.id}
-                          className="flex items-start gap-2.5 text-xs py-2 border-b border-line last:border-0"
-                        >
-                          <AgentIcon
-                            name={tpl?.icon ?? "Bot"}
-                            wrapperClassName="size-7 shrink-0"
-                            size={12}
-                          />
-                          <div className="flex-1 min-w-0">
-                            <div>
-                              <span className="font-medium text-brand-blue-2">
-                                {a?.name ?? "Agent"}
-                              </span>{" "}
-                              <span className="text-ink-2">
-                                {t.status === "succeeded"
-                                  ? "a terminé"
-                                  : t.status === "failed"
-                                    ? "a échoué sur"
-                                    : "exécute"}
-                                {" "}une tâche
-                              </span>
-                            </div>
-                            <div className="text-ink-3 truncate">
-                              {t.objective}
-                            </div>
-                          </div>
-                          <span className="text-ink-3 text-[10px] font-mono shrink-0">
-                            {relativeTime(t.createdAt)}
-                          </span>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
+                <LiveActivity initial={initialFeed} />
               </CardContent>
             </Card>
           </div>
