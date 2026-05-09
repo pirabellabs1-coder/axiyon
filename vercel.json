@@ -2,32 +2,52 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "next build",
   "framework": "nextjs",
-  "regions": ["cdg1"],
+  "regions": [
+    "cdg1"
+  ],
   "functions": {
     "app/api/**/route.ts": {
       "maxDuration": 60
     }
   },
   "rewrites": [
-    { "source": "/", "destination": "/index.html" },
-    { "source": "/agents", "destination": "/agents.html" },
-    { "source": "/pricing", "destination": "/pricing.html" },
-    { "source": "/customers", "destination": "/customers.html" },
-    { "source": "/manifesto", "destination": "/manifesto.html" },
-    { "source": "/company", "destination": "/company.html" },
-    { "source": "/product", "destination": "/product.html" }
-  ],
-  "crons": [
     {
-      "path": "/api/cron/rotate-counters",
-      "schedule": "5 0 * * *"
+      "source": "/",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/agents",
+      "destination": "/agents.html"
+    },
+    {
+      "source": "/pricing",
+      "destination": "/pricing.html"
+    },
+    {
+      "source": "/customers",
+      "destination": "/customers.html"
+    },
+    {
+      "source": "/manifesto",
+      "destination": "/manifesto.html"
+    },
+    {
+      "source": "/company",
+      "destination": "/company.html"
+    },
+    {
+      "source": "/product",
+      "destination": "/product.html"
     }
   ],
   "headers": [
     {
       "source": "/api/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "no-store, no-cache, must-revalidate" }
+        {
+          "key": "Cache-Control",
+          "value": "no-store, no-cache, must-revalidate"
+        }
       ]
     }
   ]
