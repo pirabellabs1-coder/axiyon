@@ -119,13 +119,13 @@ export function DashboardShell({
     >
       {/* Top bar */}
       <header className="row-start-1 col-span-full border-b border-line bg-bg-2 flex items-center px-3 md:px-5 gap-2 md:gap-4">
-        {/* Mobile hamburger */}
+        {/* Mobile hamburger — toggles open/close */}
         <button
-          onClick={() => setMobileOpen(true)}
+          onClick={() => setMobileOpen((o) => !o)}
           className="md:hidden p-2 rounded-md hover:bg-bg-3 text-ink-2 hover:text-ink"
-          aria-label="Ouvrir le menu"
+          aria-label={mobileOpen ? "Fermer le menu" : "Ouvrir le menu"}
         >
-          <Menu className="size-5" strokeWidth={2} />
+          {mobileOpen ? <X className="size-5" strokeWidth={2} /> : <Menu className="size-5" strokeWidth={2} />}
         </button>
         {/* Desktop collapse toggle */}
         <button
@@ -168,7 +168,9 @@ export function DashboardShell({
         />
       )}
 
-      {/* Sidebar — fixed/overlay on mobile, normal grid item on desktop */}
+      {/* Sidebar — fixed/overlay on mobile, normal grid item on desktop.
+          Layout style classes use `md:` prefixes so the desktop "icons-only"
+          mode never leaks into the mobile drawer (which always shows labels). */}
       <aside
         className={cn(
           "row-start-2 border-r border-line bg-bg-2 overflow-y-auto z-50",
@@ -177,7 +179,9 @@ export function DashboardShell({
           // Mobile: fixed overlay sliding in from left
           "fixed top-[56px] bottom-0 left-0 w-[260px] transition-transform duration-200 md:transition-none",
           mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
-          collapsed ? "p-2" : "p-3",
+          // Padding: mobile drawer always p-3; desktop respects collapsed.
+          "p-3",
+          collapsed ? "md:p-2" : "md:p-3",
         )}
       >
         <nav className="flex flex-col gap-0.5">
@@ -194,8 +198,14 @@ export function DashboardShell({
             }
             return sectioned.map((group, gi) => (
               <div key={group.section} className={gi > 0 ? "mt-4" : ""}>
-                {group.section && !collapsed && (
-                  <div className="px-3 py-1.5 text-[10px] font-mono uppercase tracking-wider text-ink-3">
+                {group.section && (
+                  <div
+                    className={cn(
+                      "px-3 py-1.5 text-[10px] font-mono uppercase tracking-wider text-ink-3",
+                      // Hide section label only when desktop is collapsed.
+                      collapsed && "md:hidden",
+                    )}
+                  >
                     {group.section}
                   </div>
                 )}
@@ -211,16 +221,17 @@ export function DashboardShell({
                       title={collapsed ? item.label : undefined}
                       className={cn(
                         "flex items-center rounded-md text-sm transition-colors",
-                        collapsed
-                          ? "justify-center p-2.5"
-                          : "gap-3 px-3 py-2",
+                        // Mobile drawer always shows full row with label.
+                        "gap-3 px-3 py-2",
+                        // Desktop collapsed = center icons only.
+                        collapsed && "md:justify-center md:p-2.5 md:gap-0 md:px-2.5",
                         active
                           ? "bg-bg-3 text-ink"
                           : "text-ink-2 hover:bg-bg-3 hover:text-ink",
                       )}
                     >
                       <Icon className="size-4 shrink-0" />
-                      {!collapsed && <span>{item.label}</span>}
+                      <span className={cn(collapsed && "md:hidden")}>{item.label}</span>
                     </Link>
                   );
                 })}
@@ -234,14 +245,16 @@ export function DashboardShell({
           title={collapsed ? "Recruter un agent" : undefined}
           className={cn(
             "mt-6 flex items-center justify-center rounded-md bg-grad text-white text-sm font-medium shadow-glow hover:-translate-y-px transition-transform",
-            collapsed ? "p-2.5" : "gap-2 py-2.5",
+            // Mobile = full row with text; desktop respects collapsed.
+            "gap-2 py-2.5",
+            collapsed && "md:p-2.5 md:py-2.5 md:gap-0",
           )}
         >
           <Sparkles className="size-4" />
-          {!collapsed && <span>Recruter +</span>}
+          <span className={cn(collapsed && "md:hidden")}>Recruter +</span>
         </Link>
 
-        {/* Mobile close button at bottom */}
+        {/* Mobile close button at bottom (drawer-only) */}
         {mobileOpen && (
           <button
             onClick={() => setMobileOpen(false)}
