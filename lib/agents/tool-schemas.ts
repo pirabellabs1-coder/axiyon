@@ -180,6 +180,34 @@ export const TOOL_SCHEMAS: Record<string, ToolSchema> = {
       required: ["contract_text"],
     },
   },
+  agent_handoff: {
+    name: "agent_handoff",
+    description:
+      "Pass the current objective to another agent in your organization. Use when " +
+      "another agent's expertise is better suited (e.g. SDR finds a lead → CFO qualifies " +
+      "the margin → SDR books → Legal prepares contract). Returns a queued task that the " +
+      "target agent will pick up.",
+    parameters: {
+      type: "object",
+      properties: {
+        to_agent_name: {
+          type: "string",
+          description:
+            "The exact name of the agent to hand off to (e.g. 'Atlas', 'Codex'). Must exist in this org.",
+        },
+        action: {
+          type: "string",
+          description: "What you want the next agent to do. Be precise and actionable.",
+        },
+        context: {
+          type: "object",
+          description:
+            "Structured data the next agent will need (leads, IDs, prior decisions, etc.).",
+        },
+      },
+      required: ["to_agent_name", "action"],
+    },
+  },
 };
 
 export type ToolName = keyof typeof TOOL_SCHEMAS;

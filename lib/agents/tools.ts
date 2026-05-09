@@ -912,6 +912,100 @@ export const tools = {
       };
     },
   }),
+  // ── MULTI-AGENT HANDOFF ──────────────────────────────────────────
+
+  agent_handoff: tool({
+    description:
+      "Hand off the current objective to another agent in your organization. Use when " +
+      "another agent's expertise is better suited (e.g. SDR finds a lead → CFO qualifies " +
+      "the margin → SDR books → Legal prepares contract). Returns a queued task that the " +
+      "target agent will pick up.",
+    parameters: z.object({
+      to_agent_name: z
+        .string()
+        .describe(
+          "The exact name of the agent to hand off to (e.g. 'Atlas', 'Codex'). Must exist in this org.",
+        ),
+      action: z.string().min(3).max(2000).describe("What you want the next agent to do"),
+      context: z
+        .record(z.string(), z.unknown())
+        .default({})
+        .describe("Structured data the next agent will need (leads, IDs, prior decisions, etc.)"),
+    }),
+    execute: async (args) => {
+      const ctx = ctxFull();
+      if (!ctx) {
+        return { handed_off: false, error: "No org context" };
+      }
+
+      // Look up target agent in this org by name (case-insensitive prefix match).
+      const { eq } = await import("drizzle-orm");
+      const { db, agentInstances, tasks } = await import("@/lib/db");
+      const all = await db
+        .select()
+        .from(agentInstances)
+        .where(eq(agentInstances.orgId, ctx.orgId));
+      const target = all.find(
+        (a) =>
+          a.name.toLowerCase() === args.to_agent_name.toLowerCase() ||
+          a.name.toLowerCase().startsWith(args.to_agent_name.toLowerCase() + " "),
+      );
+      if (!target) {
+        return {
+          handed_off: false,
+          error: `No agent named "${args.to_agent_name}" in this org. Available: ${all.map((a) => a.name).join(", ")}`,
+        };
+      }
+      if (target.id === ctx.agentId) {
+        return { handed_off: false, error: "Cannot hand off to yourself" };
+      }
+
+      // Queue a task for the target agent.
+      const [task] = await db
+        .insert(tasks)
+        .values({
+          orgId: ctx.orgId,
+          agentId: target.id,
+          objective: args.action,
+          status: "queued",
+          inputPayload: {
+            context: args.context,
+            handed_off_from: ctx.agentId,
+            parent_task_id: ctx.taskId,
+          },
+          outputPayload: {},
+          toolCalls: [],
+        })
+        .returning();
+
+      // Audit
+      const { audit } = await import("@/lib/audit");
+      await audit({
+        orgId: ctx.orgId,
+        actorType: "agent",
+        actorId: ctx.agentId,
+        action: "agent.handoff",
+        resourceType: "task",
+        resourceId: task.id,
+        payload: {
+          to_agent: target.name,
+          to_agent_id: target.id,
+          action: args.action.slice(0, 200),
+        },
+      }).catch(() => undefined);
+
+      return {
+        handed_off: true,
+        target_agent_id: target.id,
+        target_agent_name: target.name,
+        target_agent_slug: target.templateSlug,
+        queued_task_id: task.id,
+        action: args.action,
+        context: args.context,
+        note: `Tâche queuée pour ${target.name}. Visible dans /dashboard/tasks.`,
+      };
+    },
+  }),
 } as const;
 
 export type ToolName = keyof typeof tools;
