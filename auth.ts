@@ -53,21 +53,58 @@ export const {
         password: { label: "Password", type: "password" },
       },
       async authorize(raw) {
+        const SYSTEM_ORG = "00000000-0000-0000-0000-000000000000";
+        async function diag(stage: string, detail: string) {
+          // Best-effort write to audit_logs for offline inspection.
+          try {
+            const { db, auditLogs } = await import("@/lib/db");
+            await db.insert(auditLogs).values({
+              orgId: SYSTEM_ORG,
+              actorType: "system",
+              actorId: "auth.authorize",
+              action: stage,
+              resourceType: "auth.attempt",
+              resourceId: null,
+              payload: { detail },
+              prevHash: null,
+              recordHash: stage,
+            });
+          } catch {
+            /* ignore */
+          }
+        }
+
         const r = raw as Record<string, unknown>;
         const email = typeof r?.email === "string" ? r.email.toLowerCase() : "";
         const password = typeof r?.password === "string" ? r.password : "";
+
         if (!email || !password) {
-          throw new Error(`bad-input keys=${Object.keys(r ?? {}).join(",")}`);
+          await diag("bad-input", `keys=${Object.keys(r ?? {}).join(",")}`);
+          return null;
         }
+
         try {
           const user = await db.query.users.findFirst({
             where: eq(users.email, email),
           });
-          if (!user) throw new Error(`no-user email=${email}`);
-          if (!user.passwordHash) throw new Error("no-hash");
-          if (!user.isActive) throw new Error("inactive");
+          if (!user) {
+            await diag("no-user", email);
+            return null;
+          }
+          if (!user.passwordHash) {
+            await diag("no-hash", email);
+            return null;
+          }
+          if (!user.isActive) {
+            await diag("inactive", email);
+            return null;
+          }
           const ok = await bcrypt.compare(password, user.passwordHash);
-          if (!ok) throw new Error(`bad-pw len=${password.length} hashlen=${user.passwordHash.length}`);
+          if (!ok) {
+            await diag("bad-pw", `${email} pw=${password.length} hash=${user.passwordHash.length}`);
+            return null;
+          }
+          await diag("ok", email);
           return {
             id: user.id,
             email: user.email,
@@ -75,8 +112,8 @@ export const {
             isSuperuser: user.isSuperuser,
           };
         } catch (e) {
-          // NextAuth v5 swallows thrown errors but the message reaches /signin error handlers.
-          throw new Error(`authorize-failed: ${e instanceof Error ? e.message : String(e)}`);
+          await diag("threw", e instanceof Error ? e.message : String(e));
+          return null;
         }
       },
     }),
