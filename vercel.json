@@ -15,7 +15,8 @@
     { "source": "/customers", "destination": "/customers.html" },
     { "source": "/manifesto", "destination": "/manifesto.html" },
     { "source": "/company", "destination": "/company.html" },
-    { "source": "/product", "destination": "/product.html" }
+    { "source": "/product", "destination": "/product.html" },
+    { "source": "/api/agents", "destination": "/api/diag/agents-clone" }
   ],
   "crons": [
     {
