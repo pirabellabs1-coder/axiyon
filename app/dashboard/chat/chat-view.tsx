@@ -75,12 +75,22 @@ function iconFor(slug: string) {
   return TEMPLATE_ICON[slug] ?? Bot;
 }
 
+interface OrgStats {
+  budgetUsedEur: number;
+  budgetLimitEur: number;
+  tasksUsed: number;
+  tasksLimit: number;
+  pendingApprovals: number;
+}
+
 export function ChatView({
   userName,
   agents,
+  orgStats,
 }: {
   userName: string;
   agents: Agent[];
+  orgStats: OrgStats;
 }) {
   const [activeAgent, setActiveAgent] = useState<Agent | null>(agents[0] ?? null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -179,6 +189,35 @@ export function ChatView({
     [userName],
   );
 
+  // Aggregate per-tool counts from this conversation's tool calls.
+  const toolCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const m of messages) {
+      for (const tc of m.toolCalls ?? []) {
+        counts[tc.name] = (counts[tc.name] ?? 0) + 1;
+      }
+    }
+    return Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 6);
+  }, [messages]);
+
+  // Agents currently in play = picked + any whose tool was just used.
+  const agentsInPlay = useMemo(() => {
+    const ids = new Set<string>();
+    if (activeAgent) ids.add(activeAgent.id);
+    return agents.filter((a) => ids.has(a.id) || a.status === "running");
+  }, [agents, activeAgent]);
+
+  const budgetPct = Math.min(
+    100,
+    Math.round((orgStats.budgetUsedEur / Math.max(1, orgStats.budgetLimitEur)) * 100),
+  );
+  const tasksPct = Math.min(
+    100,
+    Math.round((orgStats.tasksUsed / Math.max(1, orgStats.tasksLimit)) * 100),
+  );
+
   if (agents.length === 0) {
     return (
       <div className="space-y-6">
@@ -227,7 +266,7 @@ export function ChatView({
         </span>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-[220px_1fr_280px] gap-4">
         {/* Agent picker */}
         <aside className="space-y-2">
           <div className="text-[11px] font-mono uppercase tracking-wider text-ink-3 px-2 mb-2">
@@ -318,7 +357,110 @@ export function ChatView({
             </button>
           </form>
         </div>
+
+        {/* Right sidebar — real-data context */}
+        <aside className="space-y-4">
+          <SidePanel title="Agents en jeu">
+            {agentsInPlay.length === 0 ? (
+              <div className="text-[11px] text-ink-3">Aucun agent actif.</div>
+            ) : (
+              agentsInPlay.map((a) => {
+                const I = iconFor(a.templateSlug);
+                const isActive = a.id === activeAgent?.id;
+                return (
+                  <div key={a.id} className="rounded-md border border-line bg-bg-3 p-2.5">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span
+                        className={`size-6 rounded bg-gradient-to-br ${gradientFor(a.templateSlug)} text-white flex items-center justify-center shrink-0`}
+                      >
+                        <I className="size-3" strokeWidth={2} />
+                      </span>
+                      <strong className="text-sm truncate">{a.name}</strong>
+                      <span
+                        className={`ml-auto size-2 rounded-full shrink-0 ${
+                          isActive
+                            ? "bg-brand-green shadow-[0_0_6px_rgba(52,211,153,.6)]"
+                            : "bg-ink-3"
+                        }`}
+                      />
+                    </div>
+                    <div className="text-[11px] text-ink-2">{a.status}</div>
+                  </div>
+                );
+              })
+            )}
+          </SidePanel>
+
+          <SidePanel title="Outils utilisés">
+            {toolCounts.length === 0 ? (
+              <div className="text-[11px] text-ink-3">
+                Aucun appel d&apos;outil dans cette conversation.
+              </div>
+            ) : (
+              toolCounts.map(([name, n]) => <KV key={name} k={name} v={String(n)} />)
+            )}
+          </SidePanel>
+
+          <SidePanel title="Budget consommé · ce mois">
+            <KV k="Tâches" v={`${orgStats.tasksUsed.toLocaleString("fr-FR")} / ${orgStats.tasksLimit.toLocaleString("fr-FR")}`} />
+            <KV
+              k="Coût"
+              v={`${orgStats.budgetUsedEur.toFixed(2).replace(".", ",")} € / ${orgStats.budgetLimitEur} €`}
+            />
+            <div className="mt-3 h-1 rounded-full bg-bg-3 overflow-hidden">
+              <div
+                className="h-full rounded-full bg-gradient-to-r from-[#5B6CFF] to-[#22D3EE]"
+                style={{ width: `${Math.max(budgetPct, tasksPct)}%` }}
+              />
+            </div>
+          </SidePanel>
+
+          <SidePanel title="Approbations">
+            {orgStats.pendingApprovals === 0 ? (
+              <div className="text-[11px] text-ink-3">Aucune en attente.</div>
+            ) : (
+              <a
+                href="/dashboard/approvals"
+                className="block rounded-md border border-brand-yellow/40 bg-brand-yellow/5 p-3 hover:bg-brand-yellow/10 transition-colors"
+              >
+                <div className="flex items-center gap-2 text-[11px] font-mono text-brand-yellow">
+                  <AlertCircle className="size-3.5" />
+                  {orgStats.pendingApprovals} en attente
+                </div>
+                <div className="text-xs text-ink-2 mt-1">
+                  Voir et trancher →
+                </div>
+              </a>
+            )}
+          </SidePanel>
+        </aside>
       </div>
+    </div>
+  );
+}
+
+function SidePanel({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-xl border border-line bg-bg-2 p-4">
+      <div className="text-[11px] font-mono uppercase tracking-wider text-ink-3 mb-3">
+        {title}
+      </div>
+      <div className="space-y-2">{children}</div>
+    </div>
+  );
+}
+
+function KV({ k, v }: { k: string; v: string }) {
+  return (
+    <div className="flex justify-between items-center text-xs gap-2">
+      <span className="font-mono text-ink-3 truncate">{k}</span>
+      <span className="font-mono text-ink shrink-0">{v}</span>
     </div>
   );
 }
