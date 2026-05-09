@@ -40,15 +40,13 @@ async function getKey(): Promise<CryptoKey> {
       "Missing AXION_ENCRYPTION_KEY (or AUTH_SECRET fallback). Generate with `openssl rand -hex 32` and set in env.",
     );
   }
-  let keyBytes: Uint8Array;
+  let keyBuf: ArrayBuffer;
   if (/^[0-9a-fA-F]{64}$/.test(raw)) {
-    keyBytes = hexToBytes(raw);
+    keyBuf = hexToBytes(raw).buffer.slice(0) as ArrayBuffer;
   } else {
-    // Hash down to 32 bytes deterministically.
-    const hashed = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(raw));
-    keyBytes = new Uint8Array(hashed);
+    keyBuf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(raw));
   }
-  return crypto.subtle.importKey("raw", keyBytes, { name: "AES-GCM" }, false, [
+  return crypto.subtle.importKey("raw", keyBuf, { name: "AES-GCM" }, false, [
     "encrypt",
     "decrypt",
   ]);
