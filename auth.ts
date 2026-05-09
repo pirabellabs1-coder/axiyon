@@ -53,66 +53,27 @@ export const {
         password: { label: "Password", type: "password" },
       },
       async authorize(raw) {
-        const SYSTEM_ORG = "00000000-0000-0000-0000-000000000000";
-        async function diag(stage: string, detail: string) {
-          // Best-effort write to audit_logs for offline inspection.
-          try {
-            const { db, auditLogs } = await import("@/lib/db");
-            await db.insert(auditLogs).values({
-              orgId: SYSTEM_ORG,
-              actorType: "system",
-              actorId: "auth.authorize",
-              action: stage,
-              resourceType: "auth.attempt",
-              resourceId: null,
-              payload: { detail },
-              prevHash: null,
-              recordHash: stage,
-            });
-          } catch {
-            /* ignore */
-          }
-        }
-
-        const r = raw as Record<string, unknown>;
-        const email = typeof r?.email === "string" ? r.email.toLowerCase() : "";
-        const password = typeof r?.password === "string" ? r.password : "";
-
-        if (!email || !password) {
-          await diag("bad-input", `keys=${Object.keys(r ?? {}).join(",")}`);
-          return null;
-        }
-
         try {
+          const r = raw as Record<string, unknown>;
+          const email = typeof r?.email === "string" ? r.email.toLowerCase() : "";
+          const password = typeof r?.password === "string" ? r.password : "";
+          if (!email || !password) return null;
+
           const user = await db.query.users.findFirst({
             where: eq(users.email, email),
           });
-          if (!user) {
-            await diag("no-user", email);
-            return null;
-          }
-          if (!user.passwordHash) {
-            await diag("no-hash", email);
-            return null;
-          }
-          if (!user.isActive) {
-            await diag("inactive", email);
-            return null;
-          }
+          if (!user || !user.passwordHash || !user.isActive) return null;
+
           const ok = await bcrypt.compare(password, user.passwordHash);
-          if (!ok) {
-            await diag("bad-pw", `${email} pw=${password.length} hash=${user.passwordHash.length}`);
-            return null;
-          }
-          await diag("ok", email);
+          if (!ok) return null;
+
           return {
             id: user.id,
             email: user.email,
             name: user.name,
             isSuperuser: user.isSuperuser,
           };
-        } catch (e) {
-          await diag("threw", e instanceof Error ? e.message : String(e));
+        } catch {
           return null;
         }
       },
