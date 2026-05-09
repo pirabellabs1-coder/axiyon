@@ -51,6 +51,8 @@ export function IntegrationsClient({ connected }: { connected: ConnectedIntegrat
   const flashConnected = params.get("connected");
   const flashError = params.get("error");
   const flashProvider = params.get("provider");
+  const flashMissing = params.get("missing");
+  const flashNeed = params.get("need");
 
   const connectedMap = useMemo(() => {
     const map = new Map<string, ConnectedIntegration>();
@@ -95,6 +97,34 @@ export function IntegrationsClient({ connected }: { connected: ConnectedIntegrat
           variant="error"
           title={`Échec de la connexion${flashProvider ? ` à ${flashProvider}` : ""}`}
           subtitle={decodeURIComponent(flashError)}
+          onClose={() => router.replace("/dashboard/integrations")}
+        />
+      )}
+      {flashMissing && (
+        <FlashBanner
+          variant="warning"
+          title={`OAuth ${flashMissing} pas encore configuré`}
+          subtitle={
+            <span>
+              Pour connecter <strong className="capitalize">{flashMissing}</strong>, il faut
+              d'abord créer une app OAuth chez le fournisseur, puis ajouter{" "}
+              {flashNeed?.split(",").map((k, i) => (
+                <span key={k}>
+                  {i > 0 && " et "}
+                  <code className="font-mono text-brand-blue-2 bg-bg-3 px-1.5 py-0.5 rounded">
+                    {k}
+                  </code>
+                </span>
+              ))}{" "}
+              dans Vercel → Project axion-os → Settings → Environment Variables. URL de callback à
+              déclarer chez le provider :{" "}
+              <code className="font-mono text-brand-blue-2 bg-bg-3 px-1.5 py-0.5 rounded text-[11px]">
+                https://axiyon-nine.vercel.app/api/v1/integrations/{flashMissing}/callback
+              </code>
+              . Voir <code className="font-mono">docs/SETUP_OAUTH.md</code> pour le pas-à-pas
+              complet par provider.
+            </span>
+          }
           onClose={() => router.replace("/dashboard/integrations")}
         />
       )}
@@ -321,37 +351,24 @@ function FlashBanner({
   subtitle,
   onClose,
 }: {
-  variant: "success" | "error";
+  variant: "success" | "error" | "warning";
   title: string;
-  subtitle: string;
+  subtitle: React.ReactNode;
   onClose: () => void;
 }) {
   const Icon = variant === "success" ? CheckCircle2 : AlertTriangle;
+  const colorMap = {
+    success: { bg: "border-brand-green/30 bg-brand-green/5", text: "text-brand-green" },
+    error:   { bg: "border-brand-red/30 bg-brand-red/5",     text: "text-brand-red" },
+    warning: { bg: "border-brand-yellow/30 bg-brand-yellow/5", text: "text-brand-yellow" },
+  } as const;
+  const color = colorMap[variant];
   return (
-    <div
-      className={cn(
-        "rounded-md border p-4 flex items-start gap-3",
-        variant === "success"
-          ? "border-brand-green/30 bg-brand-green/5"
-          : "border-brand-red/30 bg-brand-red/5",
-      )}
-    >
-      <Icon
-        className={cn(
-          "size-5 shrink-0 mt-0.5",
-          variant === "success" ? "text-brand-green" : "text-brand-red",
-        )}
-      />
-      <div className="flex-1">
-        <div
-          className={cn(
-            "font-medium text-sm",
-            variant === "success" ? "text-brand-green" : "text-brand-red",
-          )}
-        >
-          {title}
-        </div>
-        <p className="text-xs text-ink-2 mt-1">{subtitle}</p>
+    <div className={cn("rounded-md border p-4 flex items-start gap-3", color.bg)}>
+      <Icon className={cn("size-5 shrink-0 mt-0.5", color.text)} />
+      <div className="flex-1 min-w-0">
+        <div className={cn("font-medium text-sm", color.text)}>{title}</div>
+        <div className="text-xs text-ink-2 mt-1 leading-relaxed">{subtitle}</div>
       </div>
       <button onClick={onClose} className="text-ink-3 hover:text-ink">
         <XCircle className="size-4" />

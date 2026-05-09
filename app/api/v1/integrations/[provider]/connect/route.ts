@@ -24,6 +24,19 @@ export async function GET(
 
   const url = new URL(req.url);
   const returnTo = url.searchParams.get("return_to") ?? "/dashboard/integrations";
+  const base = new URL(req.url);
+
+  // Pre-flight: check that CLIENT_ID/CLIENT_SECRET env vars are set.
+  const cidEnv = `${slug.toUpperCase()}_CLIENT_ID`;
+  const secEnv = `${slug.toUpperCase()}_CLIENT_SECRET`;
+  if (!process.env[cidEnv] || !process.env[secEnv]) {
+    return Response.redirect(
+      new URL(
+        `/dashboard/integrations?missing=${slug}&need=${encodeURIComponent(`${cidEnv},${secEnv}`)}`,
+        base,
+      ).toString(),
+    );
+  }
 
   try {
     const { signState, buildAuthorizeUrl } = await import("@/lib/integrations/oauth");
@@ -37,9 +50,13 @@ export async function GET(
     const authorizeUrl = buildAuthorizeUrl(provider, state);
     return Response.redirect(authorizeUrl);
   } catch (e) {
-    return Response.json(
-      { error: e instanceof Error ? e.message : "Authorize URL build failed" },
-      { status: 500 },
+    return Response.redirect(
+      new URL(
+        `/dashboard/integrations?error=${encodeURIComponent(
+          e instanceof Error ? e.message : "Authorize URL build failed",
+        )}&provider=${slug}`,
+        base,
+      ).toString(),
     );
   }
 }
