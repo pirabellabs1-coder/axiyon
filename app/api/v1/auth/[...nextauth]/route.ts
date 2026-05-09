@@ -3,12 +3,14 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 export const maxDuration = 30;
 
+type AnyHandler = (req: unknown, ctx: unknown) => Promise<Response>;
+
 export async function GET(req: Request, ctx: unknown) {
-  const { GET: handler } = await import("@/auth");
-  return (handler as (req: Request, ctx: unknown) => Promise<Response>)(req, ctx);
+  const mod = await import("@/auth");
+  return (mod.GET as unknown as AnyHandler)(req, ctx);
 }
 
 export async function POST(req: Request, ctx: unknown) {
-  const { POST: handler } = await import("@/auth");
-  return (handler as (req: Request, ctx: unknown) => Promise<Response>)(req, ctx);
+  const mod = await import("@/auth");
+  return (mod.POST as unknown as AnyHandler)(req, ctx);
 }
