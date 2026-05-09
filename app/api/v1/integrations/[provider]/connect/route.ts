@@ -1,5 +1,4 @@
-// MIRRORED_TO_V1 — mirrored from app/api/integrations/[provider]/connect/route.ts
-// REBUNDLE_2026_05_09 — force lambda rebuild after maxDuration global config
+// V1_FINAL 1778289461 — production endpoint
 /**
  * GET  /api/integrations/[provider]/connect
  *   → For OAuth providers : redirects to the authorize URL with signed state.

@@ -1,5 +1,4 @@
-// MIRRORED_TO_V1 — mirrored from app/api/audit/verify/route.ts
-// REBUNDLE_2026_05_09 — force lambda rebuild after maxDuration global config
+// V1_FINAL 1778289461 — production endpoint
 /**
  * POST /api/audit/verify — re-walk the SHA-256 audit chain for the org and
  * confirm every link. Returns first tampered row's id if any.

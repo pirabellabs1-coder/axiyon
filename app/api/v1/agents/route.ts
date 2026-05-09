@@ -1,3 +1,4 @@
+// V1_FINAL 1778289461 — production endpoint
 /**
  * /api/v1/agents — exact replica of working /api/diag/agents-clone, just at a
  * production path that the dashboard frontend can use.

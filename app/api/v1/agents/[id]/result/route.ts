@@ -1,5 +1,4 @@
-// MIRRORED_TO_V1 — mirrored from app/api/agents/[id]/result/route.ts
-// REBUNDLE_2026_05_09 — force lambda rebuild after maxDuration global config
+// V1_FINAL 1778289461 — production endpoint
 /**
  * Persists the result of a Puter-driven client-side run as a Task row.
  * Cost is 0 (Puter is free for the platform).

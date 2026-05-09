@@ -1,5 +1,4 @@
-// MIRRORED_TO_V1 — mirrored from app/api/chat/route.ts
-// REBUNDLE_2026_05_09 — force lambda rebuild after maxDuration global config
+// V1_FINAL 1778289461 — production endpoint
 /**
  * Streaming chat endpoint — multi-turn, with tools, with the user's active agent.
  *
