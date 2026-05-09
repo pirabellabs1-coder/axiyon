@@ -5,6 +5,7 @@ import { db, memoryEntries } from "@/lib/db";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Brain, Download, Upload } from "lucide-react";
+import { IngestButton } from "./ingest-button";
 
 export const dynamic = "force-dynamic";
 
@@ -57,12 +58,12 @@ export default async function MemoryPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="ghost" disabled={total === 0}>
-            <Download className="size-4" /> Exporter (JSON)
+          <Button variant="ghost" disabled={total === 0} asChild>
+            <a href="/api/v1/memory/export" download>
+              <Download className="size-4" /> Exporter (JSON)
+            </a>
           </Button>
-          <Button variant="glow">
-            <Upload className="size-4" /> Ingérer document
-          </Button>
+          <IngestButton />
         </div>
       </div>
 
@@ -82,9 +83,7 @@ export default async function MemoryPage() {
             pouvez aussi ingérer manuellement des documents (playbooks, rapports, etc.) pour
             qu&apos;ils s&apos;en servent comme contexte.
           </p>
-          <Button variant="glow">
-            <Upload className="size-4" /> Ingérer mon premier document
-          </Button>
+          <IngestButton />
         </Card>
       ) : (
         <Card className="p-0 overflow-hidden">
