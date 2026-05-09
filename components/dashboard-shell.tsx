@@ -17,6 +17,7 @@ import {
   Wallet,
   Brain,
   UserCog,
+  Network,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -38,6 +39,7 @@ const NAV: NavItem[] = [
 
   { href: "/dashboard/integrations", label: "Intégrations", icon: Plug, section: "Connexions" },
   { href: "/dashboard/memory", label: "Mémoire", icon: Brain, section: "Connexions" },
+  { href: "/dashboard/knowledge-graph", label: "Knowledge graph", icon: Network, section: "Connexions" },
 
   { href: "/dashboard/approvals", label: "Approbations", icon: Bell, section: "Gouvernance" },
   { href: "/dashboard/audit", label: "Audit", icon: Shield, section: "Gouvernance" },
