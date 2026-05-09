@@ -13,6 +13,11 @@ import { audit } from "@/lib/audit";
 import { ingestMemory } from "@/lib/memory";
 import { getTemplate } from "@/lib/agents/catalog";
 
+
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
 const Body = z.object({
   objective: z.string().min(1).max(8000),
   inputs: z.record(z.string(), z.unknown()).default({}),

@@ -16,6 +16,11 @@ import { audit } from "@/lib/audit";
 import { WORKFLOW_PRESETS } from "@/lib/workflows/presets";
 import type { WorkflowSpec } from "@/lib/workflows/types";
 
+
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
 const SpecSchema = z.object({
   name: z.string().min(1).max(255),
   description: z.string().optional(),

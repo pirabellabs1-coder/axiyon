@@ -7,6 +7,11 @@ import { auth } from "@/auth";
 import { agentInstances, db } from "@/lib/db";
 import { audit } from "@/lib/audit";
 
+
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
 const Update = z.object({
   name: z.string().min(1).max(64).optional(),
   customPrompt: z.string().max(8000).nullable().optional(),

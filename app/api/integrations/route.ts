@@ -7,7 +7,11 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { listOrgIntegrations } from "@/lib/integrations/store";
 
+
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
 
 export async function GET() {
   const session = await auth();

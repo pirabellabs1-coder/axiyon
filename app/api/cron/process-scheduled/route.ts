@@ -8,6 +8,11 @@ import { eq, and, sql } from "drizzle-orm";
 
 import { db, workflowRuns, workflows } from "@/lib/db";
 
+
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
 export async function GET(req: Request) {
   const auth = req.headers.get("authorization");
   if (process.env.VERCEL && process.env.CRON_SECRET) {

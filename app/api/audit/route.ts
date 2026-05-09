@@ -9,7 +9,11 @@ import { and, desc, eq, gte, sql } from "drizzle-orm";
 import { auth } from "@/auth";
 import { auditLogs, db } from "@/lib/db";
 
+
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
 
 export async function GET(req: Request) {
   const session = await auth();

@@ -7,6 +7,11 @@ import { eq } from "drizzle-orm";
 import { db, users, orgs, orgMembers } from "@/lib/db";
 import { audit } from "@/lib/audit";
 
+
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
 const Body = z.object({
   email: z.string().email().toLowerCase(),
   name: z.string().min(1).max(255),

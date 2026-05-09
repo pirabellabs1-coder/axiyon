@@ -4,6 +4,11 @@ import { z } from "zod";
 import { auth } from "@/auth";
 import { ingestMemory } from "@/lib/memory";
 
+
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
 const Body = z.object({
   content: z.string().min(1),
   kind: z.enum(["semantic", "episodic", "procedural", "client", "task"]).default("semantic"),

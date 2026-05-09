@@ -10,6 +10,11 @@ import { sql } from "drizzle-orm";
 
 import { agentInstances, db } from "@/lib/db";
 
+
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
 export async function GET(req: Request) {
   // Vercel cron sends a special header we should validate in production.
   const auth = req.headers.get("authorization");

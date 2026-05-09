@@ -11,7 +11,11 @@ import { and, desc, eq } from "drizzle-orm";
 import { auth } from "@/auth";
 import { agentInstances, approvals, db } from "@/lib/db";
 
+
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
 
 const ALLOWED_STATUS = new Set(["pending", "approved", "rejected", "expired"] as const);
 

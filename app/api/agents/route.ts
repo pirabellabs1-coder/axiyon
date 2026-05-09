@@ -8,6 +8,10 @@ import { agentInstances, db } from "@/lib/db";
 import { audit } from "@/lib/audit";
 import { getTemplate } from "@/lib/agents/catalog";
 
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
 const Body = z.object({
   templateSlug: z.string().min(1).max(64),
   name: z.string().min(1).max(64),

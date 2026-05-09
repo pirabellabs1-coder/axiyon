@@ -7,6 +7,11 @@ import { auth } from "@/auth";
 import { audit } from "@/lib/audit";
 import { db, orgMembers, users } from "@/lib/db";
 
+
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
 const Body = z.object({
   email: z.string().email().toLowerCase(),
   role: z.enum(["viewer", "operator", "builder", "admin"]),

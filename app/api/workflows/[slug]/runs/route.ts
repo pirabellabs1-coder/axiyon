@@ -8,6 +8,11 @@ import { auth } from "@/auth";
 import { db, workflowRuns, workflows } from "@/lib/db";
 import { audit } from "@/lib/audit";
 
+
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
 const Body = z.object({
   inputs: z.record(z.string(), z.unknown()).default({}),
   status: z.enum(["pending", "running", "succeeded", "failed", "cancelled", "awaiting_approval"])

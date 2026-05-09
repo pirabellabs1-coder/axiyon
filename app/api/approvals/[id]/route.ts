@@ -8,6 +8,11 @@ import { auth } from "@/auth";
 import { approvals, db } from "@/lib/db";
 import { audit } from "@/lib/audit";
 
+
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
 const Body = z.object({
   decision: z.enum(["approved", "rejected"]),
   note: z.string().max(500).optional(),

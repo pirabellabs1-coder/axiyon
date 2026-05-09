@@ -5,7 +5,11 @@ import { auth } from "@/auth";
 import { audit } from "@/lib/audit";
 import { disconnectIntegration } from "@/lib/integrations/store";
 
+
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
 
 export async function DELETE(
   _req: Request,
