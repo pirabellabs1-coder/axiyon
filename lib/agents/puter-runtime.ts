@@ -81,6 +81,35 @@ export async function runWithPuter(opts: PuterRunOptions): Promise<PuterRunResul
   // Wait for Puter to load (script may still be initializing on first paint).
   await waitForPuter();
 
+  // Pull this agent's recent task history so it has working memory across
+  // turns. We squash the last 5 turns into the system prompt so the LLM
+  // doesn't redo work it already did. Best-effort: silent fail.
+  let memorySnippet = "";
+  try {
+    const r = await fetch(
+      `/api/v1/chat/history?agentId=${encodeURIComponent(opts.agentId)}&limit=10`,
+      { cache: "no-store" },
+    );
+    if (r.ok) {
+      const data = (await r.json()) as {
+        turns: Array<{ role: "user" | "assistant"; content: string; createdAt: string }>;
+      };
+      const recent = data.turns.slice(-10);
+      if (recent.length) {
+        const lines = recent.map((t) => {
+          const text = t.content.replace(/\s+/g, " ").trim().slice(0, 240);
+          return `[${t.role === "user" ? "USER" : "YOU"}] ${text}`;
+        });
+        memorySnippet =
+          "\n\n═══ Previous turns with this agent (working memory) ═══\n" +
+          lines.join("\n") +
+          "\n═══════════════════════════════════════════════════════\n";
+      }
+    }
+  } catch {
+    /* silent — memory is best-effort */
+  }
+
   // Always-on tools. Every agent gets these regardless of its template's
   // enabledTools list — they're the foundation of multi-agent autonomy and
   // real-world research, so an agent created before they existed should still
@@ -109,7 +138,7 @@ export async function runWithPuter(opts: PuterRunOptions): Promise<PuterRunResul
     opts.connectedProviders ?? [],
   );
   const messages: ChatMsg[] = [
-    { role: "system", content: opts.systemPrompt },
+    { role: "system", content: opts.systemPrompt + memorySnippet },
     { role: "user", content: userMsg },
   ];
 
@@ -144,9 +173,35 @@ export async function runWithPuter(opts: PuterRunOptions): Promise<PuterRunResul
     const toolCalls = message?.tool_calls ?? [];
     const assistantText = extractText(message?.content) || response?.text || "";
 
-    // No tool calls → final answer.
+    // No tool calls → maybe a final answer, but check for procrastination first.
     if (!toolCalls.length) {
-      finalText = String(assistantText).trim();
+      const trimmed = String(assistantText).trim();
+      // If the agent emitted a "I will / je vais / let me / I'm going to"
+      // promise-of-action without actually calling any tool yet AND we still
+      // have steps left, push back once and force execution.
+      const hasNoToolHistory = collectedToolCalls.length === 0;
+      const looksLikePromise =
+        /\b(je vais|je vais commencer|je commence|let me|i will|i'll|i'm going to|i need to|i would|on va|d'abord)\b/i.test(
+          trimmed,
+        ) || /^(je \w+|d'abord|tout d'abord|commençons)/i.test(trimmed);
+      if (
+        hasNoToolHistory &&
+        looksLikePromise &&
+        step < MAX_STEPS - 1 &&
+        trimmed.length > 0
+      ) {
+        // Keep the assistant's plan in the conversation so the model can build
+        // on it, then nudge with a user turn that requires immediate execution.
+        messages.push({ role: "assistant", content: trimmed });
+        messages.push({
+          role: "user",
+          content:
+            "Stop planning. Execute now: invoke the relevant tool(s) with concrete arguments. " +
+            "Do NOT describe what you're going to do — make the actual function call this turn.",
+        });
+        continue; // re-loop, model now knows it must call a tool
+      }
+      finalText = trimmed;
       if (opts.onText && finalText) opts.onText(finalText);
       break;
     }
@@ -204,7 +259,18 @@ export async function runWithPuter(opts: PuterRunOptions): Promise<PuterRunResul
   }
 
   if (step >= MAX_STEPS && !finalText) {
-    finalText = `[step limit reached after ${MAX_STEPS} iterations]`;
+    finalText = `[Limite de ${MAX_STEPS} étapes atteinte sans réponse finale.]`;
+  }
+  // If the agent gave a final answer but never called a single tool while the
+  // user objective clearly demanded one, append a visible reminder so the user
+  // sees the model procrastinated. (Avoids the silent "I will…" failure mode.)
+  if (
+    finalText &&
+    collectedToolCalls.length === 0 &&
+    /\b(je vais|let me|i will|i'll)\b/i.test(finalText)
+  ) {
+    finalText +=
+      "\n\n⚠️ *Rapport interne : aucun outil n'a été appelé pendant ce tour.*";
   }
 
   // Persist the run as a Task so it shows up in /dashboard/tasks + audit.
@@ -276,6 +342,21 @@ function buildUserMessage(
   parts.push(
     [
       "",
+      "═══════════════════════════════════════════════════════════════",
+      "EXECUTION POLICY (read this before you generate any token):",
+      "═══════════════════════════════════════════════════════════════",
+      "1. **EXECUTE — DO NOT DESCRIBE.** If the user asks you to do something,",
+      "   your VERY FIRST response must be a tool call, never a sentence",
+      "   like “I will…”, “Je vais…”, “Let me…”. Don't announce — act.",
+      "2. **PLAN INTERNALLY, EMIT TOOLS.** Think silently. The only thing the",
+      "   user wants to see is: tools you called → their results → your final",
+      "   summary. Skip the “Here's what I'm going to do” preamble.",
+      "3. **CHAIN WITHOUT ASKING.** If a step needs another step, just do it.",
+      "   Only ask the user a question when you genuinely cannot proceed",
+      "   (missing required field that no tool can find for you).",
+      "4. **REPORT ONLY AFTER WORKING.** Your final text is a *recap of what",
+      "   you actually did*, not a plan for the future.",
+      "",
       "Capabilities you ALWAYS have:",
       "• `fetch_url(url)` — read any public webpage (company sites, articles, docs, profiles).",
       "• `web_search(query)` — find candidate URLs, then `fetch_url` the promising ones.",
@@ -283,21 +364,23 @@ function buildUserMessage(
       "• `search_kb(query)` and `ingest_to_kb(content, kind)` — read/write the org's persistent memory.",
       ...integrationsBlock,
       "",
-      "How to research before answering:",
-      "1. If you don't know something specific (a company, a person, recent news) → `web_search` then `fetch_url` the top hits. Don't guess.",
-      "2. If the task spans expertises → finish your part, then `agent_handoff` to the right teammate with structured context.",
-      "3. NEVER claim a tool is unavailable. The full toolbox above is loaded for this run — just call it.",
+      "Decision tree before answering:",
+      "1. Did the user give a concrete task (\"trie mes mails\", \"trouve 10 prospects\", \"analyse pirabellabs.com\")?",
+      "   → IMMEDIATELY call the matching tool(s). Don't preface.",
+      "2. Don't know a fact? → `web_search` then `fetch_url`. Don't guess, don't ask the user.",
+      "3. Task spans expertises? → finish your part FIRST, then `agent_handoff`.",
+      "4. NEVER claim a tool is unavailable. The full toolbox above is loaded for this run — call it.",
       "",
       "Output format (your final assistant message will be rendered as Markdown):",
-      "• Use real Markdown — **bold**, lists, headings (`##`), and proper tables when listing structured data:",
+      "• Real Markdown — **bold**, lists, headings (`##`), proper tables for structured data:",
       "  | Colonne | Colonne |",
       "  | --- | --- |",
       "  | valeur | valeur |",
-      "• Tables render with clean dividers; never describe table contents in prose when a table fits.",
-      "• Never include raw stars (`****`) as decoration. Don't put asterisks around section titles — use a `##` heading instead.",
-      "• Be concise. End with a clear next-step or recommendation.",
+      "• End with a one-line **recap** stating what you did and what's next, e.g.",
+      "  \"✅ 12 prospects qualifiés ; 8 emails envoyés ; relais Codex pour le contrat Stripe.\"",
+      "• No raw `****` decoration. Use `##` for section titles, not stars.",
       "",
-      "If a step needs human approval (>5k EUR action, contract signature, mass email, phone call), STOP and request approval.",
+      "Approval gate: actions > 5 000 € impact, contract signature, mass email (> 50 recipients), phone calls, real fund transfers → STOP and call the relevant tool that triggers `requestApproval` (the runtime will pause until a human decides).",
     ].join("\n"),
   );
   return parts.join("\n");
