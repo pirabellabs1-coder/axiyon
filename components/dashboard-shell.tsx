@@ -69,6 +69,9 @@ export function DashboardShell({
   const [collapsed, setCollapsed] = useState<boolean>(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  // True ≥ 768px (Tailwind's `md`). Re-evaluated on resize so the single
+  // `collapsed` flag never accidentally bleeds into the mobile drawer.
+  const [isDesktop, setIsDesktop] = useState(true);
 
   useEffect(() => {
     setMounted(true);
@@ -78,7 +81,18 @@ export function DashboardShell({
     } catch {
       /* ignore */
     }
+    if (typeof window !== "undefined" && typeof window.matchMedia === "function") {
+      const mql = window.matchMedia("(min-width: 768px)");
+      const update = () => setIsDesktop(mql.matches);
+      update();
+      mql.addEventListener?.("change", update);
+      return () => mql.removeEventListener?.("change", update);
+    }
   }, []);
+
+  // Effective icons-only mode: ONLY when on desktop AND user has collapsed.
+  // On mobile, the drawer is 260 px wide so it always shows full labels.
+  const iconsOnly = isDesktop && collapsed;
 
   // Close mobile drawer on route change.
   useEffect(() => {
@@ -169,8 +183,9 @@ export function DashboardShell({
       )}
 
       {/* Sidebar — fixed/overlay on mobile, normal grid item on desktop.
-          Layout style classes use `md:` prefixes so the desktop "icons-only"
-          mode never leaks into the mobile drawer (which always shows labels). */}
+          `iconsOnly` is a JS-derived flag that's only true at >= 768 px AND
+          user-collapsed, so the mobile drawer is unconditionally always
+          fully expanded with labels regardless of localStorage state. */}
       <aside
         className={cn(
           "row-start-2 border-r border-line bg-bg-2 overflow-y-auto z-50",
@@ -179,9 +194,7 @@ export function DashboardShell({
           // Mobile: fixed overlay sliding in from left
           "fixed top-[56px] bottom-0 left-0 w-[260px] transition-transform duration-200 md:transition-none",
           mobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
-          // Padding: mobile drawer always p-3; desktop respects collapsed.
-          "p-3",
-          collapsed ? "md:p-2" : "md:p-3",
+          iconsOnly ? "p-2" : "p-3",
         )}
       >
         <nav className="flex flex-col gap-0.5">
@@ -198,14 +211,8 @@ export function DashboardShell({
             }
             return sectioned.map((group, gi) => (
               <div key={group.section} className={gi > 0 ? "mt-4" : ""}>
-                {group.section && (
-                  <div
-                    className={cn(
-                      "px-3 py-1.5 text-[10px] font-mono uppercase tracking-wider text-ink-3",
-                      // Hide section label only when desktop is collapsed.
-                      collapsed && "md:hidden",
-                    )}
-                  >
+                {group.section && !iconsOnly && (
+                  <div className="px-3 py-1.5 text-[10px] font-mono uppercase tracking-wider text-ink-3">
                     {group.section}
                   </div>
                 )}
@@ -218,20 +225,17 @@ export function DashboardShell({
                     <Link
                       key={item.href}
                       href={item.href}
-                      title={collapsed ? item.label : undefined}
+                      title={iconsOnly ? item.label : undefined}
                       className={cn(
                         "flex items-center rounded-md text-sm transition-colors",
-                        // Mobile drawer always shows full row with label.
-                        "gap-3 px-3 py-2",
-                        // Desktop collapsed = center icons only.
-                        collapsed && "md:justify-center md:p-2.5 md:gap-0 md:px-2.5",
+                        iconsOnly ? "justify-center p-2.5" : "gap-3 px-3 py-2",
                         active
                           ? "bg-bg-3 text-ink"
                           : "text-ink-2 hover:bg-bg-3 hover:text-ink",
                       )}
                     >
                       <Icon className="size-4 shrink-0" />
-                      <span className={cn(collapsed && "md:hidden")}>{item.label}</span>
+                      {!iconsOnly && <span>{item.label}</span>}
                     </Link>
                   );
                 })}
@@ -242,16 +246,14 @@ export function DashboardShell({
 
         <Link
           href="/dashboard/agents/hire"
-          title={collapsed ? "Recruter un agent" : undefined}
+          title={iconsOnly ? "Recruter un agent" : undefined}
           className={cn(
             "mt-6 flex items-center justify-center rounded-md bg-grad text-white text-sm font-medium shadow-glow hover:-translate-y-px transition-transform",
-            // Mobile = full row with text; desktop respects collapsed.
-            "gap-2 py-2.5",
-            collapsed && "md:p-2.5 md:py-2.5 md:gap-0",
+            iconsOnly ? "p-2.5" : "gap-2 py-2.5",
           )}
         >
           <Sparkles className="size-4" />
-          <span className={cn(collapsed && "md:hidden")}>Recruter +</span>
+          {!iconsOnly && <span>Recruter +</span>}
         </Link>
 
         {/* Mobile close button at bottom (drawer-only) */}
