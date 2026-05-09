@@ -12,16 +12,27 @@ import {
   Cog,
   UserSearch,
   AlertCircle,
+  Wrench,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { runWithPuter, isPuterAvailable } from "@/lib/agents/puter-runtime";
 
 interface Agent {
   id: string;
   name: string;
   templateSlug: string;
   status: string;
+  enabledTools?: string[];
+  systemPrompt?: string;
+}
+
+interface ToolCall {
+  name: string;
+  args: unknown;
+  result?: unknown;
+  error?: string;
 }
 
 interface ChatMessage {
@@ -29,6 +40,7 @@ interface ChatMessage {
   role: "user" | "assistant";
   content: string;
   agent?: { name: string; templateSlug: string };
+  toolCalls?: ToolCall[];
   pending?: boolean;
 }
 
@@ -70,13 +82,27 @@ export function ChatView({
   userName: string;
   agents: Agent[];
 }) {
-  const [activeAgent, setActiveAgent] = useState<Agent | null>(
-    agents[0] ?? null,
-  );
+  const [activeAgent, setActiveAgent] = useState<Agent | null>(agents[0] ?? null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
-  const [streaming, setStreaming] = useState(false);
+  const [running, setRunning] = useState(false);
+  const [puterReady, setPuterReady] = useState(false);
   const messagesRef = useRef<HTMLDivElement | null>(null);
+
+  // Poll for Puter SDK readiness (loaded via <Script> in dashboard layout).
+  useEffect(() => {
+    if (isPuterAvailable()) {
+      setPuterReady(true);
+      return;
+    }
+    const id = setInterval(() => {
+      if (isPuterAvailable()) {
+        setPuterReady(true);
+        clearInterval(id);
+      }
+    }, 250);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(() => {
     const el = messagesRef.current;
@@ -85,95 +111,66 @@ export function ChatView({
 
   async function send(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (!input.trim() || !activeAgent || streaming) return;
+    if (!input.trim() || !activeAgent || running) return;
 
     const userMsg: ChatMessage = {
       id: crypto.randomUUID(),
       role: "user",
       content: input.trim(),
     };
+    const assistantId = crypto.randomUUID();
     const assistantMsg: ChatMessage = {
-      id: crypto.randomUUID(),
+      id: assistantId,
       role: "assistant",
       content: "",
       agent: { name: activeAgent.name, templateSlug: activeAgent.templateSlug },
+      toolCalls: [],
       pending: true,
     };
 
-    const newMessages = [...messages, userMsg];
-    setMessages([...newMessages, assistantMsg]);
+    setMessages((prev) => [...prev, userMsg, assistantMsg]);
+    const objective = input.trim();
     setInput("");
-    setStreaming(true);
+    setRunning(true);
 
     try {
-      const res = await fetch("/api/v1/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          agentId: activeAgent.id,
-          messages: newMessages.map((m) => ({ role: m.role, content: m.content })),
-        }),
+      const result = await runWithPuter({
+        agentId: activeAgent.id,
+        templateSlug: activeAgent.templateSlug,
+        systemPrompt:
+          activeAgent.systemPrompt ??
+          "Tu es un agent autonome qui exécute des objectifs en appelant les outils mis à ta disposition. Sois concis et actionnable.",
+        enabledTools: activeAgent.enabledTools ?? [],
+        objective,
+        onToolCall: (call) => {
+          setMessages((prev) =>
+            prev.map((m) =>
+              m.id === assistantId
+                ? { ...m, toolCalls: [...(m.toolCalls ?? []), call] }
+                : m,
+            ),
+          );
+        },
       });
 
-      if (!res.ok || !res.body) {
-        const txt = await res.text().catch(() => "");
-        throw new Error(`HTTP ${res.status}: ${txt.slice(0, 200) || "no body"}`);
-      }
-
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
-      let acc = "";
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        // Parse Vercel AI SDK data stream: lines like `0:"text"`, `2:[...]`, etc.
-        const lines = buffer.split("\n");
-        buffer = lines.pop() ?? "";
-        for (const line of lines) {
-          if (!line) continue;
-          const m = line.match(/^(\w+):(.*)$/);
-          if (!m) continue;
-          const tag = m[1];
-          const payload = m[2];
-          if (tag === "0") {
-            // text chunk — JSON-encoded string
-            try {
-              acc += JSON.parse(payload);
-              setMessages((prev) =>
-                prev.map((p) =>
-                  p.id === assistantMsg.id ? { ...p, content: acc, pending: true } : p,
-                ),
-              );
-            } catch {
-              /* swallow malformed chunk */
-            }
-          }
-        }
-      }
-
       setMessages((prev) =>
-        prev.map((p) =>
-          p.id === assistantMsg.id ? { ...p, content: acc, pending: false } : p,
+        prev.map((m) =>
+          m.id === assistantId
+            ? { ...m, content: result.text, pending: false, toolCalls: result.toolCalls }
+            : m,
         ),
       );
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Erreur inconnue";
+      const msg = err instanceof Error ? err.message : "Erreur Puter";
       setMessages((prev) =>
-        prev.map((p) =>
-          p.id === assistantMsg.id
-            ? {
-                ...p,
-                content: `⚠ ${msg}`,
-                pending: false,
-              }
-            : p,
+        prev.map((m) =>
+          m.id === assistantId
+            ? { ...m, content: `⚠ ${msg}`, pending: false }
+            : m,
         ),
       );
     } finally {
-      setStreaming(false);
+      setRunning(false);
     }
   }
 
@@ -209,11 +206,25 @@ export function ChatView({
 
   return (
     <div className="space-y-4">
-      <div>
-        <h1 className="text-3xl font-medium tracking-tight">Chat</h1>
-        <p className="text-ink-2 text-sm mt-1">
-          Donnez un objectif. Votre agent appellera ses outils en direct.
-        </p>
+      <div className="flex items-end justify-between flex-wrap gap-2">
+        <div>
+          <h1 className="text-3xl font-medium tracking-tight">Chat</h1>
+          <p className="text-ink-2 text-sm mt-1">
+            Donnez un objectif. L&apos;agent appelle ses outils en direct.
+          </p>
+        </div>
+        <span
+          className={`inline-flex items-center gap-1.5 text-[11px] font-mono ${
+            puterReady ? "text-brand-green" : "text-brand-yellow"
+          }`}
+        >
+          <span
+            className={`size-1.5 rounded-full ${
+              puterReady ? "bg-brand-green animate-pulse" : "bg-brand-yellow"
+            }`}
+          />
+          {puterReady ? "LLM prêt (Puter · Claude)" : "Chargement Puter…"}
+        </span>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[260px_1fr] gap-4">
@@ -289,13 +300,17 @@ export function ChatView({
             <input
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder={`Donnez un objectif à ${activeAgent?.name?.split(" ")[0] ?? "l'agent"}…`}
-              disabled={streaming}
+              placeholder={
+                puterReady
+                  ? `Donnez un objectif à ${activeAgent?.name?.split(" ")[0] ?? "l'agent"}…`
+                  : "Chargement du moteur LLM…"
+              }
+              disabled={running || !puterReady}
               className="flex-1 bg-transparent border-0 outline-none text-sm placeholder:text-ink-3 disabled:opacity-50"
             />
             <button
               type="submit"
-              disabled={streaming || !input.trim()}
+              disabled={running || !puterReady || !input.trim()}
               className="size-9 rounded-md bg-gradient-to-br from-[#5B6CFF] to-[#22D3EE] text-white shadow-[0_4px_16px_rgba(91,108,255,.4)] hover:opacity-90 transition-opacity flex items-center justify-center disabled:opacity-40"
               aria-label="Envoyer"
             >
@@ -333,6 +348,7 @@ function Message({
     );
   }
   const Icon = iconFor(msg.agent?.templateSlug ?? "");
+  const hasError = msg.content.startsWith("⚠");
   return (
     <div className="flex gap-3">
       <span
@@ -345,19 +361,55 @@ function Message({
           {msg.agent?.name ?? "Agent"}
           {msg.pending ? (
             <span className="ml-2 text-[10px] font-mono text-ink-3 animate-pulse">
-              en train d&apos;écrire…
+              {msg.toolCalls?.length
+                ? `${msg.toolCalls.length} outil${msg.toolCalls.length > 1 ? "s" : ""} appelé${msg.toolCalls.length > 1 ? "s" : ""}…`
+                : "réfléchit…"}
             </span>
           ) : null}
         </div>
-        <div className="text-sm text-ink leading-relaxed whitespace-pre-wrap">
-          {msg.content || (msg.pending ? <span className="text-ink-3">…</span> : null)}
-        </div>
-        {msg.content.startsWith("⚠") ? (
-          <div className="mt-2 text-[11px] text-brand-red flex items-center gap-1.5">
-            <AlertCircle className="size-3" />
-            Erreur — vérifiez ANTHROPIC_API_KEY ou OPENAI_API_KEY dans Vercel.
+
+        {msg.toolCalls && msg.toolCalls.length > 0 ? (
+          <div className="space-y-1.5 mb-3">
+            {msg.toolCalls.map((tc, i) => (
+              <div
+                key={i}
+                className="rounded-md border border-line bg-bg-3 p-2.5 font-mono text-[11px] leading-relaxed"
+              >
+                <div className="flex items-center gap-1.5 text-brand-blue-2">
+                  <Wrench className="size-3" strokeWidth={2} />
+                  {tc.name}
+                  {tc.error ? (
+                    <span className="ml-auto text-brand-red text-[10px]">erreur</span>
+                  ) : tc.result !== undefined ? (
+                    <span className="ml-auto text-brand-green text-[10px]">ok</span>
+                  ) : (
+                    <span className="ml-auto text-ink-3 text-[10px]">en cours…</span>
+                  )}
+                </div>
+                {tc.error ? (
+                  <div className="text-brand-red mt-1 break-all">{tc.error}</div>
+                ) : tc.result !== undefined ? (
+                  <div className="text-ink-3 mt-1 truncate">
+                    {JSON.stringify(tc.result).slice(0, 200)}
+                  </div>
+                ) : null}
+              </div>
+            ))}
           </div>
         ) : null}
+
+        {msg.content && (
+          <div className="text-sm text-ink leading-relaxed whitespace-pre-wrap">
+            {msg.content}
+          </div>
+        )}
+
+        {hasError && (
+          <div className="mt-2 text-[11px] text-brand-red flex items-center gap-1.5">
+            <AlertCircle className="size-3" />
+            Vérifiez que vous êtes signé in dans Puter (popup auto au premier appel).
+          </div>
+        )}
       </div>
     </div>
   );
