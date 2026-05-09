@@ -97,7 +97,43 @@ export function ChatView({
   const [input, setInput] = useState("");
   const [running, setRunning] = useState(false);
   const [puterReady, setPuterReady] = useState(false);
+  const [loadingHistory, setLoadingHistory] = useState(false);
   const messagesRef = useRef<HTMLDivElement | null>(null);
+
+  // Load conversation history (past tasks reconstructed) when active agent changes.
+  useEffect(() => {
+    if (!activeAgent) return;
+    let cancelled = false;
+    setLoadingHistory(true);
+    setMessages([]); // clear while loading
+    fetch(`/api/v1/chat/history?agentId=${encodeURIComponent(activeAgent.id)}&limit=30`, {
+      cache: "no-store",
+    })
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
+      .then((data: { turns: Array<{ id: string; role: "user" | "assistant"; content: string; toolCalls?: ToolCall[]; createdAt: string }> }) => {
+        if (cancelled) return;
+        const restored: ChatMessage[] = data.turns.map((t) => ({
+          id: t.id,
+          role: t.role,
+          content: t.content,
+          agent:
+            t.role === "assistant" && activeAgent
+              ? { name: activeAgent.name, templateSlug: activeAgent.templateSlug }
+              : undefined,
+          toolCalls: t.toolCalls ?? [],
+        }));
+        setMessages(restored);
+      })
+      .catch(() => {
+        // Silent — empty state is fine if history fails
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingHistory(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [activeAgent?.id, activeAgent]);
 
   // Poll for Puter SDK readiness (loaded via <Script> in dashboard layout).
   useEffect(() => {
@@ -318,7 +354,11 @@ export function ChatView({
           </div>
 
           <div ref={messagesRef} className="flex-1 overflow-y-auto px-5 py-5 space-y-5">
-            {messages.length === 0 ? (
+            {loadingHistory ? (
+              <div className="text-center text-ink-3 text-xs font-mono py-12 animate-pulse">
+                Chargement de l&apos;historique…
+              </div>
+            ) : messages.length === 0 ? (
               <div className="text-center text-ink-3 text-sm py-12">
                 Donnez un objectif à <strong>{activeAgent?.name}</strong>. Il choisira ses
                 outils et vous tiendra au courant.

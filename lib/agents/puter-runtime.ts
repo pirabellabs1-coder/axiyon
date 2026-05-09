@@ -50,11 +50,42 @@ interface ChatMsg {
   }>;
 }
 
+// Anthropic / OpenAI return content sometimes as a string, sometimes as an
+// array of blocks like [{type:"text", text:"..."}]. JSON.stringify on those
+// blocks produces "[object Object]" which is what the user saw in chat.
+function extractText(
+  content:
+    | string
+    | Array<{ type?: string; text?: string; [k: string]: unknown }>
+    | null
+    | undefined,
+): string {
+  if (!content) return "";
+  if (typeof content === "string") return content;
+  if (Array.isArray(content)) {
+    return content
+      .map((part) => {
+        if (typeof part === "string") return part;
+        if (part && typeof part === "object" && typeof part.text === "string") return part.text;
+        return "";
+      })
+      .join("")
+      .trim();
+  }
+  return "";
+}
+
 export async function runWithPuter(opts: PuterRunOptions): Promise<PuterRunResult> {
   // Wait for Puter to load (script may still be initializing on first paint).
   await waitForPuter();
 
-  const tools = (opts.enabledTools.length ? opts.enabledTools : Object.keys(TOOL_SCHEMAS))
+  // ALWAYS include agent_handoff so any agent can hand off to another, even
+  // if its enabledTools didn't list it (legacy agents created before handoff).
+  const enabledSet = new Set(
+    opts.enabledTools.length ? opts.enabledTools : Object.keys(TOOL_SCHEMAS),
+  );
+  enabledSet.add("agent_handoff");
+  const tools = Array.from(enabledSet)
     .map((name) => TOOL_SCHEMAS[name as ToolName])
     .filter(Boolean)
     .map((schema) => ({
@@ -86,7 +117,9 @@ export async function runWithPuter(opts: PuterRunOptions): Promise<PuterRunResul
     })) as {
       message?: {
         role?: string;
-        content?: string;
+        content?:
+          | string
+          | Array<{ type?: string; text?: string; [k: string]: unknown }>;
         tool_calls?: Array<{
           id: string;
           type: "function";
@@ -99,7 +132,7 @@ export async function runWithPuter(opts: PuterRunOptions): Promise<PuterRunResul
 
     const message = response?.message;
     const toolCalls = message?.tool_calls ?? [];
-    const assistantText = message?.content ?? response?.text ?? response?.toString?.() ?? "";
+    const assistantText = extractText(message?.content) || response?.text || "";
 
     // No tool calls → final answer.
     if (!toolCalls.length) {
