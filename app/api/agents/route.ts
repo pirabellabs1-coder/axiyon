@@ -1,5 +1,13 @@
-// REBUNDLE_2026_05_09 — force lambda rebuild after maxDuration global config
-import { NextResponse } from "next/server";
+/**
+ * GET  /api/agents — list current org's agents
+ * POST /api/agents — hire a new agent (builder+ role)
+ *
+ * RECREATED 2026-05-09: previous file at this exact path was returning 000
+ * timeouts on every request despite multiple maxDuration fixes; suspect a
+ * Vercel function-cache anomaly tied to the path itself. This rewrite uses
+ * a `Response` constructor instead of NextResponse and minimal imports to
+ * exercise a maximally-different bundle hash.
+ */
 import { eq, sql } from "drizzle-orm";
 import { z } from "zod";
 
@@ -21,11 +29,16 @@ const Body = z.object({
   budgetPerDayEur: z.number().int().min(0).max(100_000).default(10),
 });
 
-// GET /api/agents — list current org's agents
-export async function GET() {
+function json(body: unknown, status = 200): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { "content-type": "application/json" },
+  });
+}
+
+export async function GET(): Promise<Response> {
   const session = await auth();
-  if (!session?.user.activeOrgId)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!session?.user?.activeOrgId) return json({ error: "Unauthorized" }, 401);
 
   const rows = await db
     .select()
@@ -33,37 +46,26 @@ export async function GET() {
     .where(eq(agentInstances.orgId, session.user.activeOrgId))
     .orderBy(sql`${agentInstances.createdAt} DESC`);
 
-  return NextResponse.json(rows);
+  return json(rows);
 }
 
-// POST /api/agents — hire a new agent (builder+ role)
-export async function POST(req: Request) {
+export async function POST(req: Request): Promise<Response> {
   const session = await auth();
-  if (!session?.user.activeOrgId)
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!session?.user?.activeOrgId) return json({ error: "Unauthorized" }, 401);
 
-  const allowed = ["builder", "admin", "owner"];
-  if (!allowed.includes(session.user.activeOrgRole ?? "")) {
-    return NextResponse.json(
-      { error: "Need builder role or higher to hire" },
-      { status: 403 },
-    );
+  if (!["builder", "admin", "owner"].includes(session.user.activeOrgRole ?? "")) {
+    return json({ error: "Need builder role or higher to hire" }, 403);
   }
 
   let body: z.infer<typeof Body>;
   try {
     body = Body.parse(await req.json());
   } catch {
-    return NextResponse.json({ error: "Invalid body" }, { status: 422 });
+    return json({ error: "Invalid body" }, 422);
   }
 
   const tpl = getTemplate(body.templateSlug);
-  if (!tpl) {
-    return NextResponse.json(
-      { error: `Unknown template: ${body.templateSlug}` },
-      { status: 404 },
-    );
-  }
+  if (!tpl) return json({ error: `Unknown template: ${body.templateSlug}` }, 404);
 
   const [row] = await db
     .insert(agentInstances)
@@ -88,5 +90,5 @@ export async function POST(req: Request) {
     payload: { template: body.templateSlug, name: body.name },
   });
 
-  return NextResponse.json(row, { status: 201 });
+  return json(row, 201);
 }
