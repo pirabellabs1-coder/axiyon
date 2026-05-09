@@ -1,16 +1,11 @@
-// V1_FINAL 1778289461 — production endpoint
+// V1_FINAL — minimal top-level imports + lazy heavy deps
 import { NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
 import { z } from "zod";
-
 import { auth } from "@/auth";
-import { agentInstances, db } from "@/lib/db";
-import { audit } from "@/lib/audit";
-
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
-export const maxDuration = 60;
+export const maxDuration = 30;
 
 const Update = z.object({
   name: z.string().min(1).max(64).optional(),
@@ -20,22 +15,25 @@ const Update = z.object({
   status: z.enum(["idle", "running", "paused", "error", "archived"]).optional(),
 });
 
-async function loadOwned(id: string, orgId: string | null) {
-  if (!orgId) return null;
-  const a = await db.query.agentInstances.findFirst({
-    where: eq(agentInstances.id, id),
-  });
-  return a && a.orgId === orgId ? a : null;
-}
-
 export async function GET(
   _: Request,
   ctx: { params: Promise<{ id: string }> },
 ) {
   const session = await auth();
   const { id } = await ctx.params;
-  const a = await loadOwned(id, session?.user.activeOrgId ?? null);
-  if (!a) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  if (!session?.user?.activeOrgId)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const [{ eq }, dbMod] = await Promise.all([
+    import("drizzle-orm"),
+    import("@/lib/db"),
+  ]);
+  const { db, agentInstances } = dbMod;
+  const a = await db.query.agentInstances.findFirst({
+    where: eq(agentInstances.id, id),
+  });
+  if (!a || a.orgId !== session.user.activeOrgId)
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
   return NextResponse.json(a);
 }
 
@@ -44,11 +42,9 @@ export async function PATCH(
   ctx: { params: Promise<{ id: string }> },
 ) {
   const session = await auth();
-  if (!session?.user.activeOrgId)
+  if (!session?.user?.activeOrgId)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const { id } = await ctx.params;
-  const a = await loadOwned(id, session.user.activeOrgId);
-  if (!a) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   let body: z.infer<typeof Update>;
   try {
@@ -56,6 +52,20 @@ export async function PATCH(
   } catch {
     return NextResponse.json({ error: "Invalid body" }, { status: 422 });
   }
+
+  const [{ eq }, dbMod, audMod] = await Promise.all([
+    import("drizzle-orm"),
+    import("@/lib/db"),
+    import("@/lib/audit"),
+  ]);
+  const { db, agentInstances } = dbMod;
+  const { audit } = audMod;
+
+  const a = await db.query.agentInstances.findFirst({
+    where: eq(agentInstances.id, id),
+  });
+  if (!a || a.orgId !== session.user.activeOrgId)
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const [updated] = await db
     .update(agentInstances)
@@ -81,14 +91,25 @@ export async function DELETE(
   ctx: { params: Promise<{ id: string }> },
 ) {
   const session = await auth();
-  if (!session?.user.activeOrgId)
+  if (!session?.user?.activeOrgId)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   if (!["admin", "owner"].includes(session.user.activeOrgRole ?? ""))
     return NextResponse.json({ error: "Need admin role" }, { status: 403 });
 
   const { id } = await ctx.params;
-  const a = await loadOwned(id, session.user.activeOrgId);
-  if (!a) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  const [{ eq }, dbMod, audMod] = await Promise.all([
+    import("drizzle-orm"),
+    import("@/lib/db"),
+    import("@/lib/audit"),
+  ]);
+  const { db, agentInstances } = dbMod;
+  const { audit } = audMod;
+
+  const a = await db.query.agentInstances.findFirst({
+    where: eq(agentInstances.id, id),
+  });
+  if (!a || a.orgId !== session.user.activeOrgId)
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   await db.delete(agentInstances).where(eq(agentInstances.id, id));
   await audit({

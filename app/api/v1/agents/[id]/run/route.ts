@@ -1,9 +1,8 @@
-// V1_FINAL 1778289461 — production endpoint
+// V1_FINAL — minimal top-level imports
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { auth } from "@/auth";
-import { audit } from "@/lib/audit";
 
 // IMPORTANT: do NOT statically import @/lib/agents/runtime — it pulls the
 // `ai` SDK and the entire tools graph (~10MB), which co-bundles with sibling
@@ -37,6 +36,7 @@ export async function POST(
     return NextResponse.json({ error: "Invalid body" }, { status: 422 });
   }
 
+  const { audit } = await import("@/lib/audit");
   await audit({
     orgId: session.user.activeOrgId,
     actorType: "user",

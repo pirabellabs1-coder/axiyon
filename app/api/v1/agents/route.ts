@@ -1,22 +1,11 @@
-// V1_FINAL 1778289461 — production endpoint
-/**
- * /api/v1/agents — exact replica of working /api/diag/agents-clone, just at a
- * production path that the dashboard frontend can use.
- */
+// V1_FINAL — minimal top-level imports + lazy heavy deps
 import { NextResponse } from "next/server";
-import { eq, sql } from "drizzle-orm";
 import { z } from "zod";
-
 import { auth } from "@/auth";
-import { agentInstances, db } from "@/lib/db";
-import { audit } from "@/lib/audit";
-import { getTemplate } from "@/lib/agents/catalog";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 export const maxDuration = 30;
-
-const _kept = { eq, sql, z, audit, getTemplate, agentInstances };
 
 const Body = z.object({
   templateSlug: z.string().min(1).max(64),
@@ -28,20 +17,23 @@ const Body = z.object({
 });
 
 export async function GET() {
-  const t0 = Date.now();
   const session = await auth();
-  if (!session?.user?.activeOrgId) {
-    return NextResponse.json(
-      { error: "Unauthorized", took_ms: Date.now() - t0, _has: Object.keys(_kept) },
-      { status: 401 },
-    );
-  }
+  if (!session?.user?.activeOrgId)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const [{ eq, sql }, dbMod] = await Promise.all([
+    import("drizzle-orm"),
+    import("@/lib/db"),
+  ]);
+  const { db, agentInstances } = dbMod;
+
   const rows = await db
     .select()
     .from(agentInstances)
     .where(eq(agentInstances.orgId, session.user.activeOrgId))
     .orderBy(sql`${agentInstances.createdAt} DESC`);
-  return NextResponse.json({ rows, took_ms: Date.now() - t0 });
+
+  return NextResponse.json(rows);
 }
 
 export async function POST(req: Request) {
@@ -62,6 +54,15 @@ export async function POST(req: Request) {
   } catch {
     return NextResponse.json({ error: "Invalid body" }, { status: 422 });
   }
+
+  const [dbMod, catMod, audMod] = await Promise.all([
+    import("@/lib/db"),
+    import("@/lib/agents/catalog"),
+    import("@/lib/audit"),
+  ]);
+  const { db, agentInstances } = dbMod;
+  const { getTemplate } = catMod;
+  const { audit } = audMod;
 
   const tpl = getTemplate(body.templateSlug);
   if (!tpl) {
