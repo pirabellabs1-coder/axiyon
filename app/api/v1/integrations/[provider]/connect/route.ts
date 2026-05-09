@@ -27,7 +27,7 @@ export async function GET(
 
   try {
     const { signState, buildAuthorizeUrl } = await import("@/lib/integrations/oauth");
-    const state = signState({
+    const state = await signState({
       orgId: session.user.activeOrgId,
       userId: session.user.id,
       provider: slug,

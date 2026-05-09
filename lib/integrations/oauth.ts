@@ -1,16 +1,8 @@
 /**
  * OAuth 2.0 helpers — code-flow with PKCE-light (state nonce).
  *
- * The state parameter is a signed JWT-like string that carries:
- *   - orgId (which org gets the token)
- *   - userId (audit who initiated)
- *   - provider (sanity check on callback)
- *   - returnTo (where to redirect after success)
- *   - issuedAt (TTL 10 min)
- *
- * Signed with HMAC-SHA256 over AUTH_SECRET, base64url-encoded.
+ * Edge-safe: uses Web Crypto + TextEncoder + btoa, no node:crypto, no Buffer.
  */
-import { createHmac } from "node:crypto";
 import { z } from "zod";
 
 import { getProvider, type OauthFlow, type ProviderDef } from "./providers";
@@ -25,29 +17,54 @@ interface StatePayload {
   iat: number;
 }
 
-function b64url(s: string): string {
-  return Buffer.from(s).toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+// Base64url helpers using web-standard btoa/atob (edge + node 20+).
+function b64urlEncode(s: string): string {
+  return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
-function fromB64url(s: string): string {
+function b64urlEncodeBytes(bytes: Uint8Array): string {
+  let bin = "";
+  for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+function b64urlDecode(s: string): string {
   const pad = s.length % 4 === 0 ? "" : "=".repeat(4 - (s.length % 4));
-  return Buffer.from(s.replace(/-/g, "+").replace(/_/g, "/") + pad, "base64").toString("utf8");
+  return atob(s.replace(/-/g, "+").replace(/_/g, "/") + pad);
 }
+
 function getStateSecret(): string {
-  return process.env.AUTH_SECRET ?? process.env.AXION_ENCRYPTION_KEY ?? "axion-dev-state-secret";
+  return (
+    process.env.AUTH_SECRET ?? process.env.AXION_ENCRYPTION_KEY ?? "axion-dev-state-secret"
+  );
 }
 
-export function signState(payload: StatePayload): string {
-  const body = b64url(JSON.stringify(payload));
-  const sig = createHmac("sha256", getStateSecret()).update(body).digest();
-  return `${body}.${b64url(sig.toString("binary"))}`;
+async function importHmacKey(secret: string): Promise<CryptoKey> {
+  return crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign", "verify"],
+  );
 }
 
-export function verifyState(state: string): StatePayload {
+export async function signState(payload: StatePayload): Promise<string> {
+  const body = b64urlEncode(JSON.stringify(payload));
+  const key = await importHmacKey(getStateSecret());
+  const sig = new Uint8Array(
+    await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(body)),
+  );
+  return `${body}.${b64urlEncodeBytes(sig)}`;
+}
+
+export async function verifyState(state: string): Promise<StatePayload> {
   const [body, sig] = state.split(".");
   if (!body || !sig) throw new Error("Invalid state");
-  const expected = createHmac("sha256", getStateSecret()).update(body).digest();
-  if (b64url(expected.toString("binary")) !== sig) throw new Error("State signature mismatch");
-  const payload = JSON.parse(fromB64url(body)) as StatePayload;
+  const key = await importHmacKey(getStateSecret());
+  const expected = new Uint8Array(
+    await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(body)),
+  );
+  if (b64urlEncodeBytes(expected) !== sig) throw new Error("State signature mismatch");
+  const payload = JSON.parse(b64urlDecode(body)) as StatePayload;
   if (Date.now() - payload.iat > STATE_TTL_MS) throw new Error("State expired");
   return payload;
 }
@@ -60,10 +77,7 @@ export function getRedirectUri(provider: string): string {
   return `${base.replace(/\/$/, "")}/api/v1/integrations/${provider}/callback`;
 }
 
-export function buildAuthorizeUrl(
-  provider: ProviderDef,
-  state: string,
-): string {
+export function buildAuthorizeUrl(provider: ProviderDef, state: string): string {
   if (provider.flow.type !== "oauth2") {
     throw new Error(`Provider ${provider.slug} is not an OAuth provider`);
   }
@@ -103,6 +117,10 @@ const TokenSchema = z.object({
   token_type: z.string().optional(),
 });
 
+function basicAuthHeader(clientId: string, clientSecret: string): string {
+  return "Basic " + btoa(`${clientId}:${clientSecret}`);
+}
+
 export async function exchangeCodeForToken(
   provider: ProviderDef,
   code: string,
@@ -129,8 +147,7 @@ export async function exchangeCodeForToken(
     Accept: "application/json",
   };
   if (provider.slug === "notion") {
-    headers.Authorization =
-      "Basic " + Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
+    headers.Authorization = basicAuthHeader(clientId, clientSecret);
   }
 
   const res = await fetch(flow.tokenUrl, { method: "POST", headers, body: body.toString() });
@@ -178,8 +195,7 @@ export async function refreshOauthToken(
     Accept: "application/json",
   };
   if (provider.slug === "notion") {
-    headers.Authorization =
-      "Basic " + Buffer.from(`${clientId}:${clientSecret}`).toString("base64");
+    headers.Authorization = basicAuthHeader(clientId, clientSecret);
   }
 
   const res = await fetch(flow.tokenUrl, { method: "POST", headers, body: body.toString() });

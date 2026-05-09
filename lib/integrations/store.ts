@@ -68,8 +68,8 @@ export async function getActiveIntegration(
   const row = await findActiveIntegration(orgId, providerSlug);
   if (!row) return null;
 
-  let accessToken = decrypt(row.accessTokenEnc);
-  const refreshToken = tryDecrypt(row.refreshTokenEnc);
+  let accessToken = await decrypt(row.accessTokenEnc);
+  const refreshToken = await tryDecrypt(row.refreshTokenEnc);
   let expiresAt = row.expiresAt ?? null;
 
   // Auto-refresh if expiring within 60s
@@ -81,13 +81,15 @@ export async function getActiveIntegration(
         accessToken = refreshed.accessToken;
         expiresAt = refreshed.expiresAt ?? null;
 
+        const newAccessEnc = await encrypt(refreshed.accessToken);
+        const newRefreshEnc = refreshed.refreshToken
+          ? await encrypt(refreshed.refreshToken)
+          : row.refreshTokenEnc;
         await db
           .update(integrations)
           .set({
-            accessTokenEnc: encrypt(refreshed.accessToken),
-            refreshTokenEnc: refreshed.refreshToken
-              ? encrypt(refreshed.refreshToken)
-              : row.refreshTokenEnc,
+            accessTokenEnc: newAccessEnc,
+            refreshTokenEnc: newRefreshEnc,
             expiresAt: refreshed.expiresAt ?? null,
             status: "connected",
             updatedAt: new Date(),
@@ -137,6 +139,8 @@ export async function persistOauthConnection(args: {
   const profile = await fetchProviderProfile(args.provider, tokens.accessToken);
 
   const existing = await findActiveIntegration(args.orgId, args.provider.slug);
+  const accessTokenEnc = await encrypt(tokens.accessToken);
+  const refreshTokenEnc = tokens.refreshToken ? await encrypt(tokens.refreshToken) : null;
 
   const values = {
     orgId: args.orgId,
@@ -145,8 +149,8 @@ export async function persistOauthConnection(args: {
     accountId: profile.accountId ?? null,
     accountEmail: profile.accountEmail ?? null,
     accountName: profile.accountName ?? args.provider.name,
-    accessTokenEnc: encrypt(tokens.accessToken),
-    refreshTokenEnc: tokens.refreshToken ? encrypt(tokens.refreshToken) : null,
+    accessTokenEnc,
+    refreshTokenEnc,
     expiresAt: tokens.expiresAt ?? null,
     scopes: tokens.scopes,
     metadata: { profile: profile as Record<string, unknown> },
@@ -188,8 +192,7 @@ export async function persistApiKeyConnection(args: {
       const headers: Record<string, string> = { Accept: "application/json" };
       if (args.provider.slug === "twilio") {
         headers.Authorization =
-          "Basic " +
-          Buffer.from(`${args.fields.account_sid}:${args.fields.auth_token}`).toString("base64");
+          "Basic " + btoa(`${args.fields.account_sid}:${args.fields.auth_token}`);
       } else if (args.provider.slug === "stripe") {
         headers.Authorization = `Bearer ${args.fields.secret_key}`;
       } else if (args.fields.api_key) {
@@ -205,7 +208,7 @@ export async function persistApiKeyConnection(args: {
     }
   }
 
-  const ciphertext = encrypt(JSON.stringify(args.fields));
+  const ciphertext = await encrypt(JSON.stringify(args.fields));
 
   const existing = await findActiveIntegration(args.orgId, args.provider.slug);
   const values = {
@@ -251,7 +254,8 @@ export async function getApiKeyFields(
   const row = await findActiveIntegration(orgId, providerSlug);
   if (!row) return null;
   try {
-    return JSON.parse(decrypt(row.accessTokenEnc)) as Record<string, string>;
+    const json = await decrypt(row.accessTokenEnc);
+    return JSON.parse(json) as Record<string, string>;
   } catch {
     return null;
   }

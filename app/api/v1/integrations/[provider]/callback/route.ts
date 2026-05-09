@@ -37,7 +37,7 @@ export async function GET(
   const { verifyState } = await import("@/lib/integrations/oauth");
   let payload;
   try {
-    payload = verifyState(state);
+    payload = await verifyState(state);
   } catch {
     return Response.redirect(
       new URL(`/dashboard/integrations?error=invalid-state&provider=${slug}`, base).toString(),

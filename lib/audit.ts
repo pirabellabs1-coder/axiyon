@@ -3,8 +3,9 @@
  *
  * Each row carries `record_hash = SHA-256(prev_hash || canonical_json(payload))`,
  * so any tampering breaks the chain and is detected by `verifyChain()`.
+ *
+ * Uses Web Crypto API (globally available in both Node 20+ and Edge runtime).
  */
-import { createHash } from "node:crypto";
 import { desc, eq } from "drizzle-orm";
 
 import { db, auditLogs } from "@/lib/db";
@@ -31,12 +32,16 @@ function canonicalJson(value: unknown): string {
   return `{${keys.map((k) => `${JSON.stringify(k)}:${canonicalJson(obj[k])}`).join(",")}}`;
 }
 
-function hashPayload(prevHash: string | null, payload: unknown): string {
-  const h = createHash("sha256");
-  h.update(prevHash ?? "GENESIS");
-  h.update("|");
-  h.update(canonicalJson(payload));
-  return h.digest("hex");
+function bufToHex(buf: ArrayBuffer): string {
+  return Array.from(new Uint8Array(buf))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+async function hashPayload(prevHash: string | null, payload: unknown): Promise<string> {
+  const data = `${prevHash ?? "GENESIS"}|${canonicalJson(payload)}`;
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(data));
+  return bufToHex(buf);
 }
 
 export async function audit(input: AuditInput): Promise<void> {
@@ -58,7 +63,7 @@ export async function audit(input: AuditInput): Promise<void> {
     payload: input.payload ?? {},
     timestamp: new Date().toISOString(),
   };
-  const recordHash = hashPayload(prevHash, fullPayload);
+  const recordHash = await hashPayload(prevHash, fullPayload);
 
   await db.insert(auditLogs).values({
     orgId: input.orgId,
