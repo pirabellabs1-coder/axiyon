@@ -53,33 +53,21 @@ export const {
         password: { label: "Password", type: "password" },
       },
       async authorize(raw) {
+        const r = raw as Record<string, unknown>;
+        const email = typeof r?.email === "string" ? r.email.toLowerCase() : "";
+        const password = typeof r?.password === "string" ? r.password : "";
+        if (!email || !password) {
+          throw new Error(`bad-input keys=${Object.keys(r ?? {}).join(",")}`);
+        }
         try {
-          const parsed = credentialsSchema.safeParse(raw);
-          if (!parsed.success) {
-            console.warn("[auth.authorize] schema parse fail:", parsed.error.message);
-            return null;
-          }
-          const email = parsed.data.email.toLowerCase();
           const user = await db.query.users.findFirst({
             where: eq(users.email, email),
           });
-          if (!user) {
-            console.warn("[auth.authorize] user not found:", email);
-            return null;
-          }
-          if (!user.passwordHash) {
-            console.warn("[auth.authorize] user has no passwordHash:", email);
-            return null;
-          }
-          if (!user.isActive) {
-            console.warn("[auth.authorize] user not active:", email);
-            return null;
-          }
-          const ok = await bcrypt.compare(parsed.data.password, user.passwordHash);
-          if (!ok) {
-            console.warn("[auth.authorize] bad password:", email);
-            return null;
-          }
+          if (!user) throw new Error(`no-user email=${email}`);
+          if (!user.passwordHash) throw new Error("no-hash");
+          if (!user.isActive) throw new Error("inactive");
+          const ok = await bcrypt.compare(password, user.passwordHash);
+          if (!ok) throw new Error(`bad-pw len=${password.length} hashlen=${user.passwordHash.length}`);
           return {
             id: user.id,
             email: user.email,
@@ -87,8 +75,8 @@ export const {
             isSuperuser: user.isSuperuser,
           };
         } catch (e) {
-          console.error("[auth.authorize] threw:", e);
-          return null;
+          // NextAuth v5 swallows thrown errors but the message reaches /signin error handlers.
+          throw new Error(`authorize-failed: ${e instanceof Error ? e.message : String(e)}`);
         }
       },
     }),
