@@ -6,6 +6,7 @@
  * For API-key providers (Twilio, OpenAI, ...): declares the credentials shape.
  */
 import type { LucideIcon } from "lucide-react";
+import type { ToolName } from "@/lib/agents/tool-schemas";
 import {
   Mail,
   Calendar,
@@ -60,8 +61,12 @@ export interface ProviderDef {
   category: "email" | "calendar" | "voice" | "messaging" | "crm" | "docs" | "code" | "payments" | "social";
   icon: LucideIcon;
   flow: OauthFlow | ApiKeyFlow;
-  /** Tools (by name in lib/agents/tools.ts) that become real once connected. */
-  unlocksTools: string[];
+  /**
+   * Tools that become real once connected. Names MUST match keys in
+   * `lib/agents/tool-schemas.ts` — that's the only registry the runtimes read.
+   * An empty array means the provider is connectable but no tool consumes it yet.
+   */
+  unlocksTools: ToolName[];
 }
 
 export const PROVIDERS: Record<string, ProviderDef> = {
@@ -71,7 +76,7 @@ export const PROVIDERS: Record<string, ProviderDef> = {
     description: "Envoyer des emails Gmail, lire la boîte, créer des événements Agenda.",
     category: "email",
     icon: Mail,
-    unlocksTools: ["gmail_send", "gmail_search", "calendar_book", "calendar_list"],
+    unlocksTools: ["send_email", "search_emails", "book_meeting", "list_calendar_events"],
     flow: {
       type: "oauth2",
       authorizeUrl: "https://accounts.google.com/o/oauth2/v2/auth",
@@ -102,7 +107,7 @@ export const PROVIDERS: Record<string, ProviderDef> = {
     description: "Envoyer des emails Outlook, créer des événements, poster dans Teams.",
     category: "email",
     icon: Mail,
-    unlocksTools: ["outlook_send", "outlook_search", "ms_calendar_book", "teams_post"],
+    unlocksTools: ["send_email", "search_emails", "book_meeting", "teams_post"],
     flow: {
       type: "oauth2",
       authorizeUrl: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
@@ -136,10 +141,10 @@ export const PROVIDERS: Record<string, ProviderDef> = {
     category: "crm",
     icon: Briefcase,
     unlocksTools: [
-      "hubspot_create_contact",
-      "hubspot_create_deal",
-      "hubspot_search_contact",
-      "hubspot_create_note",
+      "crm_create_contact",
+      "crm_create_deal",
+      "crm_search_contact",
+      "crm_create_note",
     ],
     flow: {
       type: "oauth2",
@@ -163,7 +168,7 @@ export const PROVIDERS: Record<string, ProviderDef> = {
     description: "Créer des leads, opportunités, comptes dans Salesforce.",
     category: "crm",
     icon: Building2,
-    unlocksTools: ["sfdc_create_lead", "sfdc_search_account", "sfdc_create_opportunity"],
+    unlocksTools: ["crm_create_contact", "crm_search_contact", "crm_create_deal"],
     flow: {
       type: "oauth2",
       authorizeUrl: "https://login.salesforce.com/services/oauth2/authorize",
@@ -186,7 +191,7 @@ export const PROVIDERS: Record<string, ProviderDef> = {
     description: "Poster des messages, notifier des canaux, ouvrir des DMs.",
     category: "messaging",
     icon: MessagesSquare,
-    unlocksTools: ["slack_post_message", "slack_list_channels", "slack_send_dm"],
+    unlocksTools: ["slack_post", "slack_list_channels", "slack_dm"],
     flow: {
       type: "oauth2",
       authorizeUrl: "https://slack.com/oauth/v2/authorize",
@@ -230,7 +235,7 @@ export const PROVIDERS: Record<string, ProviderDef> = {
     description: "Créer / mettre à jour des pages et bases de données Notion.",
     category: "docs",
     icon: FileText,
-    unlocksTools: ["notion_create_page", "notion_search", "notion_update_page"],
+    unlocksTools: ["notion_create_page", "notion_search"],
     flow: {
       type: "oauth2",
       authorizeUrl: "https://api.notion.com/v1/oauth/authorize",
@@ -256,7 +261,8 @@ export const PROVIDERS: Record<string, ProviderDef> = {
     description: "Lire le profil + publier sur le feed.",
     category: "social",
     icon: Linkedin,
-    unlocksTools: ["linkedin_post"],
+    // Connectable, but no LinkedIn tool is implemented yet — nothing to unlock.
+    unlocksTools: [],
     flow: {
       type: "oauth2",
       authorizeUrl: "https://www.linkedin.com/oauth/v2/authorization",
@@ -280,7 +286,7 @@ export const PROVIDERS: Record<string, ProviderDef> = {
     description: "Passer des appels téléphoniques réels, envoyer des SMS, recevoir des numéros.",
     category: "voice",
     icon: Phone,
-    unlocksTools: ["twilio_call", "twilio_sms", "twilio_list_numbers"],
+    unlocksTools: ["make_phone_call", "send_sms", "list_phone_numbers"],
     flow: {
       type: "api_key",
       fields: [
@@ -314,7 +320,7 @@ export const PROVIDERS: Record<string, ProviderDef> = {
     description: "Envoyer des emails transactionnels (relances, notifications) en masse.",
     category: "email",
     icon: Mail,
-    unlocksTools: ["sendgrid_send"],
+    unlocksTools: ["send_email"],
     flow: {
       type: "api_key",
       fields: [
@@ -331,7 +337,7 @@ export const PROVIDERS: Record<string, ProviderDef> = {
     description: "Recherche réelle de prospects B2B + enrichissement.",
     category: "crm",
     icon: Users,
-    unlocksTools: ["apollo_search_people", "apollo_enrich_person"],
+    unlocksTools: ["search_leads", "enrich_lead", "search_candidates"],
     flow: {
       type: "api_key",
       fields: [{ name: "api_key", label: "Clé API Apollo", secret: true }],
@@ -344,7 +350,8 @@ export const PROVIDERS: Record<string, ProviderDef> = {
     description: "Lire / écrire des fichiers dans un bucket S3 (AWS, R2, Backblaze).",
     category: "docs",
     icon: Cloud,
-    unlocksTools: ["s3_put", "s3_get", "s3_list"],
+    // Connectable, but no S3 tool is implemented yet — nothing to unlock.
+    unlocksTools: [],
     flow: {
       type: "api_key",
       fields: [

@@ -666,7 +666,7 @@ Sécuriser juridiquement chaque deal et chaque action de l'entreprise. Revue de 
     349,
     "Tu es Scribe. Pour chaque PR mergée tu identifies les changements user-facing et tu mets à jour la doc. Exemples runnables, pas de prose vide."),
 
-  t("community", "Echo-Comm", "Community Manager", "support", "MessageCircle",
+  t("community-support", "Echo-Comm", "Community Manager", "support", "MessageCircle",
     "Anime Discord/Slack public, répond aux questions, escalade aux ingés.",
     ["Discord", "Slack", "Linear"],
     ["search_kb", "slack_post", "draft_response"],
