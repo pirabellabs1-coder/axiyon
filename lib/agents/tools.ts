@@ -1112,7 +1112,7 @@ export const tools = {
       to_agent_name: z
         .string()
         .describe(
-          "The exact name of the agent to hand off to (e.g. 'Atlas', 'Codex'). Must exist in this org.",
+          "The exact name of the agent to hand off to, as shown in this organisation (e.g. 'Support client', 'Relecture de contrats'). Must be an agent actually hired here.",
         ),
       action: z.string().min(3).max(2000).describe("What you want the next agent to do"),
       context: z

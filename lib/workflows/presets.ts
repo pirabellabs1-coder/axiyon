@@ -2,7 +2,16 @@
  * Workflows pré-configurés.
  *
  * Chargés au premier accès à /dashboard/workflows si la table est vide pour
- * cette org. Démontre les patterns multi-agents les plus courants.
+ * cette org. Ils servent d'exemples exécutables des enchaînements les plus
+ * courants — chaque étape référence un agent réel du catalogue.
+ *
+ * `schedule_cron` est en UTC, 5 champs (voir lib/workflows/cron.ts). Un preset
+ * sans planification se déclenche à la demande ou par webhook.
+ *
+ * Deux prérequis pour qu'un preset planifié tourne réellement :
+ *   1. le workflow doit être **publié** — le balayeur ignore les brouillons ;
+ *   2. chaque agent référencé doit être **recruté** dans l'organisation, car
+ *      l'exécution serveur attribue le coût et l'audit à une instance réelle.
  */
 import type { WorkflowSpec } from "./types";
 
@@ -13,90 +22,125 @@ export interface WorkflowPreset {
 
 export const WORKFLOW_PRESETS: WorkflowPreset[] = [
   {
-    slug: "deal-flow-hebdo",
+    slug: "prospection-hebdo",
     spec: {
-      name: "Deal Flow Hebdomadaire",
+      name: "Prospection hebdomadaire",
       description:
-        "Sourcing ICP → qualification de marge → outreach → booking de démos. Lance chaque lundi 9h.",
-      schedule_cron: "0 9 * * 1",
+        "Cherche de nouveaux prospects, les contacte par email, puis consigne tout dans le CRM. Chaque lundi à 8 h UTC.",
+      schedule_cron: "0 8 * * 1",
       steps: [
         {
-          id: "source",
-          agent_slug: "sdr-outbound",
-          action: "Source 50 prospects matchant l'ICP cible et enrichis-les avec Apollo.",
+          id: "recherche",
+          agent_slug: "recherche-clients",
+          action:
+            "Identifie 30 prospects correspondant à la cible de l'organisation. Vérifie chaque société sur son site avant de la retenir, et écarte celles qui ne correspondent plus. Renvoie un tableau : entreprise, contact, rôle, raison de la pertinence, source.",
           depends_on: [],
         },
         {
-          id: "qualify",
-          agent_slug: "cfo-assistant",
+          id: "contact",
+          agent_slug: "prospection-email",
           action:
-            "Sur les leads sourcés, qualifie ceux dont la marge brute attendue dépasse 80k€. Renvoie un classement.",
-          depends_on: ["source"],
+            "Pour chaque prospect retenu, rédige un email personnalisé à partir d'un fait vérifié sur son entreprise, puis envoie-le. Si un prospect répond favorablement, propose un créneau.",
+          depends_on: ["recherche"],
         },
         {
-          id: "outreach",
-          agent_slug: "sdr-outbound",
+          id: "crm",
+          agent_slug: "crm",
           action:
-            "Sur les leads qualifiés, envoie une séquence d'outreach personnalisée et booke les démos sur le calendrier.",
-          depends_on: ["qualify"],
+            "Enregistre les prospects contactés dans le CRM en vérifiant d'abord les doublons, et consigne l'email envoyé en note sur chaque contact.",
+          depends_on: ["contact"],
         },
       ],
     },
   },
   {
-    slug: "cloture-mensuelle",
+    slug: "veille-hebdo",
     spec: {
-      name: "Clôture Mensuelle",
+      name: "Veille concurrentielle hebdomadaire",
       description:
-        "Atlas tire les chiffres, Sigma rapproche les écritures, Quill prépare la conformité fiscale.",
-      schedule_cron: "0 7 1 * *",
+        "Surveille les concurrents, détecte ce qui a changé depuis la semaine dernière et en fait une synthèse. Chaque lundi à 6 h UTC.",
+      schedule_cron: "0 6 * * 1",
       steps: [
         {
-          id: "trial-balance",
-          agent_slug: "cfo-assistant",
-          action: "Tire la balance générale du mois courant et résume la santé financière.",
+          id: "veille",
+          agent_slug: "veille-concurrence",
+          action:
+            "Relève l'état actuel des concurrents suivis : tarifs, positionnement, annonces, offres d'emploi. Compare avec l'état enregistré la semaine précédente et ne retiens que les changements réels — ignore les modifications purement graphiques.",
           depends_on: [],
         },
         {
-          id: "reconcile",
-          agent_slug: "bookkeeper",
-          action: "Rapproche les écritures bancaires avec le trial balance d'Atlas.",
-          depends_on: ["trial-balance"],
-        },
-        {
-          id: "tax-prep",
-          agent_slug: "tax",
-          action: "Prépare la déclaration TVA + IS pour le mois clos.",
-          depends_on: ["reconcile"],
+          id: "synthese",
+          agent_slug: "reporting",
+          action:
+            "Rédige une synthèse des changements détectés. Pour chacun, indique la conséquence concrète pour l'organisation. Commence par la conclusion.",
+          depends_on: ["veille"],
         },
       ],
     },
   },
   {
-    slug: "incident-response",
+    slug: "audit-site-et-contenu",
     spec: {
-      name: "Réponse à Incident P1",
+      name: "Audit de site et plan de contenu",
       description:
-        "Pulse coordonne, Forge investigue les logs, Sentinel checke les vulnérabilités, Sage rédige la com client.",
+        "Audite un site page par page, puis transforme les manques détectés en plan éditorial SEO. À lancer à la demande sur un site donné.",
       steps: [
         {
-          id: "investigate",
-          agent_slug: "devops",
-          action: "Cherche dans les logs des 2 dernières heures les erreurs critiques.",
+          id: "audit",
+          agent_slug: "analyse-site",
+          action:
+            "Audite le site fourni en entrée : clarté de la proposition, structure, SEO, parcours de conversion. Livre un tableau priorisé par impact, avec une URL précise par constat.",
           depends_on: [],
         },
         {
-          id: "security",
-          agent_slug: "appsec",
-          action: "Vérifie que cette anomalie n'est pas un signe d'exploitation de vulnérabilité.",
-          depends_on: ["investigate"],
+          id: "plan-contenu",
+          agent_slug: "redacteur-seo",
+          action:
+            "À partir des manques de contenu relevés dans l'audit, propose un plan éditorial de 8 articles. Pour chacun : mot-clé visé, intention de recherche, angle qui n'est pas déjà couvert par les pages les mieux classées.",
+          depends_on: ["audit"],
+        },
+      ],
+    },
+  },
+  {
+    slug: "relances-impayes",
+    spec: {
+      name: "Relance des impayés",
+      description:
+        "Vérifie les paiements reçus, puis relance uniquement les factures réellement en retard, avec une escalade progressive. Chaque jour à 9 h UTC.",
+      schedule_cron: "0 9 * * *",
+      steps: [
+        {
+          id: "relances",
+          agent_slug: "facturation",
+          action:
+            "Liste les paiements encaissés récemment, puis identifie les factures encore impayées et leur retard. Relance chaque client en retard avec un ton proportionné à l'ancienneté de la créance. Ne relance jamais un client dont le paiement apparaît déjà encaissé.",
+          depends_on: [],
+        },
+      ],
+    },
+  },
+  {
+    slug: "traitement-boite-mail",
+    spec: {
+      name: "Traitement de la boîte mail",
+      description:
+        "Trie la boîte mail, répond à ce qui peut l'être et transmet le reste au support. En semaine, toutes les heures de 7 h à 18 h UTC.",
+      schedule_cron: "0 7-18 * * 1-5",
+      steps: [
+        {
+          id: "tri",
+          agent_slug: "gestion-email",
+          action:
+            "Récupère les messages non traités, classe-les par urgence, réponds à ceux qui relèvent de ton périmètre et programme les rendez-vous demandés. Signale sans y répondre tout message portant sur un engagement financier ou contractuel.",
+          depends_on: [],
         },
         {
-          id: "comms",
-          agent_slug: "support-l2",
+          id: "support",
+          agent_slug: "support-client",
           action:
-            "Rédige le statut public à publier sur Statuspage et le mail aux clients impactés.",
-          depends_on: ["investigate"],
+            "Traite les demandes transmises par l'étape précédente : cherche la réponse dans la base de connaissances avant de rédiger, et ouvre un ticket pour tout bug reproductible.",
+          depends_on: ["tri"],
         },
       ],
     },

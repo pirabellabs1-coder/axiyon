@@ -7,26 +7,34 @@ import { auth } from "@/auth";
 import { agentInstances, db } from "@/lib/db";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { getTemplate } from "@/lib/agents/catalog";
+import { getTemplate, type AgentTemplate } from "@/lib/agents/catalog";
 import { AgentIcon } from "@/components/agent-icon";
 
 export const dynamic = "force-dynamic";
 
-// Per-agent gradient (matches the demo dashboard.html palette)
-const AGENT_GRADIENTS: Record<string, string> = {
-  "sdr-outbound":    "linear-gradient(135deg,#5B6CFF,#22D3EE)",   // Iris
-  "cfo-assistant":   "linear-gradient(135deg,#FF3D8E,#5B6CFF)",   // Atlas
-  "support-l2":      "linear-gradient(135deg,#22D3EE,#34D399)",   // Sage
-  "legal-counsel":   "linear-gradient(135deg,#E8B86D,#FF3D8E)",   // Codex
-  "recruiter":       "linear-gradient(135deg,#FF3D8E,#E8B86D)",   // Nova
-  "devops":          "linear-gradient(135deg,#5A5A6E,#7C8AFF)",   // Forge
-  "growth-marketer": "linear-gradient(135deg,#34D399,#22D3EE)",   // Lumen
-  "data-scientist":  "linear-gradient(135deg,#7C8AFF,#FF3D8E)",   // Oracle
-  "ops-lead":        "linear-gradient(135deg,#5A5A6E,#FF3D8E)",   // Factory
+// Per-category gradient (palette from the demo dashboard.html).
+//
+// Keyed by category rather than by slug: the previous slug-keyed map silently
+// stopped matching whenever the catalogue changed, so every agent fell back to
+// the same blue. A category always exists for every template.
+const CATEGORY_GRADIENTS: Record<AgentTemplate["category"], string> = {
+  sales: "linear-gradient(135deg,#5B6CFF,#22D3EE)",
+  support: "linear-gradient(135deg,#22D3EE,#34D399)",
+  finance: "linear-gradient(135deg,#FF3D8E,#5B6CFF)",
+  legal: "linear-gradient(135deg,#E8B86D,#FF3D8E)",
+  hr: "linear-gradient(135deg,#FF3D8E,#E8B86D)",
+  eng: "linear-gradient(135deg,#5A5A6E,#7C8AFF)",
+  marketing: "linear-gradient(135deg,#34D399,#22D3EE)",
+  data: "linear-gradient(135deg,#7C8AFF,#FF3D8E)",
+  ops: "linear-gradient(135deg,#5A5A6E,#FF3D8E)",
+  content: "linear-gradient(135deg,#E8B86D,#7C8AFF)",
 };
 
 function gradientFor(slug: string): string {
-  return AGENT_GRADIENTS[slug] ?? "linear-gradient(135deg,#5B6CFF,#22D3EE)";
+  const category = getTemplate(slug)?.category;
+  return category
+    ? CATEGORY_GRADIENTS[category]
+    : "linear-gradient(135deg,#5B6CFF,#22D3EE)";
 }
 
 function healthLabel(score: number): string {

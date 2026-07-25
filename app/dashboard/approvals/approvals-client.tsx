@@ -16,7 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { AgentIcon } from "@/components/agent-icon";
-import { CATALOG } from "@/lib/agents/catalog";
+import { getTemplate } from "@/lib/agents/catalog";
 import { cn, formatEur, relativeTime } from "@/lib/utils";
 
 interface ApprovalItem {
@@ -115,7 +115,7 @@ export function ApprovalsClient({ items }: { items: ApprovalItem[] }) {
       ) : (
         <div className="space-y-3">
           {filtered.map((item) => {
-            const tpl = item.agentTemplate ? CATALOG[item.agentTemplate] : null;
+            const tpl = item.agentTemplate ? getTemplate(item.agentTemplate) : null;
             const status = STATUS[item.status as keyof typeof STATUS] ?? STATUS.expired;
             const StatusIcon = status.Icon;
             return (

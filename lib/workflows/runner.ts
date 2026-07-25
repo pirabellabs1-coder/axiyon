@@ -6,7 +6,7 @@
  * persists the run via POST /api/workflows/[slug]/runs.
  */
 import { runWithPuter } from "@/lib/agents/puter-runtime";
-import { CATALOG } from "@/lib/agents/catalog";
+import { getTemplate } from "@/lib/agents/catalog";
 import { topoSort } from "./topo";
 import type { WorkflowSpec, WorkflowStepOutput } from "./types";
 
@@ -45,7 +45,7 @@ export async function runWorkflow(
     callbacks.onStepStart?.(stepId);
 
     const stepStartedAt = new Date().toISOString();
-    const tpl = CATALOG[step.agent_slug];
+    const tpl = getTemplate(step.agent_slug);
     if (!tpl) {
       const out: WorkflowStepOutput = {
         id: stepId,

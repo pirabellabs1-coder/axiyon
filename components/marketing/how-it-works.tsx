@@ -5,7 +5,7 @@ const STEPS = [
     icon: UserPlus,
     n: "01",
     title: "Choisir l'agent",
-    desc: "Parcourez le catalogue. Iris pour la vente, Atlas pour la finance, Sage pour le support… chacun arrive avec un cerveau pré-entraîné et des outils branchés.",
+    desc: "Parcourez le catalogue. Recherche de clients pour la vente, Facturation et relances pour la finance, Support client pour le service… chacun arrive avec un cerveau pré-entraîné et des outils branchés.",
     chips: ["50+ agents", "10 verticales"],
   },
   {

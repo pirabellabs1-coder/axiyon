@@ -546,7 +546,7 @@ export const TOOL_SCHEMAS: Record<string, ToolSchema> = {
         to_agent_name: {
           type: "string",
           description:
-            "The exact name of the agent to hand off to (e.g. 'Atlas', 'Codex'). Must exist in this org.",
+            "The exact name of the agent to hand off to, as shown in this organisation (e.g. 'Support client', 'Relecture de contrats'). Must be an agent actually hired here.",
         },
         action: {
           type: "string",

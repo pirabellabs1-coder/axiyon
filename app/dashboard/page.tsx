@@ -247,7 +247,7 @@ export default async function OverviewPage() {
             </div>
             <CardTitle>Recrutez votre premier agent</CardTitle>
             <CardDescription className="max-w-md mx-auto">
-              Iris, Atlas, Sage, Codex, Nova, Forge… choisissez parmi {TEMPLATES.length}+
+              Gestion de la boîte mail, Support client, Rédacteur web SEO… choisissez parmi {TEMPLATES.length}
               agents prêts à travailler dans votre organisation.
             </CardDescription>
             <Button asChild variant="glow">

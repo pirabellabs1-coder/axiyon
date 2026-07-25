@@ -7,7 +7,7 @@ const TABS = [
     id: "orchestrate",
     label: "Orchestration",
     title: "Multi-agents qui collaborent comme une vraie équipe",
-    desc: "Vos agents se parlent. Iris (SDR) qualifie un lead, Atlas (CFO) valide la marge, Codex (juriste) prépare le contrat — pendant que vous dormez. Axion orchestre, gère les blocages, escalade.",
+    desc: "Vos agents se parlent. Recherche de clients qualifie un prospect, Prospection par email le contacte, Relecture de contrats prépare le contrat — pendant que vous dormez. Axion orchestre, gère les blocages, escalade.",
     features: [
       ["Workflows visuels", "drag & drop, ou en langage naturel"],
       ["Handoff intelligent", "l'agent sait à qui parler ensuite"],
@@ -126,21 +126,21 @@ export function PlatformTabs() {
                 text="Trouve 50 prospects ICP cette semaine, qualifie-les, et organise des démos — uniquement avec ceux dont la marge attendue dépasse 80k€."
               />
               <Bubble
-                who="Iris"
+                who="Recherche de clients"
                 role="SDR"
                 avatarClass="bg-grad text-white"
-                text="D'accord. Je sources sur LinkedIn et Apollo, je délègue l'analyse de marge à Atlas, et je booke avec ceux qui passent."
+                text="D'accord. Je cherche les prospects, je délègue la relecture du contrat, et je booke avec ceux qui passent."
                 tool={["linkedin.search", 'icp="VP Data, Series B+"', "→ 184 candidats trouvés"]}
               />
               <Bubble
-                who="Atlas"
+                who="Relecture de contrats"
                 role="CFO"
                 avatarClass="text-white"
                 avatarStyle={{ background: "linear-gradient(135deg,#FF3D8E,#5B6CFF)" }}
-                text="Sur les 184, 67 ont un budget data > 200k€/an. Marge brute estimée : 71-94k€. Je passe les 51 meilleurs à Iris."
+                text="Sur les 184, 67 correspondent à la cible après vérification de leur site. Je passe les 51 meilleurs à Prospection par email."
               />
               <Bubble
-                who="Iris"
+                who="Recherche de clients"
                 role="SDR"
                 avatarClass="bg-grad text-white"
                 text="Séquence d'outreach lancée. 6 démos confirmées sur ton calendrier mardi-jeudi."

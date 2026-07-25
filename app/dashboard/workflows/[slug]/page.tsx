@@ -6,7 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import { auth } from "@/auth";
 import { agentInstances, db, workflowRuns, workflows } from "@/lib/db";
 import { Card, CardContent } from "@/components/ui/card";
-import { CATALOG } from "@/lib/agents/catalog";
+import { getTemplate } from "@/lib/agents/catalog";
 import type { WorkflowSpec } from "@/lib/workflows/types";
 import { WorkflowDetailClient } from "./workflow-detail-client";
 
@@ -52,7 +52,7 @@ export default async function WorkflowDetailPage({
 
   // Augment steps with display metadata.
   const stepsMeta = spec.steps.map((s) => {
-    const tpl = CATALOG[s.agent_slug];
+    const tpl = getTemplate(s.agent_slug);
     return {
       ...s,
       agentName: tpl?.name ?? s.agent_slug,

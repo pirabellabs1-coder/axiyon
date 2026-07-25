@@ -48,8 +48,8 @@ export default async function WorkflowsPage() {
           <Workflow className="size-12 text-ink-3 mx-auto mb-3" strokeWidth={1.5} />
           <h3 className="text-lg font-medium mb-1">Aucun workflow encore</h3>
           <p className="text-ink-2 text-sm max-w-md mx-auto mb-6">
-            Un workflow chaîne plusieurs agents (ex : Iris source des leads → Atlas qualifie
-            la marge → Codex prépare le contrat) avec passages de relais et approbations
+            Un workflow chaîne plusieurs agents (ex : Recherche de clients trouve les prospects →
+            Prospection par email les contacte → Mise à jour du CRM consigne) avec relais et approbations
             humaines aux moments clés.
           </p>
           <Button variant="glow" asChild>

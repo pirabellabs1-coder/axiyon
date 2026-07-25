@@ -378,7 +378,7 @@ function buildUserMessage(
       "  | --- | --- |",
       "  | valeur | valeur |",
       "• End with a one-line **recap** stating what you did and what's next, e.g.",
-      "  \"✅ 12 prospects qualifiés ; 8 emails envoyés ; relais Codex pour le contrat Stripe.\"",
+      "  \"✅ 12 prospects qualifiés ; 8 emails envoyés ; relais vers Relecture de contrats.\"",
       "• No raw `****` decoration. Use `##` for section titles, not stars.",
       "",
       "Approval gate: actions > 5 000 € impact, contract signature, mass email (> 50 recipients), phone calls, real fund transfers → STOP and call the relevant tool that triggers `requestApproval` (the runtime will pause until a human decides).",

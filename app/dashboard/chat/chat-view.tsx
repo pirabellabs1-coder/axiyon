@@ -19,7 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Markdown } from "@/components/markdown";
 import { runWithPuter, isPuterAvailable } from "@/lib/agents/puter-runtime";
-import { CATALOG } from "@/lib/agents/catalog";
+import { getTemplate } from "@/lib/agents/catalog";
 
 interface Agent {
   id: string;
@@ -399,7 +399,7 @@ export function ChatView({
                 <>
                   <div className="chat-agent-name">{activeAgent?.name}</div>
                   <div className="chat-agent-meta">
-                    {CATALOG[activeAgent?.templateSlug ?? ""]?.role ?? activeAgent?.status}
+                    {getTemplate(activeAgent?.templateSlug ?? "")?.role ?? activeAgent?.status}
                   </div>
                 </>
               )}
@@ -469,7 +469,7 @@ export function ChatView({
               agentsInPlay.map((a) => {
                 const isActive = a.id === activeAgent?.id || running;
                 const cls = avatarClassFor(a.templateSlug, a.name);
-                const role = CATALOG[a.templateSlug]?.role ?? a.status;
+                const role = getTemplate(a.templateSlug)?.role ?? a.status;
                 return (
                   <div key={a.id} className="chat-side-block">
                     <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 6 }}>
@@ -632,7 +632,7 @@ function DemoMessage({
     );
   }
   const cls = avatarClassFor(msg.agent?.templateSlug ?? "", msg.agent?.name ?? "");
-  const role = msg.agent?.templateSlug ? CATALOG[msg.agent.templateSlug]?.role : null;
+  const role = msg.agent?.templateSlug ? getTemplate(msg.agent.templateSlug)?.role : null;
   return (
     <div className="msg">
       <div className={`msg-avatar ${cls}`}>
@@ -750,7 +750,7 @@ function Message({
     );
   }
   const Icon = iconFor(msg.agent?.templateSlug ?? "");
-  const role = msg.agent?.templateSlug ? CATALOG[msg.agent.templateSlug]?.role : null;
+  const role = msg.agent?.templateSlug ? getTemplate(msg.agent.templateSlug)?.role : null;
   const hasError = msg.content.startsWith("⚠");
   return (
     <div className="flex gap-3">
