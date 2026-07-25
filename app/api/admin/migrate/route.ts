@@ -272,6 +272,19 @@ CREATE TABLE IF NOT EXISTS "approvals" (
 
 CREATE INDEX IF NOT EXISTS "approvals_org_status_idx"
   ON "approvals" ("org_id", "status", "created_at");
+
+-- ─── Workflow triggers: cron sweeper + inbound webhooks (migration 0002) ──
+
+ALTER TABLE "workflows" ADD COLUMN IF NOT EXISTS "last_run_at" TIMESTAMPTZ;
+ALTER TABLE "workflows" ADD COLUMN IF NOT EXISTS "trigger_token" VARCHAR(64);
+
+-- Nullable unique: Postgres permits many NULLs, so workflows without a webhook
+-- coexist while any issued token stays globally unique.
+CREATE UNIQUE INDEX IF NOT EXISTS "workflows_trigger_token_uq"
+  ON "workflows" ("trigger_token");
+
+CREATE INDEX IF NOT EXISTS "workflows_schedule_idx"
+  ON "workflows" ("status", "schedule_cron");
 `;
 
 export async function POST(req: Request) {

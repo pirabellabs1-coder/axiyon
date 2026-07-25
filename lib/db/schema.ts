@@ -217,13 +217,29 @@ export const workflows = pgTable(
     version: integer("version").notNull().default(1),
     status: workflowStatusEnum("status").notNull().default("draft"),
     spec: jsonb("spec").notNull().$type<Record<string, unknown>>(),
+    /** 5-field UTC cron. Null means the workflow only runs on demand. */
     scheduleCron: varchar("schedule_cron", { length: 64 }),
+    /**
+     * Last scheduled occurrence actually dispatched. The cron sweeper treats
+     * this as an exclusive lower bound, which is what stops an occurrence from
+     * firing twice when two sweeps overlap.
+     */
+    lastRunAt: timestamp("last_run_at", { withTimezone: true }),
+    /**
+     * Secret path segment for the inbound webhook trigger. Null until someone
+     * enables webhook triggering. This is a bearer credential in a URL, so it
+     * is generated with a CSPRNG and never derived from the slug.
+     */
+    triggerToken: varchar("trigger_token", { length: 64 }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => ({
     uq: uniqueIndex("workflows_slug_version_uq").on(t.orgId, t.slug, t.version),
     orgIdx: index("workflows_org_idx").on(t.orgId, t.status),
+    tokenUq: uniqueIndex("workflows_trigger_token_uq").on(t.triggerToken),
+    // Drives the sweeper's "which workflows have a schedule" scan.
+    scheduleIdx: index("workflows_schedule_idx").on(t.status, t.scheduleCron),
   }),
 );
 

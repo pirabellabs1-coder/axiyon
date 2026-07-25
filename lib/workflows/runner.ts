@@ -7,11 +7,8 @@
  */
 import { runWithPuter } from "@/lib/agents/puter-runtime";
 import { CATALOG } from "@/lib/agents/catalog";
-import type {
-  WorkflowSpec,
-  WorkflowStepOutput,
-  WorkflowStepSpec,
-} from "./types";
+import { topoSort } from "./topo";
+import type { WorkflowSpec, WorkflowStepOutput } from "./types";
 
 interface RunCallbacks {
   onStepStart?: (stepId: string) => void;
@@ -145,25 +142,3 @@ export async function runWorkflow(
   };
 }
 
-function topoSort(steps: WorkflowStepSpec[]): string[] {
-  const deps = new Map<string, Set<string>>();
-  for (const s of steps) deps.set(s.id, new Set(s.depends_on ?? []));
-  const ready: string[] = steps.filter((s) => !s.depends_on?.length).map((s) => s.id);
-  const order: string[] = [];
-  while (ready.length) {
-    const n = ready.shift()!;
-    order.push(n);
-    for (const s of steps) {
-      if (deps.get(s.id)?.has(n)) {
-        deps.get(s.id)!.delete(n);
-        if (deps.get(s.id)!.size === 0 && !order.includes(s.id) && !ready.includes(s.id)) {
-          ready.push(s.id);
-        }
-      }
-    }
-  }
-  if (order.length !== steps.length) {
-    throw new Error("Cycle détecté dans le workflow");
-  }
-  return order;
-}
