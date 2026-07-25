@@ -317,11 +317,11 @@ img,video,iframe,svg{max-width:100%;height:auto}
 
       <!-- L3 : Agents -->
       <div class="arch-layer cols-6">
-        <div class="arch-block"><div class="label">L3 · AGENT</div><div class="name">Iris · SDR</div></div>
-        <div class="arch-block"><div class="label">L3 · AGENT</div><div class="name">Atlas · CFO</div></div>
-        <div class="arch-block"><div class="label">L3 · AGENT</div><div class="name">Sage · Support</div></div>
-        <div class="arch-block"><div class="label">L3 · AGENT</div><div class="name">Forge · DevOps</div></div>
-        <div class="arch-block"><div class="label">L3 · AGENT</div><div class="name">Codex · Légal</div></div>
+        <div class="arch-block"><div class="label">L3 · AGENT</div><div class="name">Recherche de clients</div></div>
+        <div class="arch-block"><div class="label">L3 · AGENT</div><div class="name">Reporting</div></div>
+        <div class="arch-block"><div class="label">L3 · AGENT</div><div class="name">Support client</div></div>
+        <div class="arch-block"><div class="label">L3 · AGENT</div><div class="name">Analyste de site web</div></div>
+        <div class="arch-block"><div class="label">L3 · AGENT</div><div class="name">Relecture de contrats</div></div>
         <div class="arch-block"><div class="label">L3 · AGENT</div><div class="name">+ 200 autres</div></div>
       </div>
       <div class="arch-arrow">↓</div>
@@ -390,7 +390,7 @@ img,video,iframe,svg{max-width:100%;height:auto}
       <div class="feature reveal">
         <span class="feature-icon">🎙</span>
         <h3>Voice & Voice cloning</h3>
-        <p>Vos agents parlent au téléphone. Iris appelle des prospects en français parfait avec votre ton de marque. Sage réceptionne les appels support. Sub-200ms de latence, voix indiscernable d'un humain.</p>
+        <p>Vos agents parlent au téléphone. Appels téléphoniques appelle des prospects en français parfait avec votre ton de marque. Support client réceptionne les appels. Sub-200ms de latence, voix indiscernable d'un humain.</p>
         <div class="feature-meta">voice.clone(samples=5min) · latency&lt;200ms · 47 langues</div>
       </div>
       <div class="feature reveal">
@@ -434,7 +434,7 @@ ax = Axion(api_key=<span class="tk-str">"axn_live_..."</span>)
 <span class="tk-cmt"># Recruit a senior SDR in 60 seconds.</span>
 iris = ax.agents.<span class="tk-fn">hire</span>(
     role=<span class="tk-str">"sdr-outbound"</span>,
-    name=<span class="tk-str">"Iris"</span>,
+    name=<span class="tk-str">"Recherche de clients"</span>,
     voice_clone=<span class="tk-str">"./voice_samples/"</span>,
     icp=<span class="tk-str">"VP Data, Series B+, Europe"</span>,
     budget_per_day=<span class="tk-num">500</span>,
@@ -592,7 +592,7 @@ ax = Axion(api_key=<span class="tk-str">"axn_live_..."</span>)
 <span class="tk-cmt"># Recruit a senior SDR in 60 seconds.</span>
 iris = ax.agents.<span class="tk-fn">hire</span>(
     role=<span class="tk-str">"sdr-outbound"</span>,
-    name=<span class="tk-str">"Iris"</span>,
+    name=<span class="tk-str">"Recherche de clients"</span>,
     voice_clone=<span class="tk-str">"./voice_samples/"</span>,
     icp=<span class="tk-str">"VP Data, Series B+, Europe"</span>,
     budget_per_day=<span class="tk-num">500</span>,
@@ -612,7 +612,7 @@ ts:`<span class="tk-cmt">// npm i @axion/sdk</span>
 
 <span class="tk-key">const</span> iris = <span class="tk-key">await</span> ax.agents.<span class="tk-fn">hire</span>({
   role: <span class="tk-str">"sdr-outbound"</span>,
-  name: <span class="tk-str">"Iris"</span>,
+  name: <span class="tk-str">"Recherche de clients"</span>,
   voiceClone: <span class="tk-str">"./voice_samples/"</span>,
   icp: <span class="tk-str">"VP Data, Series B+, Europe"</span>,
   budgetPerDay: <span class="tk-num">500</span>,
@@ -666,10 +666,10 @@ $ axion <span class="tk-fn">dev</span>
 
 <span class="tk-cmt"># Hire an agent (interactive)</span>
 $ axion agents <span class="tk-fn">hire</span> sdr-outbound
-<span class="tk-num">?</span> Name: <span class="tk-str">Iris</span>
+<span class="tk-num">?</span> Name: <span class="tk-str">Recherche de clients</span>
 <span class="tk-num">?</span> Voice clone? (./voice_samples) <span class="tk-str">y</span>
 <span class="tk-num">?</span> ICP description: <span class="tk-str">VP Data, Series B+...</span>
-<span class="tk-cmt">✓ Iris hired. ID: agt_8k2j...</span>
+<span class="tk-cmt">✓ Recherche de clients recruté. ID: agt_8k2j...</span>
 
 <span class="tk-cmt"># Deploy a workflow</span>
 $ axion deploy <span class="tk-fn">--file</span> axion.yaml <span class="tk-fn">--env</span> prod

@@ -5,7 +5,9 @@
   "description": "Axion — The OS for the Autonomous Enterprise. Hire AI employees, orchestrate them, audit every action.",
   "scripts": {
     "dev": "next dev --turbo",
+    "prebuild": "tsx scripts/sync-marketing-agents.ts",
     "build": "next build",
+    "sync:agents": "tsx scripts/sync-marketing-agents.ts",
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
